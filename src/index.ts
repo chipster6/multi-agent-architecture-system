@@ -19,7 +19,7 @@ import {
  * Foundation MCP Server class
  */
 class FoundationMCPServer {
-  private server: Server;
+  private readonly server: Server;
 
   constructor() {
     this.server = new Server(
@@ -39,15 +39,15 @@ class FoundationMCPServer {
 
   private setupHandlers(): void {
     // Register basic tool handlers
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
+    this.server.setRequestHandler(ListToolsRequestSchema, () => {
+      return Promise.resolve({
         tools: [],
-      };
+      });
     });
 
-    this.server.setRequestHandler(CallToolRequestSchema, async request => {
+    this.server.setRequestHandler(CallToolRequestSchema, (request) => {
       const { name } = request.params;
-      throw new Error(`Tool not implemented: ${name}`);
+      return Promise.reject(new Error(`Tool not implemented: ${name}`));
     });
   }
 

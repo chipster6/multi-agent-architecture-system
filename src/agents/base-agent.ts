@@ -76,7 +76,7 @@ export abstract class BaseAgent {
       const artifacts = await this.generateArtifacts(decisions, validatedInput);
 
       // Validate the output
-      const output = await this.validate(decisions, artifacts, validatedInput);
+      const output = this.validate(decisions, artifacts, validatedInput);
 
       const executionTime = Date.now() - startTime;
 
@@ -119,33 +119,36 @@ export abstract class BaseAgent {
   /**
    * Check if all dependencies are satisfied
    */
-  protected async checkDependencies(context: any): Promise<void> {
-    const contextDecisions = context.decisions || [];
+  protected checkDependencies(context: Record<string, unknown>): Promise<void> {
+    const decisions = context['decisions'];
+    const contextDecisions = Array.isArray(decisions) ? decisions : [];
     const availableAgents = new Set(
-      contextDecisions.map((d: any) => d.agentId)
+      contextDecisions.map((d: Record<string, unknown>) => d['agentId'] as string)
     );
 
     for (const dependency of this.dependencies) {
       if (!availableAgents.has(dependency)) {
-        throw new Error(
+        return Promise.reject(new Error(
           `Dependency not satisfied: ${dependency} required by ${this.agentId}`
-        );
+        ));
       }
     }
+    
+    return Promise.resolve();
   }
 
   /**
    * Analyze the current context and requirements
    * Must be implemented by each specialized agent
    */
-  protected abstract analyze(input: BaseAgentInput): Promise<any>;
+  protected abstract analyze(input: BaseAgentInput): Promise<unknown>;
 
   /**
    * Make architectural decisions based on analysis
    * Must be implemented by each specialized agent
    */
   protected abstract decide(
-    analysis: any,
+    analysis: unknown,
     input: BaseAgentInput
   ): Promise<ArchitecturalDecision[]>;
 
@@ -153,12 +156,12 @@ export abstract class BaseAgent {
    * Generate artifacts (documentation, diagrams, specifications)
    * Can be overridden by specialized agents
    */
-  protected async generateArtifacts(
+  protected generateArtifacts(
     decisions: ArchitecturalDecision[],
     _input: BaseAgentInput
   ): Promise<Artifact[]> {
     // Default implementation - create a summary artifact
-    return [
+    return Promise.resolve([
       {
         id: `${this.agentId}-summary-${Date.now()}`,
         type: 'document',
@@ -181,18 +184,18 @@ export abstract class BaseAgent {
         phase: this.phase,
         timestamp: new Date().toISOString(),
       },
-    ];
+    ]);
   }
 
   /**
    * Validate decisions and artifacts
    * Can be overridden by specialized agents for custom validation
    */
-  protected async validate(
+  protected validate(
     decisions: ArchitecturalDecision[],
     artifacts: Artifact[],
     _input: BaseAgentInput
-  ): Promise<BaseAgentOutput> {
+  ): BaseAgentOutput {
     // Calculate overall confidence as average of decision confidences
     const avgConfidence =
       decisions.length > 0
@@ -277,7 +280,12 @@ export abstract class BaseAgent {
   /**
    * Get agent metadata
    */
-  getMetadata() {
+  getMetadata(): {
+    agentId: string;
+    phase: string;
+    capabilities: string[];
+    dependencies: string[];
+  } {
     return {
       agentId: this.agentId,
       phase: this.phase,

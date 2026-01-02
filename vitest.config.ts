@@ -10,28 +10,28 @@ export default defineConfig({
       {
         name: 'unit',
         include: ['tests/unit/**/*.{test,spec}.{js,ts}'],
-        exclude: ['node_modules', 'dist'],
+        exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 30000,
         hookTimeout: 30000,
       },
       {
         name: 'integration',
         include: ['tests/integration/**/*.{test,spec}.{js,ts}'],
-        exclude: ['node_modules', 'dist'],
+        exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 30000,
         hookTimeout: 30000,
       },
       {
         name: 'performance',
         include: ['tests/performance/**/*.{test,spec}.{js,ts}'],
-        exclude: ['node_modules', 'dist'],
+        exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 60000, // Longer timeout for performance tests
         hookTimeout: 60000,
       },
       {
         name: 'property',
         include: ['tests/property/**/*.{test,spec}.{js,ts}'],
-        exclude: ['node_modules', 'dist'],
+        exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 60000, // Longer timeout for property-based tests
         hookTimeout: 60000,
       },
@@ -57,6 +57,7 @@ export default defineConfig({
         'node_modules/',
         'dist/',
         'tests/',
+        'arch_docs/',
         '**/*.d.ts',
         '**/*.config.{js,ts}',
         '**/*.test.{js,ts}',

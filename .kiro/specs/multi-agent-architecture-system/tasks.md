@@ -255,11 +255,11 @@ _Requirements: 2.1-2.9_
 
 **File:** `src/mcp/toolRegistry.ts` (continued)
 
-- [ ] Initialize Ajv instance for JSON Schema draft-07
-- [ ] Compile validators at registration time using `ajv.compile(schema)`
-- [ ] Cache compiled validators in `RegisteredTool.validator`
-- [ ] Enforce object-root constraint (`type: 'object'` required at schema root)
-- [ ] Reject non-object root schemas at registration with `INVALID_ARGUMENT` error
+- [x] Initialize Ajv instance for JSON Schema draft-07
+- [x] Compile validators at registration time using `ajv.compile(schema)`
+- [x] Cache compiled validators in `RegisteredTool.validator`
+- [x] Enforce object-root constraint (`type: 'object'` required at schema root)
+- [x] Reject non-object root schemas at registration with `INVALID_ARGUMENT` error
 
 _Requirements: 3.2_
 
@@ -275,10 +275,10 @@ _Requirements: 3.2_
 
 **File:** `src/mcp/toolRegistry.ts` (continued)
 
-- [ ] Track `isDynamic` flag on registered tools
-- [ ] In `register()`, log dynamic registrations at WARN level via injected logger
-- [ ] Note: `config.security.allowArbitraryCodeTools` is reserved for future use and not used in v0.1
-- [ ] Note: Admin policy enforcement happens at protocol handler layer, not here
+- [x] Track `isDynamic` flag on registered tools
+- [x] In `register()`, log dynamic registrations at WARN level via injected logger
+- [x] Note: `config.security.allowArbitraryCodeTools` is reserved for future use and not used in v0.1
+- [x] Note: Admin policy enforcement happens at protocol handler layer, not here
 
 _Requirements: 2.5-2.7, 10.2, 10.3_
 
@@ -297,14 +297,14 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 
 **File:** `src/resources/resourceManager.ts`
 
-- [ ] Define `ResourceTelemetry` interface per design
-- [ ] Implement concurrency slot management:
+- [x] Define `ResourceTelemetry` interface per design
+- [x] Implement concurrency slot management:
   - `acquireSlot(): Promise<ReleaseFunction>` - blocks if at limit
   - `tryAcquireSlot(): ReleaseFunction | null` - returns null if at limit
-- [ ] Implement `validatePayloadSize(payload: unknown): ValidationResult`
+- [x] Implement `validatePayloadSize(payload: unknown): ValidationResult`
   - Serialize to JSON, measure UTF-8 byte length
   - Compare against `config.tools.maxPayloadBytes`
-- [ ] Implement `getTelemetry(): ResourceTelemetry`:
+- [x] Implement `getTelemetry(): ResourceTelemetry`:
   - `memoryUsageBytes`: use `process.memoryUsage().heapUsed`
   - `eventLoopDelayMs`: use `perf_hooks.monitorEventLoopDelay()`, report p99
     - **Histogram enabled at startup**
@@ -312,7 +312,7 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
     - **Report p99 from current window snapshot**
   - `concurrentExecutions`: current slot count
   - `maxConcurrentExecutions`: from config
-- [ ] Implement `isApproachingLimits(): boolean` for load shedding (>80% utilization)
+- [x] Implement `isApproachingLimits(): boolean` for load shedding (>80% utilization)
 
 _Requirements: 9.1-9.5_
 

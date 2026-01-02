@@ -17,6 +17,7 @@ module.exports = {
     'dist/**',
     'node_modules/**',
     'coverage/**',
+    'arch_docs/**', // Exclude architecture documentation directory
     '*.js',
     '**/*.d.ts',
     'tests/**', // Exclude test files from TypeScript project requirement

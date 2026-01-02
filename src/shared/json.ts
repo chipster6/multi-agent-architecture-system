@@ -28,11 +28,9 @@
  */
 export function safeStringify(value: unknown): string | null {
   try {
-    const result = JSON.stringify(value);
-    // JSON.stringify returns undefined for certain values like undefined, functions, symbols
-    // We should return null for these cases as they are not serializable to JSON strings
-    return result === undefined ? null : result;
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return JSON.stringify(value) ?? null;
+  } catch (_error) {
     // JSON.stringify can throw for various reasons:
     // - Circular references (TypeError: Converting circular structure to JSON)
     // - BigInt values (TypeError: Do not know how to serialize a BigInt)

@@ -17,23 +17,27 @@ export class WorkflowEngine {
    * Execute Phase 1: Strategic Design
    * Requirements → Domain Design → System Topology
    */
-  async executePhase1(
-    input: any,
+  /**
+   * Execute Phase 1: Strategic Design
+   * Requirements → Domain Design → System Topology
+   */
+  executePhase1(
+    input: unknown,
     context: ArchitectureContext
-  ): Promise<RequirementsAnalysis & { decisions: any[]; artifacts: any[] }> {
+  ): Promise<RequirementsAnalysis & { decisions: unknown[]; artifacts: unknown[] }> {
     console.error('Executing Phase 1: Strategic Design', {
       sessionId: context.sessionId,
     });
 
     // TODO: Implement actual agent orchestration
     // This is a placeholder implementation
-
+    const inputObj = input as Record<string, unknown>;
     const mockAnalysis: RequirementsAnalysis = {
       requirements: [
         {
           id: 'req-001',
           type: 'functional',
-          description: input.description,
+          description: inputObj['description'] as string,
           priority: 'high',
           source: 'user_input',
           acceptance_criteria: [
@@ -54,18 +58,23 @@ export class WorkflowEngine {
         data_flow: [],
         system_boundaries: [],
       },
-      constraints:
-        input.constraints?.map((constraint: string, index: number) => ({
-          id: `constraint-${index + 1}`,
-          type: 'business',
-          description: constraint,
-          impact: 'medium',
-          mitigation: [],
-        })) || [],
+      constraints: (() => {
+        const constraints = inputObj['constraints'];
+        if (Array.isArray(constraints)) {
+          return constraints.map((constraint: string, index: number) => ({
+            id: `constraint-${index + 1}`,
+            type: 'business',
+            description: constraint,
+            impact: 'medium',
+            mitigation: [],
+          }));
+        }
+        return [];
+      })(),
       confidence: 0.85,
     };
 
-    return {
+    return Promise.resolve({
       ...mockAnalysis,
       decisions: [
         {
@@ -94,15 +103,15 @@ export class WorkflowEngine {
           timestamp: new Date().toISOString(),
         },
       ],
-    };
+    });
   }
 
   /**
    * Execute Phases 2-10: Architecture Design
    * Infrastructure → Data → Application → AI/ML → Security → Resilience → Performance → DevOps → Governance
    */
-  async executeArchitecturePhases(
-    _input: any,
+  executeArchitecturePhases(
+    _input: unknown,
     context: ArchitectureContext
   ): Promise<ArchitectureBlueprint> {
     console.error('Executing Architecture Phases 2-10', {
@@ -111,7 +120,6 @@ export class WorkflowEngine {
 
     // TODO: Implement actual multi-phase agent orchestration
     // This is a placeholder implementation
-
     const mockBlueprint: ArchitectureBlueprint = {
       overview: {
         system_name: 'Generated Architecture',
@@ -204,15 +212,15 @@ export class WorkflowEngine {
       ],
     };
 
-    return mockBlueprint;
+    return Promise.resolve(mockBlueprint);
   }
 
   /**
    * Execute Phase 11: Implementation Planning
    * Task breakdown and execution planning
    */
-  async executePhase11(
-    input: any,
+  executePhase11(
+    input: unknown,
     context: ArchitectureContext
   ): Promise<ImplementationPlan> {
     console.error('Executing Phase 11: Implementation Planning', {
@@ -226,8 +234,8 @@ export class WorkflowEngine {
       overview: {
         project_name: 'Architecture Implementation',
         description: 'Implementation of the designed software architecture',
-        duration: input.timeline || '6 months',
-        team_size: input.teamSize || 8,
+        duration: (input as { timeline?: string }).timeline ?? '6 months',
+        team_size: (input as { teamSize?: number }).teamSize ?? 8,
         budget_estimate: '$500,000 - $750,000',
         success_criteria: [
           'All services deployed and operational',
@@ -296,6 +304,6 @@ export class WorkflowEngine {
       ],
     };
 
-    return mockPlan;
+    return Promise.resolve(mockPlan);
   }
 }

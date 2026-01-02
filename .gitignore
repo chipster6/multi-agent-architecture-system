@@ -109,6 +109,7 @@ data/
 artifacts/
 generated/
 docs/architecture/
+arch_docs/
 
 # Test artifacts
 test-results/

@@ -249,7 +249,7 @@ export class StructuredLogger {
     // Store original keys for inheritance
     this.originalRedactKeys = [
       ...this.defaultRedactKeys,
-      ...(customRedactKeys || [])
+      ...(customRedactKeys ?? [])
     ];
     
     // Create case-insensitive set of redact keys
@@ -523,6 +523,7 @@ export class StructuredLogger {
     
     // Handle string values - escape control characters
     if (typeof obj === 'string') {
+      // eslint-disable-next-line no-control-regex
       return obj.replace(/[\u0000-\u001F]/g, (char) => {
         switch (char) {
           case '\n':
@@ -531,10 +532,11 @@ export class StructuredLogger {
             return '\\r';
           case '\t':
             return '\\t';
-          default:
+          default: {
             // Escape other control characters as \uXXXX
             const charCode = char.charCodeAt(0);
             return '\\u' + charCode.toString(16).padStart(4, '0');
+          }
         }
       });
     }

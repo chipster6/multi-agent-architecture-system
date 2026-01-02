@@ -14,6 +14,8 @@ import type {
   RequirementsAnalysis,
   ArchitectureBlueprint,
   ImplementationPlan,
+  ArchitecturalDecision,
+  Artifact,
 } from '../shared/types/index.js';
 
 // Input schemas for validation
@@ -50,9 +52,9 @@ const ImplementationInputSchema = z.object({
 });
 
 export class MetaCoordinator {
-  private workflowEngine: WorkflowEngine;
-  private conflictResolver: ConflictResolver;
-  private context: ArchitectureContext;
+  private readonly workflowEngine: WorkflowEngine;
+  private readonly conflictResolver: ConflictResolver;
+  private readonly context: ArchitectureContext;
 
   constructor() {
     this.workflowEngine = new WorkflowEngine();
@@ -95,13 +97,14 @@ export class MetaCoordinator {
       );
 
       // Store results in context
-      this.context.decisions.push(...analysis.decisions);
-      this.context.artifacts.push(...analysis.artifacts);
+      const analysisResult = analysis as { decisions: ArchitecturalDecision[]; artifacts: Artifact[] };
+      this.context.decisions.push(...analysisResult.decisions);
+      this.context.artifacts.push(...analysisResult.artifacts);
 
       console.error('Requirements analysis completed', {
         sessionId: this.context.sessionId,
-        decisionsCount: analysis.decisions.length,
-        artifactsCount: analysis.artifacts.length,
+        decisionsCount: analysisResult.decisions.length,
+        artifactsCount: analysisResult.artifacts.length,
       });
 
       return {
@@ -171,9 +174,9 @@ export class MetaCoordinator {
       console.error('Architecture generation completed', {
         sessionId: this.context.sessionId,
         blueprint: {
-          componentsCount: blueprint.components?.length || 0,
-          servicesCount: blueprint.services?.length || 0,
-          adrsCount: blueprint.adrs?.length || 0,
+          componentsCount: blueprint.components?.length ?? 0,
+          servicesCount: blueprint.services?.length ?? 0,
+          adrsCount: blueprint.adrs?.length ?? 0,
         },
       });
 
@@ -192,7 +195,7 @@ export class MetaCoordinator {
   /**
    * Validate architectural decisions for conflicts and compliance
    */
-  async validateDecisions(input: unknown): Promise<{
+  validateDecisions(input: unknown): Promise<{
     content: Array<{
       isValid: boolean;
       issues: string[];
@@ -211,9 +214,9 @@ export class MetaCoordinator {
       this.context.phase = 'validation';
 
       // Run validation across all decisions
-      const validation = await this.conflictResolver.validateArchitecture(
+      const validation = this.conflictResolver.validateArchitecture(
         validatedInput.architecture,
-        validatedInput.constraints || [],
+        validatedInput.constraints ?? [],
         this.context
       );
 
@@ -226,9 +229,9 @@ export class MetaCoordinator {
         },
       });
 
-      return {
+      return Promise.resolve({
         content: [validation],
-      };
+      });
     } catch (error) {
       console.error('Decision validation failed', {
         sessionId: this.context.sessionId,
@@ -264,9 +267,9 @@ export class MetaCoordinator {
       console.error('Implementation planning completed', {
         sessionId: this.context.sessionId,
         plan: {
-          phasesCount: plan.phases?.length || 0,
-          tasksCount: plan.tasks?.length || 0,
-          milestonesCount: plan.milestones?.length || 0,
+          phasesCount: plan.phases?.length ?? 0,
+          tasksCount: plan.tasks?.length ?? 0,
+          milestonesCount: plan.milestones?.length ?? 0,
         },
       });
 

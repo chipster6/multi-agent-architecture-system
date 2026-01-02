@@ -72,7 +72,8 @@ export class FixedClock implements Clock {
    * @param newTime - New fixed time
    */
   setTime(newTime: Date): void {
-    (this.fixedTime as any) = newTime;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    (this.fixedTime as Date) = newTime;
   }
 }
 
@@ -124,7 +125,7 @@ export class ControllableClock implements Clock {
    * @param initialTime - Optional new initial time (defaults to current system time)
    */
   reset(initialTime?: Date): void {
-    this.currentTime = new Date(initialTime || new Date());
+    this.currentTime = new Date(initialTime ?? new Date());
   }
 }
 
@@ -142,7 +143,7 @@ export function createClock(): Clock {
  * @returns FixedClock instance
  */
 export function createFixedClock(fixedTime?: Date): FixedClock {
-  return new FixedClock(fixedTime || new Date('2024-01-15T10:30:00.000Z'));
+  return new FixedClock(fixedTime ?? new Date('2024-01-15T10:30:00.000Z'));
 }
 
 /**

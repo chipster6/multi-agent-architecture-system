@@ -42,7 +42,7 @@ export interface ServerConfig {
 
   security: {
     dynamicRegistrationEnabled: boolean; // default false
-    allowArbitraryCodeTools: boolean; // default false
+    allowArbitraryCodeTools: boolean; // default false - reserved for future use, not used in v0.1
   };
 
   aacp?: {
@@ -103,7 +103,7 @@ const DEFAULT_CONFIG: ServerConfig = {
   },
   security: {
     dynamicRegistrationEnabled: false,
-    allowArbitraryCodeTools: false,
+    allowArbitraryCodeTools: false, // reserved for future use, not used in v0.1
   },
   aacp: {
     defaultTtlMs: 86400000, // 24 hours
@@ -116,7 +116,7 @@ const DEFAULT_CONFIG: ServerConfig = {
  * validation, and typed access to configuration values.
  */
 export class ConfigManagerImpl implements ConfigManager {
-  private config: ServerConfig;
+  private readonly config: ServerConfig;
 
   constructor() {
     this.config = this.load();
@@ -139,7 +139,7 @@ export class ConfigManagerImpl implements ConfigManager {
     // Validate the final configuration
     const validation = this.validate(config);
     if (!validation.valid) {
-      const errorMessages = validation.errors?.map(e => `${e.path}: ${e.message}`).join(', ') || 'Unknown validation errors';
+      const errorMessages = validation.errors?.map(e => `${e.path}: ${e.message}`).join(', ') ?? 'Unknown validation errors';
       throw new Error(`Invalid configuration: ${errorMessages}`);
     }
 
@@ -181,8 +181,9 @@ export class ConfigManagerImpl implements ConfigManager {
       if (typeof config.tools.adminRegistrationEnabled !== 'boolean') {
         errors.push({ path: 'tools.adminRegistrationEnabled', message: 'Must be a boolean' });
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (config.tools.adminPolicy) {
-        const validModes = ['deny_all', 'local_stdio_only', 'token'];
+        const validModes = ['deny_all', 'local_stdio_only', 'token'] as const;
         if (!validModes.includes(config.tools.adminPolicy.mode)) {
           errors.push({ path: 'tools.adminPolicy.mode', message: `Must be one of: ${validModes.join(', ')}` });
         }
@@ -217,6 +218,7 @@ export class ConfigManagerImpl implements ConfigManager {
       if (typeof config.security.allowArbitraryCodeTools !== 'boolean') {
         errors.push({ path: 'security.allowArbitraryCodeTools', message: 'Must be a boolean' });
       }
+      // Note: allowArbitraryCodeTools is reserved for future use and not used in v0.1
     }
 
     // Validate AACP config (optional)
