@@ -1,0 +1,13 @@
+{
+  "name": "Context7 Task Consultation",
+  "description": "Automatically consult Context7 MCP server before starting any task implementation",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(implement|start|begin|create|build|setup|configure|add|update).*task"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "🔍 CONTEXT7 CONSULTATION REQUIRED\n\nBefore proceeding with this task, you must:\n\n1. Identify all libraries/technologies mentioned in the task\n2. Use `resolve-library-id` to get Context7-compatible library IDs\n3. Use `get-library-docs` to fetch current documentation and best practices\n4. Document findings in a Technology Consultation Summary\n5. Adjust implementation based on latest best practices\n\nThis ensures our multi-agent architecture system uses current, secure, and performant solutions.\n\nPlease start with the Context7 consultation before implementation."
+  },
+  "enabled": true
+}

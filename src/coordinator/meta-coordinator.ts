@@ -74,7 +74,9 @@ export class MetaCoordinator {
   /**
    * Analyze business requirements and translate them into architectural constraints
    */
-  async analyzeRequirements(input: unknown): Promise<{ content: RequirementsAnalysis[] }> {
+  async analyzeRequirements(
+    input: unknown
+  ): Promise<{ content: RequirementsAnalysis[] }> {
     const validatedInput = RequirementsInputSchema.parse(input);
 
     console.error('Starting requirements analysis', {
@@ -87,7 +89,10 @@ export class MetaCoordinator {
       this.context.phase = 'requirements-analysis';
 
       // Execute Phase 1 agents (Strategic Design)
-      const analysis = await this.workflowEngine.executePhase1(validatedInput, this.context);
+      const analysis = await this.workflowEngine.executePhase1(
+        validatedInput,
+        this.context
+      );
 
       // Store results in context
       this.context.decisions.push(...analysis.decisions);
@@ -122,7 +127,9 @@ export class MetaCoordinator {
   /**
    * Generate complete architecture documentation across all phases
    */
-  async generateArchitecture(input: unknown): Promise<{ content: ArchitectureBlueprint[] }> {
+  async generateArchitecture(
+    input: unknown
+  ): Promise<{ content: ArchitectureBlueprint[] }> {
     const validatedInput = ArchitectureInputSchema.parse(input);
 
     console.error('Starting architecture generation', {
@@ -141,7 +148,9 @@ export class MetaCoordinator {
       );
 
       // Check for conflicts
-      const conflicts = await this.conflictResolver.detectConflicts(this.context.decisions);
+      const conflicts = await this.conflictResolver.detectConflicts(
+        this.context.decisions
+      );
 
       if (conflicts.length > 0) {
         console.error('Conflicts detected during architecture generation', {
@@ -150,7 +159,10 @@ export class MetaCoordinator {
         });
 
         // Attempt to resolve conflicts
-        const resolutions = await this.conflictResolver.resolveConflicts(conflicts, this.context);
+        const resolutions = await this.conflictResolver.resolveConflicts(
+          conflicts,
+          this.context
+        );
 
         this.context.conflicts.push(...conflicts);
         this.context.decisions.push(...resolutions);
@@ -180,10 +192,12 @@ export class MetaCoordinator {
   /**
    * Validate architectural decisions for conflicts and compliance
    */
-  async validateDecisions(
-    input: unknown
-  ): Promise<{
-    content: Array<{ isValid: boolean; issues: string[]; recommendations: string[] }>;
+  async validateDecisions(input: unknown): Promise<{
+    content: Array<{
+      isValid: boolean;
+      issues: string[];
+      recommendations: string[];
+    }>;
   }> {
     const validatedInput = ValidationInputSchema.parse(input);
 
@@ -227,7 +241,9 @@ export class MetaCoordinator {
   /**
    * Create detailed implementation plan with task breakdown
    */
-  async createImplementationPlan(input: unknown): Promise<{ content: ImplementationPlan[] }> {
+  async createImplementationPlan(
+    input: unknown
+  ): Promise<{ content: ImplementationPlan[] }> {
     const validatedInput = ImplementationInputSchema.parse(input);
 
     console.error('Starting implementation planning', {
@@ -240,7 +256,10 @@ export class MetaCoordinator {
       this.context.phase = 'implementation-planning';
 
       // Execute Phase 11 (Implementation Planning)
-      const plan = await this.workflowEngine.executePhase11(validatedInput, this.context);
+      const plan = await this.workflowEngine.executePhase11(
+        validatedInput,
+        this.context
+      );
 
       console.error('Implementation planning completed', {
         sessionId: this.context.sessionId,

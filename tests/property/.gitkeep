@@ -1,0 +1,4 @@
+# Property-based tests directory
+# 
+# This directory will contain property-based tests using fast-check
+# with minimum 100 iterations as specified in requirements.

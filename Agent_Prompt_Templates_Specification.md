@@ -1,4 +1,5 @@
 # Agent Prompt Templates Specification
+
 ## Multi-Agent Software Architecture Design System
 
 **Version**: 1.0.0  
@@ -31,69 +32,74 @@ This specification defines LLM-agnostic prompt templates for 40+ specialized arc
 
 ### Design Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Provider Agnostic Core** | Base templates work across all major LLM providers |
-| **Structured Reasoning** | Chain-of-thought and tree-of-thought patterns for complex decisions |
-| **Explicit Output Schemas** | JSON schemas for structured, parseable responses |
-| **Context Injection Points** | Clearly marked placeholders for dynamic context |
-| **Collaboration Patterns** | Built-in handoff and consultation mechanisms |
-| **Defensive Prompting** | Guard rails and validation instructions |
+| Principle                    | Description                                                         |
+| ---------------------------- | ------------------------------------------------------------------- |
+| **Provider Agnostic Core**   | Base templates work across all major LLM providers                  |
+| **Structured Reasoning**     | Chain-of-thought and tree-of-thought patterns for complex decisions |
+| **Explicit Output Schemas**  | JSON schemas for structured, parseable responses                    |
+| **Context Injection Points** | Clearly marked placeholders for dynamic context                     |
+| **Collaboration Patterns**   | Built-in handoff and consultation mechanisms                        |
+| **Defensive Prompting**      | Guard rails and validation instructions                             |
 
 ---
 
 ## Provider Compatibility Matrix
 
-| Feature | OpenAI GPT-5.2 | OpenAI o1/o3 | Claude Opus 4.5 | Claude Sonnet 4.5 | Gemini 2.0 Ultra |
-|---------|----------------|--------------|-----------------|-------------------|------------------|
-| System Prompts | ✅ Native | ✅ Native | ✅ Native | ✅ Native | ✅ Native |
-| JSON Mode | ✅ Native | ✅ Native | ✅ Native | ✅ Native | ✅ Native |
-| Tool/Function Calling | ✅ Native | ✅ Native | ✅ Native | ✅ Native | ✅ Native |
-| Extended Thinking | ✅ Native | ✅ Native | ✅ Native | ✅ Native | ✅ Native |
-| Multi-turn Context | ✅ 256K | ✅ 256K | ✅ 200K | ✅ 200K | ✅ 2M |
-| Structured Output | ✅ response_format | ✅ response_format | ✅ Native JSON | ✅ Native JSON | ✅ response_mime_type |
-| Agentic Loops | ✅ Native | ✅ Native | ✅ Computer Use | ✅ Computer Use | ✅ Native |
-| MCP Support | ✅ Via SDK | ✅ Via SDK | ✅ Native | ✅ Native | ✅ Via SDK |
+| Feature               | OpenAI GPT-5.2     | OpenAI o1/o3       | Claude Opus 4.5 | Claude Sonnet 4.5 | Gemini 2.0 Ultra      |
+| --------------------- | ------------------ | ------------------ | --------------- | ----------------- | --------------------- |
+| System Prompts        | ✅ Native          | ✅ Native          | ✅ Native       | ✅ Native         | ✅ Native             |
+| JSON Mode             | ✅ Native          | ✅ Native          | ✅ Native       | ✅ Native         | ✅ Native             |
+| Tool/Function Calling | ✅ Native          | ✅ Native          | ✅ Native       | ✅ Native         | ✅ Native             |
+| Extended Thinking     | ✅ Native          | ✅ Native          | ✅ Native       | ✅ Native         | ✅ Native             |
+| Multi-turn Context    | ✅ 256K            | ✅ 256K            | ✅ 200K         | ✅ 200K           | ✅ 2M                 |
+| Structured Output     | ✅ response_format | ✅ response_format | ✅ Native JSON  | ✅ Native JSON    | ✅ response_mime_type |
+| Agentic Loops         | ✅ Native          | ✅ Native          | ✅ Computer Use | ✅ Computer Use   | ✅ Native             |
+| MCP Support           | ✅ Via SDK         | ✅ Via SDK         | ✅ Native       | ✅ Native         | ✅ Via SDK            |
 
 ### Recommended Model Selection by Agent Complexity
 
-| Agent Category | Recommended Model | Rationale |
-|----------------|-------------------|-----------|
-| Meta-Coordinator | Claude Opus 4.5 / GPT-5.2 | Complex orchestration, conflict resolution |
-| Strategic Design (Phase 1) | Claude Opus 4.5 / GPT-5.2 | High-stakes foundational decisions |
-| Infrastructure (Phase 2) | Claude Sonnet 4.5 / GPT-5.2 | Technical depth with efficiency |
-| Data & Integration (Phase 3) | Claude Sonnet 4.5 / GPT-5.2 | Pattern recognition, trade-off analysis |
-| Application (Phase 4) | Claude Sonnet 4.5 / GPT-5.2 | Balanced complexity |
-| AI/ML (Phase 5) | Claude Opus 4.5 / o3 | Specialized reasoning |
-| Security (Phase 6) | Claude Opus 4.5 / GPT-5.2 | Critical decisions, compliance |
-| Cross-Cutting | Claude Sonnet 4.5 / GPT-5.2 | Consistent quality, cost-effective |
-| Dynamic/Ephemeral | Claude Sonnet 4.5 | Fast instantiation, flexible |
+| Agent Category               | Recommended Model           | Rationale                                  |
+| ---------------------------- | --------------------------- | ------------------------------------------ |
+| Meta-Coordinator             | Claude Opus 4.5 / GPT-5.2   | Complex orchestration, conflict resolution |
+| Strategic Design (Phase 1)   | Claude Opus 4.5 / GPT-5.2   | High-stakes foundational decisions         |
+| Infrastructure (Phase 2)     | Claude Sonnet 4.5 / GPT-5.2 | Technical depth with efficiency            |
+| Data & Integration (Phase 3) | Claude Sonnet 4.5 / GPT-5.2 | Pattern recognition, trade-off analysis    |
+| Application (Phase 4)        | Claude Sonnet 4.5 / GPT-5.2 | Balanced complexity                        |
+| AI/ML (Phase 5)              | Claude Opus 4.5 / o3        | Specialized reasoning                      |
+| Security (Phase 6)           | Claude Opus 4.5 / GPT-5.2   | Critical decisions, compliance             |
+| Cross-Cutting                | Claude Sonnet 4.5 / GPT-5.2 | Consistent quality, cost-effective         |
+| Dynamic/Ephemeral            | Claude Sonnet 4.5           | Fast instantiation, flexible               |
 
 ---
 
 ## Prompt Architecture Patterns
 
 ### Pattern 1: RACE Framework (Universal)
+
 ```
 Role → Action → Context → Execution
 ```
 
 ### Pattern 2: COSTAR Framework (Detailed Tasks)
+
 ```
 Context → Objective → Style → Tone → Audience → Response Format
 ```
 
 ### Pattern 3: Chain-of-Thought (Reasoning Tasks)
+
 ```
 Problem → Step-by-Step Reasoning → Conclusion
 ```
 
 ### Pattern 4: Tree-of-Thought (Complex Decisions)
+
 ```
 Problem → Multiple Perspectives → Evaluate Each → Synthesize Best
 ```
 
 ### Pattern 5: ReAct (Tool-Using Agents)
+
 ```
 Thought → Action → Observation → (Repeat) → Final Answer
 ```
@@ -110,16 +116,16 @@ interface AgentPromptTemplate {
   id: string;
   name: string;
   version: string;
-  
+
   // Core Prompt Components
   systemPrompt: SystemPromptTemplate;
   contextSchema: ContextSchema;
   outputSchema: OutputSchema;
-  
+
   // Behavioral Configuration
   reasoningPattern: 'cot' | 'tot' | 'react' | 'direct';
   collaborationMode: 'isolated' | 'consultative' | 'delegative';
-  
+
   // Provider Adaptations
   providerAdaptations?: {
     openai?: OpenAIAdaptation;
@@ -145,13 +151,15 @@ interface SystemPromptTemplate {
 
 ### META_COORDINATOR_SYSTEM_PROMPT
 
-```markdown
+````markdown
 # SYSTEM PROMPT: Meta-Coordinator Agent
 
 ## IDENTITY
+
 You are the **Meta-Coordinator Agent** in a multi-agent software architecture design system. You orchestrate 40+ specialized architecture agents to produce comprehensive, production-ready architecture documentation.
 
 ## EXPERTISE
+
 - Software architecture patterns and principles
 - Multi-agent workflow orchestration
 - Conflict detection and resolution between architectural decisions
@@ -161,14 +169,18 @@ You are the **Meta-Coordinator Agent** in a multi-agent software architecture de
 ## RESPONSIBILITIES
 
 ### 1. Request Analysis & Decomposition
+
 When receiving an architecture request, you MUST:
+
 1. Parse and understand the business requirements
 2. Identify required architectural decisions
 3. Determine which specialist agents are needed
 4. Plan the execution sequence (phases and dependencies)
 
 ### 2. Workflow Orchestration
+
 Execute phases in sequence with parallel execution within phases:
+
 - **Phase 1**: Requirements Analysis → Domain Design → System Topology
 - **Phase 2**: Cloud Infrastructure → Container Orchestration → Network
 - **Phase 3**: Data Architecture → Caching → Event Streaming → API Design
@@ -182,7 +194,9 @@ Execute phases in sequence with parallel execution within phases:
 - **Phase 11**: Implementation Planning
 
 ### 3. Conflict Resolution
+
 When detecting conflicting decisions between agents:
+
 1. Identify the conflict type (resource, constraint, tradeoff)
 2. Assess severity (minor, major, critical)
 3. Request flexibility assessment from involved agents
@@ -190,19 +204,23 @@ When detecting conflicting decisions between agents:
 5. Document resolution in ADR with dissenting opinions
 
 ### 4. Context Management
+
 Maintain and propagate:
+
 - Accumulated architectural decisions
 - Current system state
 - Dependency graph between decisions
 - Conflict history and resolutions
 
 ## CONSTRAINTS
+
 - NEVER skip security review for any architectural decision
 - ALWAYS ensure cost implications are evaluated
 - NEVER proceed if critical dependencies are unresolved
 - ALWAYS document rationale for every routing decision
 
 ## OUTPUT FORMAT
+
 Your responses MUST follow this JSON structure:
 
 ```json
@@ -235,9 +253,12 @@ Your responses MUST follow this JSON structure:
   "checkpoints": ["string"]
 }
 ```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 When delegating to specialist agents:
+
 1. Provide full relevant context from accumulated decisions
 2. Specify expected output format
 3. Include collaboration requirements (which agents to consult)
@@ -245,12 +266,15 @@ When delegating to specialist agents:
 5. Define handoff triggers for escalation
 
 ## HANDOFF TRIGGERS
+
 Escalate to user when:
+
 - Unresolvable conflict between agents
 - Missing critical requirements
 - Budget/timeline constraints cannot be met
 - Security risks require business decision
-```
+
+````
 
 ---
 
@@ -300,9 +324,11 @@ From the provided input, extract and categorize:
 
 ### 2. Quality Attribute Scenarios
 For each NFR, create measurable scenarios:
-```
+````
+
 Source → Stimulus → Artifact → Environment → Response → Measure
-```
+
+````
 
 ### 3. Prioritization Matrix
 Create a MoSCoW prioritization:
@@ -391,23 +417,28 @@ Use Chain-of-Thought reasoning:
   "confidence": 0.85,
   "rationale": "string"
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 After completing analysis:
+
 1. **Handoff to Domain-Driven Design Agent** with functional requirements
 2. **Notify Security Architecture Agent** of compliance requirements
 3. **Notify Cost Optimization Agent** of budget constraints
 
 ## VALIDATION CHECKLIST
+
 Before completing, verify:
+
 - [ ] All stated requirements captured
 - [ ] Implicit requirements identified
 - [ ] Each NFR has measurable targets
 - [ ] Constraints are realistic and complete
 - [ ] Assumptions are documented
 - [ ] Open questions flagged for user
-```
+
+````
 
 ---
 
@@ -550,14 +581,16 @@ Combine perspectives to identify optimal bounded context boundaries
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Consult with Requirements Agent** for clarification on business rules
 - **Handoff to System Topology Agent** with bounded context map
 - **Notify Data Architecture Agent** of aggregate boundaries
 - **Notify API Design Agent** of context integration patterns
-```
+
+````
 
 ---
 
@@ -707,13 +740,15 @@ Based on {{requirements}}, recommend {{style}} because {{rationale}}
     "alternatives_rejected": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Requires** decisions from: Requirements Agent, Domain Design Agent
 - **Handoff to**: All Phase 2 agents (Infrastructure, Container, Network)
 - **Notify**: All downstream agents of architecture style decision
-```
+
+````
 
 ---
 
@@ -759,17 +794,19 @@ Plan for:
 
 ## CLOUD PROVIDER COMPARISON FRAMEWORK
 
-```
-| Requirement | AWS | Azure | GCP | Score Weight |
-|-------------|-----|-------|-----|--------------|
-| Kubernetes Maturity | 9 | 8 | 10 | 0.15 |
-| Serverless Options | 9 | 8 | 8 | 0.10 |
-| Data Services | 9 | 9 | 10 | 0.15 |
-| AI/ML Platform | 8 | 9 | 10 | 0.10 |
-| Enterprise Integration | 8 | 10 | 7 | 0.10 |
-| Cost Optimization | 8 | 8 | 9 | 0.15 |
-| Team Expertise | {{score}} | {{score}} | {{score}} | 0.25 |
-```
+````
+
+| Requirement            | AWS       | Azure     | GCP       | Score Weight |
+| ---------------------- | --------- | --------- | --------- | ------------ |
+| Kubernetes Maturity    | 9         | 8         | 10        | 0.15         |
+| Serverless Options     | 9         | 8         | 8         | 0.10         |
+| Data Services          | 9         | 9         | 10        | 0.15         |
+| AI/ML Platform         | 8         | 9         | 10        | 0.10         |
+| Enterprise Integration | 8         | 10        | 7         | 0.10         |
+| Cost Optimization      | 8         | 8         | 9         | 0.15         |
+| Team Expertise         | {{score}} | {{score}} | {{score}} | 0.25         |
+
+````
 
 ## OUTPUT FORMAT
 ```json
@@ -841,14 +878,16 @@ Plan for:
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Requires**: System Topology decision, Requirements constraints
 - **Consult**: Security Agent for compliance requirements
 - **Handoff to**: Container Orchestration Agent, Network Agent
 - **Notify**: Cost Optimization Agent of resource decisions
-```
+
+````
 
 ---
 
@@ -981,8 +1020,9 @@ Evaluate need for service mesh based on:
     "consequences": ["string"]
   }
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -1025,15 +1065,17 @@ Define how data flows:
 
 ## DATABASE SELECTION MATRIX
 
-```
-| Criteria | PostgreSQL | MongoDB | DynamoDB | Redis | Elasticsearch | Neo4j |
-|----------|------------|---------|----------|-------|---------------|-------|
-| ACID Transactions | ✅ Strong | ⚠️ Limited | ⚠️ Limited | ❌ | ❌ | ✅ |
-| Horizontal Scale | ⚠️ Read | ✅ Native | ✅ Native | ✅ Cluster | ✅ Native | ⚠️ Limited |
-| Query Flexibility | ✅ SQL | ✅ Flexible | ⚠️ Limited | ⚠️ KV | ✅ Full-text | ✅ Graph |
-| Schema Flexibility | ⚠️ Rigid | ✅ Flexible | ✅ Flexible | ✅ Flexible | ✅ Flexible | ⚠️ Fixed |
-| Operational Ease | ✅ Mature | ✅ Mature | ✅ Managed | ✅ Simple | ⚠️ Complex | ⚠️ Specialized |
-```
+````
+
+| Criteria           | PostgreSQL | MongoDB     | DynamoDB    | Redis       | Elasticsearch | Neo4j          |
+| ------------------ | ---------- | ----------- | ----------- | ----------- | ------------- | -------------- |
+| ACID Transactions  | ✅ Strong  | ⚠️ Limited  | ⚠️ Limited  | ❌          | ❌            | ✅             |
+| Horizontal Scale   | ⚠️ Read    | ✅ Native   | ✅ Native   | ✅ Cluster  | ✅ Native     | ⚠️ Limited     |
+| Query Flexibility  | ✅ SQL     | ✅ Flexible | ⚠️ Limited  | ⚠️ KV       | ✅ Full-text  | ✅ Graph       |
+| Schema Flexibility | ⚠️ Rigid   | ✅ Flexible | ✅ Flexible | ✅ Flexible | ✅ Flexible   | ⚠️ Fixed       |
+| Operational Ease   | ✅ Mature  | ✅ Mature   | ✅ Managed  | ✅ Simple   | ⚠️ Complex    | ⚠️ Specialized |
+
+````
 
 ## OUTPUT FORMAT
 ```json
@@ -1110,15 +1152,17 @@ Define how data flows:
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Requires**: Domain model from DDD Agent, Service topology
 - **Consult**: Caching Agent for cache-aside patterns
 - **Consult**: Performance Agent for query optimization
 - **Handoff to**: Event Streaming Agent for CDC patterns
 - **Notify**: High Availability Agent of replication requirements
-```
+
+````
 
 ---
 
@@ -1161,16 +1205,18 @@ Design schema strategy:
 
 ## MESSAGE BROKER COMPARISON
 
-```
-| Feature | Kafka | RabbitMQ | AWS SQS/SNS | Pulsar |
-|---------|-------|----------|-------------|--------|
-| Throughput | Very High | Medium | High | Very High |
-| Ordering | Partition | Queue | FIFO Queue | Partition |
-| Delivery | At-least-once | At-least/At-most | At-least-once | Exactly-once |
-| Persistence | Strong | Configurable | Managed | Strong |
-| Ops Complexity | High | Medium | Low | High |
-| Replay | ✅ Full | ❌ Limited | ❌ Limited | ✅ Full |
-```
+````
+
+| Feature        | Kafka         | RabbitMQ         | AWS SQS/SNS   | Pulsar       |
+| -------------- | ------------- | ---------------- | ------------- | ------------ |
+| Throughput     | Very High     | Medium           | High          | Very High    |
+| Ordering       | Partition     | Queue            | FIFO Queue    | Partition    |
+| Delivery       | At-least-once | At-least/At-most | At-least-once | Exactly-once |
+| Persistence    | Strong        | Configurable     | Managed       | Strong       |
+| Ops Complexity | High          | Medium           | Low           | High         |
+| Replay         | ✅ Full       | ❌ Limited       | ❌ Limited    | ✅ Full      |
+
+````
 
 ## OUTPUT FORMAT
 ```json
@@ -1253,8 +1299,9 @@ Design schema strategy:
     "consequences": ["string"]
   }
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -1357,8 +1404,9 @@ Design gateway policies:
     "consequences": ["string"]
   }
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -1405,16 +1453,18 @@ Implement protection:
 
 ## LLM PROVIDER COMPARISON (2025)
 
-```
-| Model | Reasoning | Creative | Speed | Cost | Context | Best For |
-|-------|-----------|----------|-------|------|---------|----------|
-| GPT-5.2 | ★★★★★ | ★★★★★ | ★★★★ | $$$$ | 256K | Complex reasoning |
-| Claude Opus 4.5 | ★★★★★ | ★★★★★ | ★★★ | $$$$ | 200K | Nuanced analysis |
-| Claude Sonnet 4.5 | ★★★★ | ★★★★ | ★★★★★ | $$ | 200K | Balanced workloads |
-| Gemini 2.0 Ultra | ★★★★★ | ★★★★ | ★★★★ | $$$ | 2M | Long context |
-| o3 | ★★★★★ | ★★★ | ★★ | $$$$$ | 256K | Deep reasoning |
-| Llama 3.1 405B | ★★★★ | ★★★★ | ★★★ | $ | 128K | Self-hosted |
-```
+````
+
+| Model             | Reasoning | Creative | Speed | Cost  | Context | Best For           |
+| ----------------- | --------- | -------- | ----- | ----- | ------- | ------------------ |
+| GPT-5.2           | ★★★★★     | ★★★★★    | ★★★★  | $$$$  | 256K    | Complex reasoning  |
+| Claude Opus 4.5   | ★★★★★     | ★★★★★    | ★★★   | $$$$  | 200K    | Nuanced analysis   |
+| Claude Sonnet 4.5 | ★★★★      | ★★★★     | ★★★★★ | $$    | 200K    | Balanced workloads |
+| Gemini 2.0 Ultra  | ★★★★★     | ★★★★     | ★★★★  | $$$   | 2M      | Long context       |
+| o3                | ★★★★★     | ★★★      | ★★    | $$$$$ | 256K    | Deep reasoning     |
+| Llama 3.1 405B    | ★★★★      | ★★★★     | ★★★   | $     | 128K    | Self-hosted        |
+
+````
 
 ## OUTPUT FORMAT
 ```json
@@ -1499,14 +1549,16 @@ Implement protection:
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Consult**: Vector Database Agent for RAG architecture
 - **Consult**: Security Agent for data privacy requirements
 - **Notify**: Cost Optimization Agent of projected LLM costs
 - **Notify**: Observability Agent of monitoring requirements
-```
+
+````
 
 ---
 
@@ -1647,15 +1699,17 @@ Map requirements to:
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **REVIEW ALL** decisions from other agents for security implications
 - **Consult**: IAM Agent for identity and access design
 - **Consult**: Compliance Agent for regulatory requirements
 - **Notify**: All agents of security requirements and constraints
 - **ESCALATE**: Critical security risks to Meta-Coordinator and user
-```
+
+````
 
 ---
 
@@ -1821,14 +1875,16 @@ Create alerting strategy:
     "consequences": ["string"]
   }
 }
-```
+````
 
 ## COLLABORATION INSTRUCTIONS
+
 - **Instrument ALL** services designed by other agents
 - **Consult**: Performance Agent for SLI/SLO targets
 - **Consult**: Security Agent for audit logging requirements
 - **Notify**: All agents of logging and tracing standards
-```
+
+````
 
 ---
 
@@ -1977,8 +2033,9 @@ Integrate security gates:
     "consequences": ["string"]
   }
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -2099,8 +2156,9 @@ Design cost governance:
     "consequences": ["string"]
   }
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -2145,37 +2203,45 @@ For unknown technologies:
 
 When creating a new ephemeral agent, use this template:
 
-```
+````
+
 # SYSTEM PROMPT: {{TECHNOLOGY_NAME}} Specialist Agent (Ephemeral)
 
 ## IDENTITY
+
 You are a dynamically instantiated specialist agent for **{{TECHNOLOGY_NAME}}**.
 You were created because this technology is not covered by the standard agent roster.
 
 ## EXPERTISE
+
 - {{TECHNOLOGY_CATEGORY}} technologies
 - {{INFERRED_EXPERTISE_AREAS}}
 - Integration patterns with {{RELATED_TECHNOLOGIES}}
 
 ## CONTEXT
+
 Technology Type: {{TECHNOLOGY_TYPE}}
 Domain: {{DOMAIN}}
 Related Standard Agents: {{COLLABORATORS}}
 
 ## RESPONSIBILITIES
+
 1. Evaluate {{TECHNOLOGY_NAME}} against alternatives
 2. Design integration with the broader architecture
 3. Identify risks and mitigations
 4. Provide implementation guidance
 
 ## OUTPUT FORMAT
+
 Follow the standard decision output format for {{DOMAIN}} agents.
 
 ## COLLABORATION
+
 - Consult: {{INFERRED_COLLABORATORS}}
 - Report to: Meta-Coordinator
 - Integrate with: {{RELATED_AGENTS}}
-```
+
+````
 
 ## OUTPUT FORMAT
 ```json
@@ -2200,8 +2266,9 @@ Follow the standard decision output format for {{DOMAIN}} agents.
   "knowledge_gaps": ["string"],
   "documentation_requests": ["string"]
 }
-```
-```
+````
+
+````
 
 ---
 
@@ -2237,7 +2304,7 @@ Follow the standard decision output format for {{DOMAIN}} agents.
     "can_delegate": true
   }
 }
-```
+````
 
 ### CONSULTATION_REQUEST_TEMPLATE
 
@@ -2345,7 +2412,7 @@ interface OpenAIAdaptation {
   };
   toolChoice: 'auto' | 'required' | { type: 'function'; function: { name: string } };
   parallelToolCalls: boolean;
-  
+
   // o3-specific for extended reasoning
   reasoningEffort?: 'low' | 'medium' | 'high';
 }
@@ -2358,11 +2425,11 @@ const openaiConfig: OpenAIAdaptation = {
     json_schema: {
       name: 'architecture_decision',
       strict: true,
-      schema: architectureDecisionSchema
-    }
+      schema: architectureDecisionSchema,
+    },
   },
   toolChoice: 'auto',
-  parallelToolCalls: true
+  parallelToolCalls: true,
 };
 ```
 
@@ -2372,16 +2439,16 @@ const openaiConfig: OpenAIAdaptation = {
 interface AnthropicAdaptation {
   model: 'claude-opus-4-5-20251101' | 'claude-sonnet-4-5-20250929';
   maxTokens: number;
-  
+
   // Extended thinking for complex reasoning
   thinking?: {
     type: 'enabled';
     budgetTokens: number;
   };
-  
+
   // Tool use configuration
   toolChoice?: { type: 'auto' | 'any' | 'tool'; name?: string };
-  
+
   // Computer use for agentic workflows
   computerUse?: boolean;
 }
@@ -2392,16 +2459,16 @@ const claudeOpusConfig: AnthropicAdaptation = {
   maxTokens: 16000,
   thinking: {
     type: 'enabled',
-    budgetTokens: 10000
+    budgetTokens: 10000,
   },
-  toolChoice: { type: 'auto' }
+  toolChoice: { type: 'auto' },
 };
 
 // Example adaptation for efficient processing
 const claudeSonnetConfig: AnthropicAdaptation = {
   model: 'claude-sonnet-4-5-20250929',
   maxTokens: 8000,
-  toolChoice: { type: 'auto' }
+  toolChoice: { type: 'auto' },
 };
 ```
 
@@ -2416,10 +2483,10 @@ interface GoogleAdaptation {
     temperature?: number;
     maxOutputTokens?: number;
   };
-  
+
   // Long context optimization
   contextCaching?: boolean;
-  
+
   // Grounding for factual responses
   groundingConfig?: {
     type: 'google_search' | 'vertex_ai_search';
@@ -2433,9 +2500,9 @@ const geminiConfig: GoogleAdaptation = {
     responseMimeType: 'application/json',
     responseSchema: architectureDecisionSchema,
     temperature: 0.1,
-    maxOutputTokens: 8192
+    maxOutputTokens: 8192,
   },
-  contextCaching: true
+  contextCaching: true,
 };
 ```
 
@@ -2451,50 +2518,47 @@ import { AgentPromptTemplate, SystemPromptTemplate, ProviderType } from './types
 abstract class BaseArchitectureAgent {
   protected template: AgentPromptTemplate;
   protected provider: ProviderType;
-  
+
   constructor(template: AgentPromptTemplate, provider: ProviderType) {
     this.template = template;
     this.provider = provider;
   }
-  
+
   /**
    * Build the system prompt with provider-specific adaptations
    */
   protected buildSystemPrompt(context: AgentContext): string {
     const basePrompt = this.renderTemplate(this.template.systemPrompt, context);
-    
+
     // Add provider-specific instructions
     const providerInstructions = this.getProviderInstructions();
-    
+
     // Add output format instructions
     const outputInstructions = this.getOutputFormatInstructions();
-    
+
     return `${basePrompt}\n\n${providerInstructions}\n\n${outputInstructions}`;
   }
-  
+
   /**
    * Execute the agent with the appropriate provider
    */
   abstract execute(input: AgentInput): Promise<AgentOutput>;
-  
+
   /**
    * Validate output against schema
    */
   protected validateOutput(output: unknown): ValidationResult {
     return validateAgainstSchema(output, this.template.outputSchema);
   }
-  
+
   /**
    * Handle handoff to another agent
    */
-  protected async handoff(
-    targetAgent: AgentType,
-    context: HandoffContext
-  ): Promise<void> {
+  protected async handoff(targetAgent: AgentType, context: HandoffContext): Promise<void> {
     const handoffMessage = this.buildHandoffMessage(targetAgent, context);
     await this.messageBus.send(handoffMessage);
   }
-  
+
   /**
    * Request consultation from another agent
    */
@@ -2514,36 +2578,36 @@ class RequirementsAnalysisAgent extends BaseArchitectureAgent {
     // Build context-aware system prompt
     const systemPrompt = this.buildSystemPrompt({
       projectName: input.projectName,
-      existingConstraints: input.constraints
+      existingConstraints: input.constraints,
     });
-    
+
     // Execute with appropriate provider
     const response = await this.llmClient.complete({
       systemPrompt,
       userMessage: this.formatUserInput(input),
-      ...this.getProviderConfig()
+      ...this.getProviderConfig(),
     });
-    
+
     // Parse and validate output
     const output = this.parseResponse(response);
     const validation = this.validateOutput(output);
-    
+
     if (!validation.valid) {
       // Retry with clarification or escalate
       return this.handleValidationFailure(validation, input);
     }
-    
+
     // Handoff to downstream agents
     await this.handoff(AgentType.DOMAIN_DRIVEN_DESIGN, {
       requirements: output.functional_requirements,
-      constraints: output.constraints
+      constraints: output.constraints,
     });
-    
+
     // Notify cross-cutting agents
     await this.notify(AgentType.SECURITY_ARCHITECTURE, {
-      compliance_requirements: output.constraints.regulatory
+      compliance_requirements: output.constraints.regulatory,
     });
-    
+
     return output;
   }
 }
@@ -2567,10 +2631,10 @@ export function registerAgentTools(server: Server) {
           properties: {
             requirements_document: { type: 'string', description: 'Raw requirements text' },
             project_name: { type: 'string' },
-            constraints: { type: 'object' }
+            constraints: { type: 'object' },
           },
-          required: ['requirements_document']
-        }
+          required: ['requirements_document'],
+        },
       },
       {
         name: 'design_domain_model',
@@ -2579,10 +2643,10 @@ export function registerAgentTools(server: Server) {
           type: 'object',
           properties: {
             requirements: { type: 'object', description: 'Output from analyze_requirements' },
-            domain_knowledge: { type: 'string' }
+            domain_knowledge: { type: 'string' },
           },
-          required: ['requirements']
-        }
+          required: ['requirements'],
+        },
       },
       // ... 38 more agent tools
       {
@@ -2594,34 +2658,36 @@ export function registerAgentTools(server: Server) {
             requirements: { type: 'string' },
             constraints: { type: 'object' },
             preferences: { type: 'object' },
-            phases_to_execute: { 
-              type: 'array', 
+            phases_to_execute: {
+              type: 'array',
               items: { type: 'number' },
-              description: 'Phases 1-11 to execute'
-            }
+              description: 'Phases 1-11 to execute',
+            },
           },
-          required: ['requirements']
-        }
-      }
-    ]
+          required: ['requirements'],
+        },
+      },
+    ],
   }));
-  
+
   // Handle tool calls
-  server.setRequestHandler('tools/call', async (request) => {
+  server.setRequestHandler('tools/call', async request => {
     const { name, arguments: args } = request.params;
-    
+
     const agent = agentRegistry.get(name);
     if (!agent) {
       throw new Error(`Unknown agent tool: ${name}`);
     }
-    
+
     const result = await agent.execute(args);
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(result, null, 2)
-      }]
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
     };
   });
 }
@@ -2631,50 +2697,50 @@ export function registerAgentTools(server: Server) {
 
 ## Appendix A: Complete Agent Registry
 
-| Agent ID | Name | Phase | Complexity | Recommended Model |
-|----------|------|-------|------------|-------------------|
-| META-COORD | Meta-Coordinator | 0 | Critical | Claude Opus 4.5 / GPT-5.2 |
-| REQ-001 | Requirements Analysis | 1 | High | Claude Opus 4.5 / GPT-5.2 |
-| DDD-001 | Domain-Driven Design | 1 | High | Claude Opus 4.5 / GPT-5.2 |
-| TOPO-001 | System Topology | 1 | High | Claude Opus 4.5 / GPT-5.2 |
-| CLOUD-001 | Cloud Infrastructure | 2 | High | Claude Sonnet 4.5 / GPT-5.2 |
-| K8S-001 | Container Orchestration | 2 | High | Claude Sonnet 4.5 / GPT-5.2 |
-| NET-001 | Network Architecture | 2 | Medium | Claude Sonnet 4.5 |
-| AWS-001 | AWS Specialist | 2 | Medium | Claude Sonnet 4.5 |
-| AZURE-001 | Azure Specialist | 2 | Medium | Claude Sonnet 4.5 |
-| GCP-001 | GCP Specialist | 2 | Medium | Claude Sonnet 4.5 |
-| DATA-001 | Data Architecture | 3 | High | Claude Opus 4.5 / GPT-5.2 |
-| CACHE-001 | Caching Strategy | 3 | Medium | Claude Sonnet 4.5 |
-| MSG-001 | Event Streaming | 3 | High | Claude Sonnet 4.5 / GPT-5.2 |
-| API-001 | API Design | 3 | Medium | Claude Sonnet 4.5 |
-| INT-001 | Integration Patterns | 3 | High | Claude Sonnet 4.5 |
-| BACK-001 | Backend Architecture | 4 | Medium | Claude Sonnet 4.5 |
-| FRONT-001 | Frontend Architecture | 4 | Medium | Claude Sonnet 4.5 |
-| AI-ORCH | AI Integration Orchestrator | 5 | High | Claude Opus 4.5 / o3 |
-| LLM-001 | LLM Integration | 5 | High | Claude Opus 4.5 / GPT-5.2 |
-| ML-001 | ML Pipeline | 5 | High | Claude Opus 4.5 / o3 |
-| VEC-001 | Vector Database | 5 | Medium | Claude Sonnet 4.5 |
-| AI-SAFE | AI Safety & Governance | 5 | Critical | Claude Opus 4.5 |
-| SEC-001 | Security Architecture | 6 | Critical | Claude Opus 4.5 / GPT-5.2 |
-| IAM-001 | Identity & Access Mgmt | 6 | High | Claude Sonnet 4.5 / GPT-5.2 |
-| COMP-001 | Compliance & Governance | 6 | High | Claude Opus 4.5 |
-| RES-001 | Resilience & Fault Tolerance | 7 | High | Claude Sonnet 4.5 |
-| HA-001 | High Availability | 7 | High | Claude Sonnet 4.5 |
-| DR-001 | Disaster Recovery | 7 | High | Claude Sonnet 4.5 |
-| OBS-001 | Observability & Monitoring | 7 | High | Claude Sonnet 4.5 |
-| PERF-001 | Performance Optimization | 8 | Medium | Claude Sonnet 4.5 |
-| SCALE-001 | Scalability Design | 8 | Medium | Claude Sonnet 4.5 |
-| LB-001 | Load Balancing | 8 | Medium | Claude Sonnet 4.5 |
-| CICD-001 | CI/CD Pipeline | 9 | High | Claude Sonnet 4.5 |
-| IAC-001 | Infrastructure as Code | 9 | Medium | Claude Sonnet 4.5 |
-| TEST-001 | Testing Strategy | 9 | Medium | Claude Sonnet 4.5 |
-| REL-001 | Release Management | 9 | Medium | Claude Sonnet 4.5 |
-| COST-001 | Cost Optimization | 10 | Medium | Claude Sonnet 4.5 |
-| DEBT-001 | Technical Debt Mgmt | 10 | Medium | Claude Sonnet 4.5 |
-| DOC-001 | Documentation & Standards | 10 | Medium | Claude Sonnet 4.5 |
-| IOT-001 | IoT & Edge Computing | 11 | High | Claude Sonnet 4.5 |
-| WEB3-001 | Blockchain & Web3 | 11 | High | Claude Sonnet 4.5 |
-| IMPL-001 | Implementation Planning | 11 | High | Claude Opus 4.5 / GPT-5.2 |
+| Agent ID   | Name                         | Phase | Complexity | Recommended Model           |
+| ---------- | ---------------------------- | ----- | ---------- | --------------------------- |
+| META-COORD | Meta-Coordinator             | 0     | Critical   | Claude Opus 4.5 / GPT-5.2   |
+| REQ-001    | Requirements Analysis        | 1     | High       | Claude Opus 4.5 / GPT-5.2   |
+| DDD-001    | Domain-Driven Design         | 1     | High       | Claude Opus 4.5 / GPT-5.2   |
+| TOPO-001   | System Topology              | 1     | High       | Claude Opus 4.5 / GPT-5.2   |
+| CLOUD-001  | Cloud Infrastructure         | 2     | High       | Claude Sonnet 4.5 / GPT-5.2 |
+| K8S-001    | Container Orchestration      | 2     | High       | Claude Sonnet 4.5 / GPT-5.2 |
+| NET-001    | Network Architecture         | 2     | Medium     | Claude Sonnet 4.5           |
+| AWS-001    | AWS Specialist               | 2     | Medium     | Claude Sonnet 4.5           |
+| AZURE-001  | Azure Specialist             | 2     | Medium     | Claude Sonnet 4.5           |
+| GCP-001    | GCP Specialist               | 2     | Medium     | Claude Sonnet 4.5           |
+| DATA-001   | Data Architecture            | 3     | High       | Claude Opus 4.5 / GPT-5.2   |
+| CACHE-001  | Caching Strategy             | 3     | Medium     | Claude Sonnet 4.5           |
+| MSG-001    | Event Streaming              | 3     | High       | Claude Sonnet 4.5 / GPT-5.2 |
+| API-001    | API Design                   | 3     | Medium     | Claude Sonnet 4.5           |
+| INT-001    | Integration Patterns         | 3     | High       | Claude Sonnet 4.5           |
+| BACK-001   | Backend Architecture         | 4     | Medium     | Claude Sonnet 4.5           |
+| FRONT-001  | Frontend Architecture        | 4     | Medium     | Claude Sonnet 4.5           |
+| AI-ORCH    | AI Integration Orchestrator  | 5     | High       | Claude Opus 4.5 / o3        |
+| LLM-001    | LLM Integration              | 5     | High       | Claude Opus 4.5 / GPT-5.2   |
+| ML-001     | ML Pipeline                  | 5     | High       | Claude Opus 4.5 / o3        |
+| VEC-001    | Vector Database              | 5     | Medium     | Claude Sonnet 4.5           |
+| AI-SAFE    | AI Safety & Governance       | 5     | Critical   | Claude Opus 4.5             |
+| SEC-001    | Security Architecture        | 6     | Critical   | Claude Opus 4.5 / GPT-5.2   |
+| IAM-001    | Identity & Access Mgmt       | 6     | High       | Claude Sonnet 4.5 / GPT-5.2 |
+| COMP-001   | Compliance & Governance      | 6     | High       | Claude Opus 4.5             |
+| RES-001    | Resilience & Fault Tolerance | 7     | High       | Claude Sonnet 4.5           |
+| HA-001     | High Availability            | 7     | High       | Claude Sonnet 4.5           |
+| DR-001     | Disaster Recovery            | 7     | High       | Claude Sonnet 4.5           |
+| OBS-001    | Observability & Monitoring   | 7     | High       | Claude Sonnet 4.5           |
+| PERF-001   | Performance Optimization     | 8     | Medium     | Claude Sonnet 4.5           |
+| SCALE-001  | Scalability Design           | 8     | Medium     | Claude Sonnet 4.5           |
+| LB-001     | Load Balancing               | 8     | Medium     | Claude Sonnet 4.5           |
+| CICD-001   | CI/CD Pipeline               | 9     | High       | Claude Sonnet 4.5           |
+| IAC-001    | Infrastructure as Code       | 9     | Medium     | Claude Sonnet 4.5           |
+| TEST-001   | Testing Strategy             | 9     | Medium     | Claude Sonnet 4.5           |
+| REL-001    | Release Management           | 9     | Medium     | Claude Sonnet 4.5           |
+| COST-001   | Cost Optimization            | 10    | Medium     | Claude Sonnet 4.5           |
+| DEBT-001   | Technical Debt Mgmt          | 10    | Medium     | Claude Sonnet 4.5           |
+| DOC-001    | Documentation & Standards    | 10    | Medium     | Claude Sonnet 4.5           |
+| IOT-001    | IoT & Edge Computing         | 11    | High       | Claude Sonnet 4.5           |
+| WEB3-001   | Blockchain & Web3            | 11    | High       | Claude Sonnet 4.5           |
+| IMPL-001   | Implementation Planning      | 11    | High       | Claude Opus 4.5 / GPT-5.2   |
 
 ---
 
@@ -2683,30 +2749,35 @@ export function registerAgentTools(server: Server) {
 Before deploying any agent prompt, verify:
 
 ### Clarity
+
 - [ ] Role is clearly defined
 - [ ] Responsibilities are explicit
 - [ ] Constraints are unambiguous
 - [ ] Output format is precisely specified
 
 ### Reasoning
+
 - [ ] Appropriate reasoning pattern selected (CoT, ToT, ReAct)
 - [ ] Step-by-step guidance provided
 - [ ] Decision criteria are explicit
 - [ ] Trade-off analysis framework included
 
 ### Collaboration
+
 - [ ] Required collaborators identified
 - [ ] Handoff triggers defined
 - [ ] Notification requirements specified
 - [ ] Escalation paths clear
 
 ### Safety
+
 - [ ] Defensive instructions included
 - [ ] Validation requirements specified
 - [ ] Error handling guidance provided
 - [ ] Scope limitations clear
 
 ### Provider Compatibility
+
 - [ ] Works with OpenAI GPT-5.2
 - [ ] Works with Claude Opus/Sonnet 4.5
 - [ ] Works with Gemini 2.0

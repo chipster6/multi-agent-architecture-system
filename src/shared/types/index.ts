@@ -519,7 +519,12 @@ export interface Alternative {
 
 export interface Diagram {
   id: string;
-  type: 'c4-context' | 'c4-container' | 'c4-component' | 'sequence' | 'deployment';
+  type:
+    | 'c4-context'
+    | 'c4-container'
+    | 'c4-component'
+    | 'sequence'
+    | 'deployment';
   title: string;
   description: string;
   content: string;

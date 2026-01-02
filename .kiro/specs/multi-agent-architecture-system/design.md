@@ -5,6 +5,7 @@
 This design specifies a foundational MCP (Model Context Protocol) server that provides core infrastructure for hosting and orchestrating AI agents. The server implements stdio transport, tool registry management, configuration loading, structured logging, standardized error handling, resource management, and basic in-memory agent coordination.
 
 Design priorities:
+
 - **Reliability**: Graceful error handling; no crashes on malformed input
 - **Testability**: Deterministic behavior with injectable dependencies (clock, ID generators)
 - **Extensibility**: Transport-agnostic core with clear extension points
@@ -72,6 +73,7 @@ The protocol lifecycle is maintained **per client session / transport connection
 ```
 
 **CLOSED State Rules (Normative)**:
+
 - Once CLOSED, state is terminal; no responses may be written
 - All requests are ignored or result in no-op (transport is gone)
 - In-flight handlers continue but their responses are discarded
@@ -92,6 +94,7 @@ Errors are categorized into three types with different response formats.
 ### 1) Protocol Errors (JSON-RPC Level)
 
 Examples:
+
 - Parse errors (malformed JSON)
 - Invalid JSON-RPC structure
 - Method not found
@@ -104,7 +107,7 @@ interface JsonRpcError {
   jsonrpc: '2.0';
   id: string | number | null;
   error: {
-    code: number;     // JSON-RPC error codes
+    code: number; // JSON-RPC error codes
     message: string;
     data?: unknown;
   };
@@ -112,12 +115,14 @@ interface JsonRpcError {
 ```
 
 **JSON-RPC id rules (Normative)**:
+
 - If the server cannot determine the request `id` (e.g., parse error), `id` MUST be `null`.
 - If the request `id` is present but invalid (e.g., non-string/number/null), treat as invalid request per JSON-RPC and reply with `id: null`.
 
 ### 2) Tool Errors (Application Level)
 
 Examples:
+
 - Schema validation failures
 - Timeouts
 - Handler exceptions
@@ -129,9 +134,11 @@ Tool errors MUST be returned as `tools/call` results with `isError: true` and a 
 ### 3) State Errors (Initialization Violations)
 
 Examples:
+
 - Any method (except initialize/initialized) called before RUNNING
 
 State errors MUST be returned as JSON-RPC error responses (NOT tool results), using:
+
 - `error.code`: `-32002`
 - `error.data`: a `StructuredError` with `code: 'NOT_INITIALIZED'`
 
@@ -148,7 +155,7 @@ interface NotInitializedJsonRpcError extends JsonRpcError {
     data: {
       code: 'NOT_INITIALIZED';
       message: string;
-      correlationId: string;  // MUST be included
+      correlationId: string; // MUST be included
       // runId is omitted because no tools/call invocation occurred
     };
   };
@@ -157,14 +164,14 @@ interface NotInitializedJsonRpcError extends JsonRpcError {
 
 ### JSON-RPC Error Code Mapping
 
-| Error Type | JSON-RPC Code | Description |
-|------------|---------------|-------------|
-| Parse error | -32700 | Invalid JSON |
-| Invalid Request | -32600 | Invalid JSON-RPC structure |
-| Method not found | -32601 | Unknown method name |
-| Invalid params | -32602 | Invalid method parameters |
-| Internal error | -32603 | Internal JSON-RPC error |
-| Not initialized | -32002 | Method called before initialization |
+| Error Type       | JSON-RPC Code | Description                         |
+| ---------------- | ------------- | ----------------------------------- |
+| Parse error      | -32700        | Invalid JSON                        |
+| Invalid Request  | -32600        | Invalid JSON-RPC structure          |
+| Method not found | -32601        | Unknown method name                 |
+| Invalid params   | -32602        | Invalid method parameters           |
+| Internal error   | -32603        | Internal JSON-RPC error             |
+| Not initialized  | -32002        | Method called before initialization |
 
 ## Correlation ID Contract
 
@@ -197,16 +204,17 @@ interface ToolsCallParams {
 Some protocol errors occur before request params can be read.
 
 **Rule (Normative)**:
+
 - Each connection MUST have a server-generated `connectionCorrelationId` created at connection open.
 - If a request-level `correlationId` cannot be derived (e.g., parse error), the server MUST use `connectionCorrelationId` in `error.data.correlationId`.
 
 ### ID Lifecycle
 
-| ID | Generated | Scope | Included In |
-|----|-----------|-------|-------------|
-| `runId` | Per tools/call invocation | Single invocation | Logs, tool error payloads |
-| `correlationId` | Per request (or client-provided) | Request chain | Logs, protocol/state/tool error payloads |
-| `connectionCorrelationId` | Per connection | Connection lifetime | Protocol errors where request correlation cannot be derived |
+| ID                        | Generated                        | Scope               | Included In                                                 |
+| ------------------------- | -------------------------------- | ------------------- | ----------------------------------------------------------- |
+| `runId`                   | Per tools/call invocation        | Single invocation   | Logs, tool error payloads                                   |
+| `correlationId`           | Per request (or client-provided) | Request chain       | Logs, protocol/state/tool error payloads                    |
+| `connectionCorrelationId` | Per connection                   | Connection lifetime | Protocol errors where request correlation cannot be derived |
 
 ## Processing Order (Normative)
 
@@ -248,7 +256,6 @@ Timeout enforcement is a **response deadline**, not a guaranteed hard-kill of co
    - The slot MUST remain held until the handler returns (or is cooperatively cancelled and returns).
    - The server MUST NOT release the slot immediately on timeout, because the handler may still be consuming resources.
 5. Late handler completion after timeout MUST NOT produce an additional response; it MAY be logged.
-
 
 ## Components and Interfaces
 
@@ -320,6 +327,7 @@ interface ToolRegistry {
 Dynamic registration is definition-only with predefined ToolType mapping.
 
 **Rules**:
+
 - Any tool registered via `admin/registerTool` uses predefined handler mapping based on `toolType`
 - No arbitrary code upload is supported in v0.1
 - `config.security.allowArbitraryCodeTools` is reserved for future use and not used in v0.1
@@ -344,16 +352,22 @@ interface ToolsCallResult {
 
 interface RequestContext {
   correlationId: string;
-  runId?: string;                 // set for tools/call only
+  runId?: string; // set for tools/call only
   transport: Transport;
   connectionCorrelationId: string; // always present
   logger: StructuredLogger;
 }
 
-async function handleInitialize(params: InitializeParams, ctx: RequestContext): Promise<InitializeResult>;
+async function handleInitialize(
+  params: InitializeParams,
+  ctx: RequestContext
+): Promise<InitializeResult>;
 async function handleInitialized(ctx: RequestContext): Promise<void>;
 async function handleToolsList(ctx: RequestContext): Promise<ToolsListResult>;
-async function handleToolsCall(params: ToolsCallParams, ctx: RequestContext): Promise<ToolsCallResult>;
+async function handleToolsCall(
+  params: ToolsCallParams,
+  ctx: RequestContext
+): Promise<ToolsCallResult>;
 ```
 
 ### Result Wrapping (Normative)
@@ -366,7 +380,12 @@ function wrapResult(result: unknown, ctx: RequestContext): ToolsCallResult {
   try {
     return { content: [{ type: 'text', text: JSON.stringify(result) }], isError: false };
   } catch {
-    return wrapToolError(createError(ErrorCode.Internal, 'Result not serializable', { reason: 'result_not_serializable' }), ctx);
+    return wrapToolError(
+      createError(ErrorCode.Internal, 'Result not serializable', {
+        reason: 'result_not_serializable',
+      }),
+      ctx
+    );
   }
 }
 
@@ -390,31 +409,31 @@ interface AdminPolicy {
 
 interface ServerConfig {
   server: { name: string; version: string; shutdownTimeoutMs: number }; // default 10000
-  
+
   tools: {
-    defaultTimeoutMs: number;          // default 30000
-    maxPayloadBytes: number;           // default 1048576
-    maxStateBytes: number;             // default 262144 (256KB)
+    defaultTimeoutMs: number; // default 30000
+    maxPayloadBytes: number; // default 1048576
+    maxStateBytes: number; // default 262144 (256KB)
     adminRegistrationEnabled: boolean; // default false
-    adminPolicy: AdminPolicy;          // default { mode: 'deny_all' }
+    adminPolicy: AdminPolicy; // default { mode: 'deny_all' }
   };
-  
+
   resources: {
-    maxConcurrentExecutions: number;   // default 10
+    maxConcurrentExecutions: number; // default 10
   };
-  
+
   logging: {
     level: 'debug' | 'info' | 'warn' | 'error';
-    redactKeys: string[];              // default denylist
+    redactKeys: string[]; // default denylist
   };
-  
+
   security: {
     dynamicRegistrationEnabled: boolean; // default false
-    allowArbitraryCodeTools: boolean;    // default false
+    allowArbitraryCodeTools: boolean; // default false
   };
-  
+
   aacp?: {
-    defaultTtlMs: number;              // default 86400000 (24 hours)
+    defaultTtlMs: number; // default 86400000 (24 hours)
   };
 }
 
@@ -432,6 +451,7 @@ Environment variables override config file values, which override defaults. Inva
 ### Dynamic Registration Effective Enablement (Normative)
 
 Dynamic registration is enabled only if BOTH are true:
+
 - `tools.adminRegistrationEnabled === true`
 - `security.dynamicRegistrationEnabled === true`
 
@@ -445,14 +465,17 @@ const dynamicRegistrationEffective =
 Authorization is enforced at protocol handler layer.
 
 ```typescript
-interface Transport { type: 'stdio' | 'sse' | 'http' }
+interface Transport {
+  type: 'stdio' | 'sse' | 'http';
+}
 
 function enforceAdminPolicy(policy: AdminPolicy, transport: Transport): void {
   switch (policy.mode) {
     case 'deny_all':
       throw new UnauthorizedError('Admin operations are disabled');
     case 'local_stdio_only':
-      if (transport.type !== 'stdio') throw new UnauthorizedError('Admin operations only allowed via stdio');
+      if (transport.type !== 'stdio')
+        throw new UnauthorizedError('Admin operations only allowed via stdio');
       return;
     case 'token':
       // Reserved for future HTTP/SSE transports
@@ -474,19 +497,21 @@ interface DynamicToolDefinition extends ToolDefinition {
 ```
 
 **ToolType Canonical Schemas (Normative)**:
+
 - `'echo'`: `{ type: 'object', properties: { message: { type: 'string' } }, required: ['message'] }`
 - `'health'`: `{ type: 'object', properties: {}, additionalProperties: false }`
 - `'agentProxy'`: `{ type: 'object', properties: { targetAgentId: { type: 'string' }, message: { type: 'object' } }, required: ['targetAgentId', 'message'] }`
 
 **Schema Enforcement Rules (Normative)**:
+
 - The server uses the canonical schema for the declared toolType
 - If the client supplies inputSchema, it is treated as an assertion and MUST byte-match canonical; otherwise reject with INVALID_ARGUMENT
 - Unknown toolTypes MUST be rejected with INVALID_ARGUMENT
 
-| Tool Name | Description | Condition |
-|-----------|-------------|-----------|
-| `admin/registerTool` | Register a new tool dynamically | `dynamicRegistrationEffective` + `enforceAdminPolicy` |
-| `admin/unregisterTool` | Remove a registered tool | `dynamicRegistrationEffective` + `enforceAdminPolicy` |
+| Tool Name              | Description                     | Condition                                             |
+| ---------------------- | ------------------------------- | ----------------------------------------------------- |
+| `admin/registerTool`   | Register a new tool dynamically | `dynamicRegistrationEffective` + `enforceAdminPolicy` |
+| `admin/unregisterTool` | Remove a registered tool        | `dynamicRegistrationEffective` + `enforceAdminPolicy` |
 
 When not enabled, admin tools MUST NOT appear in `tools/list`.
 
@@ -559,7 +584,11 @@ interface StructuredError {
   correlationId?: string;
 }
 
-function createError(code: ErrorCode, message: string, details?: Record<string, unknown>): StructuredError;
+function createError(
+  code: ErrorCode,
+  message: string,
+  details?: Record<string, unknown>
+): StructuredError;
 ```
 
 ### 7) Resource Manager (`src/resources/resourceManager.ts`)
@@ -623,7 +652,12 @@ interface AgentCoordinator {
 ```typescript
 interface HealthResponse {
   server: { name: string; version: string };
-  config: { toolTimeoutMs: number; maxConcurrentExecutions: number; maxPayloadBytes: number; maxStateBytes: number };
+  config: {
+    toolTimeoutMs: number;
+    maxConcurrentExecutions: number;
+    maxPayloadBytes: number;
+    maxStateBytes: number;
+  };
   resources: ResourceTelemetry;
   status: 'healthy' | 'degraded' | 'unhealthy';
 }
@@ -631,10 +665,10 @@ interface HealthResponse {
 
 ### Health Thresholds (Normative)
 
-| Status | Criteria |
-|--------|----------|
-| `healthy` | All metrics within normal bounds |
-| `degraded` | concurrentExecutions > 80% of max OR eventLoopDelayMs > 100ms |
+| Status      | Criteria                                                                                                          |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `healthy`   | All metrics within normal bounds                                                                                  |
+| `degraded`  | concurrentExecutions > 80% of max OR eventLoopDelayMs > 100ms                                                     |
 | `unhealthy` | concurrentExecutions == max OR eventLoopDelayMs > 500ms OR 3+ consecutive RESOURCE_EXHAUSTED tool-call rejections |
 
 ### ResourceExhausted Counter (Process-Level)
@@ -643,7 +677,6 @@ interface HealthResponse {
 - **Increment**: on each tools/call rejection with `RESOURCE_EXHAUSTED`
 - **Reset**: on first non-`RESOURCE_EXHAUSTED` tools/call completion (success or other error)
 - Does not count protocol/state errors
-
 
 ## MVP Scope and Non-Goals
 
@@ -678,19 +711,20 @@ While v0.1 focuses on the MCP server backbone, we define AACP interfaces now to 
 
 ```typescript
 interface AACPEnvelope {
-  messageId: string;        // UUID v4, unique per transmission attempt
-  requestId?: string;       // UUID v4, stable across retries for same logical request
-  sourceAgentId: string;    // sending agent identifier
-  targetAgentId: string;    // receiving agent identifier
-  seq: number;              // sequence number per source-target pair
-  ack?: number;             // acknowledgment of highest received seq
+  messageId: string; // UUID v4, unique per transmission attempt
+  requestId?: string; // UUID v4, stable across retries for same logical request
+  sourceAgentId: string; // sending agent identifier
+  targetAgentId: string; // receiving agent identifier
+  seq: number; // sequence number per source-target pair
+  ack?: number; // acknowledgment of highest received seq
   messageType: 'REQUEST' | 'RESPONSE' | 'EVENT';
-  timestamp: string;        // ISO 8601 timestamp
-  payload: unknown;         // application-specific message content
+  timestamp: string; // ISO 8601 timestamp
+  payload: unknown; // application-specific message content
 }
 ```
 
 **AACP Invariants (Normative for v0.2)**:
+
 1. **Message ID Uniqueness**: Each `messageId` MUST be globally unique per transmission attempt
 2. **Request ID Stability**: `requestId` MUST remain stable across retries for the same logical request
 3. **Sequence Ordering**: `seq` numbers MUST be monotonically increasing per `sourceAgentId → targetAgentId` pair
@@ -699,6 +733,7 @@ interface AACPEnvelope {
 6. **Deduplication Rule**: Messages with duplicate `requestId` MUST be processed idempotently; duplicate `messageId` MUST be ignored
 
 **Deduplication and Acknowledgment Keys**:
+
 - **Transport acknowledgment**: Keys on `messageId` (confirms message received)
 - **Semantic acknowledgment**: Keys on `requestId` (confirms request processed)
 - **Deduplication**: Keys on `requestId` for idempotent request semantics
@@ -710,35 +745,37 @@ AACP supports resumable communication across agent restarts and network partitio
 
 ```typescript
 enum AACPOutcome {
-  COMPLETED = 'COMPLETED',    // Message successfully processed
-  FAILED = 'FAILED',          // Message processing failed permanently
-  UNKNOWN = 'UNKNOWN'         // Message state unknown (timeout, partition)
+  COMPLETED = 'COMPLETED', // Message successfully processed
+  FAILED = 'FAILED', // Message processing failed permanently
+  UNKNOWN = 'UNKNOWN', // Message state unknown (timeout, partition)
 }
 
 interface AACPMessageStatus {
   messageId: string;
-  requestId?: string;         // present for REQUEST/RESPONSE messages
+  requestId?: string; // present for REQUEST/RESPONSE messages
   outcome: AACPOutcome;
   timestamp: string;
-  error?: StructuredError;    // present when outcome === FAILED
-  completionRef?: string;     // reference to completion record/payload
+  error?: StructuredError; // present when outcome === FAILED
+  completionRef?: string; // reference to completion record/payload
 }
 ```
 
 **Resumability Rules (Normative for v0.2)**:
+
 1. **Idempotency Requirement**: All AACP message handlers MUST be idempotent (safe to retry)
 2. **State Persistence**: Message status MUST be persisted before outcome reporting
 3. **Recovery Protocol**: On restart, agents MUST query message status and resume from last known state
 4. **Timeout Handling**: Messages in UNKNOWN state MUST be retried with exponential backoff
 
 **Timeout and Disconnect Completion Outcomes (Normative)**:
+
 - **Timeout exceeded, handler completes later**: `late_completed`
 - **Disconnect triggered, handler returns normally**: `disconnected_completed`
 - **Disconnect triggered, handler throws due to abort**: `aborted`
 - **Handler exceeds deadline after disconnect**: `late_completed` (deadline remains the driver)
 - **Normal completion**: `success` or `tool_error`
 - **Protocol-level errors**: `protocol_error`
-**Timeout and UNKNOWN State Semantics (Critical)**:
+  **Timeout and UNKNOWN State Semantics (Critical)**:
 - **MCP Timeout Behavior**: When an MCP tool call times out, the handler may continue running after the timeout response is returned
 - **AACP Timeout Rule**: If a request times out at the caller, the outcome is UNKNOWN unless the caller later receives a durable completion signal
 - **Late Completion Handling**: If the underlying handler finishes after timeout, that completion MUST be:
@@ -756,20 +793,20 @@ interface AACPPersistenceAdapter {
   putMessageRecord(messageId: string, record: AACPMessageRecord): Promise<void>;
   getRequestRecord(requestId: string): Promise<AACPRequestRecord | null>;
   getMessageRecord(messageId: string): Promise<AACPMessageRecord | null>;
-  
+
   // Completion tracking
   markCompleted(requestId: string, outcome: AACPOutcome, completionRef?: string): Promise<void>;
   markFailed(requestId: string, error: StructuredError): Promise<void>;
-  
+
   // Sequence tracking
   getLastSequence(sourceAgentId: string, targetAgentId: string): Promise<number>;
   updateLastSequence(sourceAgentId: string, targetAgentId: string, seq: number): Promise<void>;
-  
+
   // Recovery operations
   getUnacknowledgedMessages(sourceAgentId: string, targetAgentId: string): Promise<AACPEnvelope[]>;
   listPendingRequests(olderThan?: Date): Promise<AACPRequestRecord[]>;
   listMessagesInState(outcome: AACPOutcome, olderThan?: Date): Promise<AACPMessageRecord[]>;
-  
+
   // Retention operations (v0.2 seam)
   purgeExpired(now: Date): Promise<number>; // returns count of purged records
 }
@@ -779,11 +816,11 @@ interface AACPRequestRecord {
   sourceAgentId: string;
   targetAgentId: string;
   messageType: 'REQUEST' | 'RESPONSE';
-  payload: unknown;         // small payloads stored inline for v0.1
+  payload: unknown; // small payloads stored inline for v0.1
   status: AACPOutcome;
   timestamp: string;
-  expiresAt?: string;       // ISO 8601 timestamp for TTL/retention
-  completionRef?: string;   // future: reference to blob storage for large payloads
+  expiresAt?: string; // ISO 8601 timestamp for TTL/retention
+  completionRef?: string; // future: reference to blob storage for large payloads
   error?: StructuredError;
 }
 
@@ -793,9 +830,9 @@ interface AACPMessageRecord {
   envelope: AACPEnvelope;
   status: AACPOutcome;
   timestamp: string;
-  expiresAt?: string;       // ISO 8601 timestamp for TTL/retention
+  expiresAt?: string; // ISO 8601 timestamp for TTL/retention
   retryCount: number;
-  nextRetryAt?: string;     // ISO 8601 timestamp for next retry attempt
+  nextRetryAt?: string; // ISO 8601 timestamp for next retry attempt
 }
 ```
 
@@ -804,17 +841,20 @@ interface AACPMessageRecord {
 **Important**: The in-memory AACPPersistenceAdapter provides best-effort tracking for a single process lifetime only and MUST NOT be considered durable across restarts.
 
 **ExpiresAt Semantics (Normative)**:
+
 - On record creation, the server MUST set `expiresAt = creationTime + config.aacp.defaultTtlMs` unless an explicit `expiresAt` is provided
 - `purgeExpired(now)` MUST delete all records with `expiresAt <= now` and return count deleted
 
 ### AACP Clarifications (Implementation-Critical)
 
 **Type Definitions**:
+
 ```typescript
 type AACPMessageType = 'REQUEST' | 'RESPONSE' | 'EVENT';
 ```
 
 **Acknowledgment Semantics (Normative)**:
+
 - `ack` field represents cumulative receipt acknowledgment for contiguous sequence prefix only
 - Receiver MUST only advance `ack` to the highest contiguous `seq` such that all `seq ≤ ack` have been received
 - Out-of-order messages do not advance `ack` until gaps are filled
@@ -822,6 +862,7 @@ type AACPMessageType = 'REQUEST' | 'RESPONSE' | 'EVENT';
 - **Receipt vs Processing**: `ack` confirms receipt; ledger status confirms processing/commitment
 
 **Retry Contract (Normative)**:
+
 - Retries MUST reuse the same `requestId` for idempotent semantics
 - Retries MAY use a new `messageId` per attempt (tracked via `retryCount` in `AACPMessageRecord`)
 - Receiver MUST deduplicate by `requestId` before execution
@@ -829,11 +870,13 @@ type AACPMessageType = 'REQUEST' | 'RESPONSE' | 'EVENT';
 
 **Durable Completion Signals**:
 A "durable completion signal" includes any of:
+
 - Ledger shows `requestId` marked COMPLETED/FAILED
 - Receiver sends RESPONSE with `requestId` and outcome
 - Status query returns completed state from persistent storage
 
 **Gap Handling**:
+
 - Messages arriving out of order create sequence gaps
 - Cumulative `ack` cannot advance past gaps
 - Retransmission fills gaps based on missing sequence numbers
@@ -881,7 +924,7 @@ interface AACPRetransmitter {
   scheduleRetry(messageId: string, delay: number): Promise<void>;
   cancelRetry(messageId: string): Promise<void>;
   processRetries(): Promise<void>; // background process
-  
+
   // Policy hooks for retry behavior
   shouldRetry(record: AACPMessageRecord, error?: StructuredError): boolean;
   getBackoffDelay(retryCount: number): number; // exponential backoff strategy
@@ -898,12 +941,14 @@ interface AACPRetryPolicy {
 ```
 
 **Retry and Deduplication Processing Order (Normative for v0.2)**:
+
 1. **Deduplication check**: Check for duplicate `requestId` before execution
 2. **Idempotency check**: If duplicate found, return cached result if available
 3. **Execution**: Execute handler only if not duplicate and not already completed
 4. **Retry decision**: Apply `shouldRetry` policy after execution failure
 5. **Backoff scheduling**: Use exponential backoff with jitter for retry timing
-```
+
+````
 
 ### Integration with Agent Coordinator
 
@@ -914,15 +959,16 @@ interface AgentCoordinatorV2 extends AgentCoordinator {
   // AACP-enabled message sending (additive, not breaking)
   sendReliableMessage(targetAgentId: string, payload: unknown): Promise<string>; // returns messageId
   sendRequest(targetAgentId: string, payload: unknown): Promise<unknown>; // returns response payload
-  
+
   // AACP event handlers
   onMessageReceived?: (envelope: AACPEnvelope) => Promise<void>;
   onMessageCompleted?: (messageId: string) => Promise<void>;
   onMessageFailed?: (messageId: string, error: StructuredError) => Promise<void>;
 }
-```
+````
 
 **v0.1 Compatibility (Normative)**:
+
 - The existing `sendMessage()` method MUST continue to work for simple in-memory communication
 - AACP methods are additive extensions that do not break existing code
 - Existing `AgentCoordinator` interface remains intact and functional
@@ -936,7 +982,9 @@ import { ValidateFunction } from 'ajv';
 
 type CompiledValidator = ValidateFunction;
 
-interface Transport { type: 'stdio' | 'sse' | 'http' }
+interface Transport {
+  type: 'stdio' | 'sse' | 'http';
+}
 
 interface ValidationResult {
   valid: boolean;
@@ -970,15 +1018,15 @@ interface Clock {
 
 ## Application Error Code Mapping
 
-| Scenario | ErrorCode | Notes |
-|----------|-----------|-------|
-| Schema validation failure | `INVALID_ARGUMENT` | tools/call result, isError: true |
-| Tool not found | `NOT_FOUND` | tools/call result, isError: true |
-| Tool timeout | `TIMEOUT` | tools/call result, isError: true |
-| Concurrency/payload exceeded | `RESOURCE_EXHAUSTED` | tools/call result, isError: true |
-| Handler exception | `INTERNAL` | tools/call result, isError: true |
-| Admin unauthorized | `UNAUTHORIZED` | tools/call result, isError: true |
-| Not initialized | `NOT_INITIALIZED` | JSON-RPC (-32002), not a tool result |
+| Scenario                     | ErrorCode            | Notes                                |
+| ---------------------------- | -------------------- | ------------------------------------ |
+| Schema validation failure    | `INVALID_ARGUMENT`   | tools/call result, isError: true     |
+| Tool not found               | `NOT_FOUND`          | tools/call result, isError: true     |
+| Tool timeout                 | `TIMEOUT`            | tools/call result, isError: true     |
+| Concurrency/payload exceeded | `RESOURCE_EXHAUSTED` | tools/call result, isError: true     |
+| Handler exception            | `INTERNAL`           | tools/call result, isError: true     |
+| Admin unauthorized           | `UNAUTHORIZED`       | tools/call result, isError: true     |
+| Not initialized              | `NOT_INITIALIZED`    | JSON-RPC (-32002), not a tool result |
 
 ## Testing Strategy
 
@@ -1047,6 +1095,7 @@ interface ToolContext {
 #### 1) Fast Abort Checks (Recommended)
 
 Tool handlers SHOULD check `abortSignal.aborted`:
+
 - At the start of execution
 - Between major steps
 - Inside long loops
@@ -1086,17 +1135,20 @@ For third-party libraries (HTTP/DB), handlers SHOULD use the library's cancellat
 #### 3) Avoid Long Synchronous CPU Work (Strongly Recommended)
 
 Node.js cannot preempt synchronous CPU-bound work running on the event loop thread. Handlers SHOULD avoid:
+
 - Tight compute loops
 - Large JSON parsing/stringifying in hot paths
 - Compression/encryption on very large payloads without yielding
 
 If CPU-heavy work is required, handlers SHOULD:
+
 - Chunk work and periodically yield to the event loop (e.g., `await setImmediate(...)` patterns), and check `abortSignal` between chunks; or
 - Move compute to a Worker Thread / child process (future scope unless you explicitly choose to implement it now).
 
 #### 4) Cancellation is Cooperative, Not Guaranteed
 
 Even with `AbortSignal`:
+
 - Some operations ignore it.
 - Cancellation often stops waiting on I/O, but remote systems may still be processing the request.
 - Cleanup logic SHOULD be idempotent and safe to run after cancellation.

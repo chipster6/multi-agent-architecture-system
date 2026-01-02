@@ -4,21 +4,84 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.{test,spec}.{js,ts}'],
-    exclude: ['node_modules', 'dist'],
+
+    // Configure test projects for different test types
+    projects: [
+      {
+        name: 'unit',
+        include: ['tests/unit/**/*.{test,spec}.{js,ts}'],
+        exclude: ['node_modules', 'dist'],
+        testTimeout: 30000,
+        hookTimeout: 30000,
+      },
+      {
+        name: 'integration',
+        include: ['tests/integration/**/*.{test,spec}.{js,ts}'],
+        exclude: ['node_modules', 'dist'],
+        testTimeout: 30000,
+        hookTimeout: 30000,
+      },
+      {
+        name: 'performance',
+        include: ['tests/performance/**/*.{test,spec}.{js,ts}'],
+        exclude: ['node_modules', 'dist'],
+        testTimeout: 60000, // Longer timeout for performance tests
+        hookTimeout: 60000,
+      },
+      {
+        name: 'property',
+        include: ['tests/property/**/*.{test,spec}.{js,ts}'],
+        exclude: ['node_modules', 'dist'],
+        testTimeout: 60000, // Longer timeout for property-based tests
+        hookTimeout: 60000,
+      },
+    ],
+
+    // Setup files for deterministic testing
+    setupFiles: ['./tests/setup/deterministic.ts'],
+
+    // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      enabled: false, // Enable via --coverage flag
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      clean: true,
+      cleanOnRerun: true,
+
+      // Include source files in coverage
+      include: ['src/**/*.{js,ts}'],
+
+      // Exclude test files and config from coverage
       exclude: [
         'node_modules/',
         'dist/',
         'tests/',
         '**/*.d.ts',
         '**/*.config.{js,ts}',
-        '**/index.ts'
-      ]
+        '**/*.test.{js,ts}',
+        '**/*.spec.{js,ts}',
+        '**/index.ts', // Entry points typically just re-export
+        'src/shared/types/index.ts', // Type-only files
+      ],
+
+      // Coverage thresholds as specified in requirements
+      thresholds: {
+        lines: 80,
+        branches: 80,
+        functions: 80,
+        statements: 80,
+      },
     },
+
+    // Global test configuration
     testTimeout: 30000,
-    hookTimeout: 30000
-  }
+    hookTimeout: 30000,
+
+    // Ensure deterministic test execution
+    sequence: {
+      shuffle: false, // Deterministic test order
+      concurrent: false, // Sequential execution for determinism
+    },
+  },
 });

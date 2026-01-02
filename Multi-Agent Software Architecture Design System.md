@@ -1,4 +1,5 @@
 # Multi-Agent Software Architecture Design System
+
 ## Comprehensive Specification & Implementation Guide
 
 **Version**: 1.0.0  
@@ -13,6 +14,7 @@
 A production-ready MCP server implementing 40+ specialized AI agents that automate the complete software architecture design process—from requirements analysis through implementation planning. Unlike existing development-focused agent systems, this tool specifically targets **architecture design documentation** as a distinct problem space.
 
 ### Key Differentiators
+
 - **40+ Architecture-Specific Agents** (vs. 4 in MAAD research, 91 development agents in wshobson)
 - **Production MCP Server** (vs. academic research)
 - **Complete Documentation Pipeline** (Requirements → C4 Diagrams → ADRs → Implementation Plans)
@@ -83,9 +85,10 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 1: Requirements & Strategic Design
 
 #### 1. **Requirements Analysis Agent**
+
 - **Specialty**: Business requirements → Technical constraints translation
 - **Inputs**: Requirements documents, user stories, success metrics
-- **Outputs**: 
+- **Outputs**:
   - Functional requirements matrix
   - Non-functional requirements (performance, security, scalability)
   - Quality attribute scenarios
@@ -93,6 +96,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Domain Design Agent, System Topology Agent
 
 #### 2. **Domain-Driven Design Agent**
+
 - **Specialty**: Strategic domain modeling & bounded context identification
 - **Inputs**: Business domain knowledge, entity relationships, business processes
 - **Outputs**:
@@ -103,6 +107,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Data Architecture Agent, API Design Agent
 
 #### 3. **System Topology Agent**
+
 - **Specialty**: Architectural style selection & service decomposition
 - **Inputs**: Requirements matrix, scalability needs, team structure (Conway's Law)
 - **Outputs**:
@@ -117,6 +122,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 2: Infrastructure & Platform Design
 
 #### 4. **Cloud Infrastructure Agent**
+
 - **Specialty**: Cloud platform selection & resource planning
 - **Inputs**: Scalability requirements, budget, geographic distribution needs
 - **Outputs**:
@@ -127,6 +133,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: AWS/Azure/GCP Specialist Agents, Security Agent
 
 #### 5. **Container Orchestration Agent**
+
 - **Specialty**: Kubernetes architecture & containerization strategy
 - **Inputs**: Service topology, deployment requirements, scaling patterns
 - **Outputs**:
@@ -137,6 +144,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, Observability Agent
 
 #### 6. **Network Architecture Agent**
+
 - **Specialty**: Network topology, routing, connectivity
 - **Inputs**: Service communication patterns, latency SLAs, security zones
 - **Outputs**:
@@ -147,6 +155,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Security Agent, Load Balancing Agent
 
 #### 7. **AWS Specialist Agent**
+
 - **Specialty**: AWS-specific service selection & best practices
 - **Inputs**: Architecture requirements, AWS familiarity, cost constraints
 - **Outputs**:
@@ -157,6 +166,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, Security Agent
 
 #### 8. **Azure Specialist Agent**
+
 - **Specialty**: Azure-specific service selection & enterprise integration
 - **Inputs**: Architecture requirements, Azure ecosystem, Microsoft stack
 - **Outputs**:
@@ -167,6 +177,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, IAM Agent
 
 #### 9. **Google Cloud Specialist Agent**
+
 - **Specialty**: GCP-specific service selection & data/ML workloads
 - **Inputs**: Architecture requirements, data analytics, ML needs
 - **Outputs**:
@@ -181,6 +192,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 3: Data & Integration Layer
 
 #### 10. **Data Architecture Agent**
+
 - **Specialty**: Data storage, modeling, flow design
 - **Inputs**: Domain model, data volumes, query patterns, consistency needs
 - **Outputs**:
@@ -191,6 +203,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Domain Agent, Caching Agent, Event Streaming Agent
 
 #### 11. **Caching Strategy Agent**
+
 - **Specialty**: Multi-tier caching & performance optimization
 - **Inputs**: Read/write patterns, latency SLAs, data consistency requirements
 - **Outputs**:
@@ -201,6 +214,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Data Agent, API Gateway Agent, Performance Agent
 
 #### 12. **Event Streaming & Messaging Agent**
+
 - **Specialty**: Asynchronous communication & event-driven patterns
 - **Inputs**: Service dependencies, data flow, eventual consistency tolerance
 - **Outputs**:
@@ -212,6 +226,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Domain Agent, Integration Agent, Resilience Agent
 
 #### 13. **API Design Agent**
+
 - **Specialty**: API contracts, versioning, gateway patterns
 - **Inputs**: Service boundaries, client types, integration requirements
 - **Outputs**:
@@ -223,6 +238,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Integration Agent, Security Agent, Frontend Agent
 
 #### 14. **Integration Patterns Agent**
+
 - **Specialty**: Service-to-service communication & external integrations
 - **Inputs**: Service topology, third-party systems, data flow
 - **Outputs**:
@@ -238,6 +254,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 4: Application Architecture
 
 #### 15. **Backend Architecture Agent**
+
 - **Specialty**: Internal service structure & layering
 - **Inputs**: Domain model, business logic complexity, testability needs
 - **Outputs**:
@@ -248,6 +265,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Domain Agent, Data Agent, Testing Agent
 
 #### 16. **Frontend Architecture Agent**
+
 - **Specialty**: Client-side application structure
 - **Inputs**: UX requirements, device targets, team skills
 - **Outputs**:
@@ -263,6 +281,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 5: AI/ML Layer
 
 #### 17. **AI Integration Orchestrator Agent**
+
 - **Specialty**: High-level AI/ML strategy & multi-model orchestration
 - **Inputs**: Business objectives, data availability, latency requirements
 - **Outputs**:
@@ -273,6 +292,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: All AI/ML sub-agents, Data Agent, API Agent
 
 #### 18. **LLM Integration Agent**
+
 - **Specialty**: Large Language Model integration patterns
 - **Inputs**: Use cases (chat, summarization, extraction), scale, cost
 - **Outputs**:
@@ -284,6 +304,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: AI Orchestrator, Vector Database Agent, Caching Agent
 
 #### 19. **ML Pipeline Agent**
+
 - **Specialty**: Classical ML & model training infrastructure
 - **Inputs**: ML use cases, data volume, training frequency
 - **Outputs**:
@@ -295,6 +316,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Data Agent, CI/CD Agent, Observability Agent
 
 #### 20. **Vector Database & Embeddings Agent**
+
 - **Specialty**: Semantic search, RAG, vector storage
 - **Inputs**: Search requirements, document volume, update frequency
 - **Outputs**:
@@ -306,6 +328,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: LLM Agent, Data Agent, Caching Agent
 
 #### 21. **AI Safety & Governance Agent**
+
 - **Specialty**: Responsible AI, bias detection, content moderation
 - **Inputs**: Regulatory requirements, risk tolerance, user demographics
 - **Outputs**:
@@ -321,6 +344,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 6: Security & Compliance
 
 #### 22. **Security Architecture Agent**
+
 - **Specialty**: Comprehensive security design
 - **Inputs**: Threat model, regulatory requirements, data sensitivity
 - **Outputs**:
@@ -331,6 +355,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: All agents (security is cross-cutting)
 
 #### 23. **Identity & Access Management Agent**
+
 - **Specialty**: Authentication & authorization
 - **Inputs**: User types, permission models, integration requirements
 - **Outputs**:
@@ -342,6 +367,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Security Agent, API Agent, Frontend Agent
 
 #### 24. **Compliance & Governance Agent**
+
 - **Specialty**: Regulatory requirements & audit trails
 - **Inputs**: Industry regulations (GDPR, HIPAA, SOC2), geographic constraints
 - **Outputs**:
@@ -357,6 +383,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 7: Resilience & Operations
 
 #### 25. **Resilience & Fault Tolerance Agent**
+
 - **Specialty**: System reliability patterns
 - **Inputs**: Availability SLAs, failure mode analysis, disaster scenarios
 - **Outputs**:
@@ -369,6 +396,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Integration Agent, Observability Agent, DR Agent
 
 #### 26. **High Availability Agent**
+
 - **Specialty**: Uptime & redundancy design
 - **Inputs**: SLA targets, budget, geographic requirements
 - **Outputs**:
@@ -380,6 +408,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, Data Agent, Load Balancing Agent
 
 #### 27. **Disaster Recovery Agent**
+
 - **Specialty**: Business continuity & recovery
 - **Inputs**: RTO/RPO requirements, critical vs non-critical services
 - **Outputs**:
@@ -390,6 +419,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Data Agent, High Availability Agent, Observability Agent
 
 #### 28. **Observability & Monitoring Agent**
+
 - **Specialty**: System visibility & debugging
 - **Inputs**: Service topology, SLIs/SLOs, debugging requirements
 - **Outputs**:
@@ -405,6 +435,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 8: Performance & Scalability
 
 #### 29. **Performance Optimization Agent**
+
 - **Specialty**: Latency, throughput, resource efficiency
 - **Inputs**: Performance SLAs, load projections, bottleneck analysis
 - **Outputs**:
@@ -416,6 +447,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Caching Agent, Data Agent, Load Testing Agent
 
 #### 30. **Scalability Design Agent**
+
 - **Specialty**: Horizontal & vertical scaling patterns
 - **Inputs**: Growth projections, traffic patterns, budget constraints
 - **Outputs**:
@@ -427,6 +459,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, Data Agent, Performance Agent
 
 #### 31. **Load Balancing Agent**
+
 - **Specialty**: Traffic distribution & routing
 - **Inputs**: Traffic patterns, geographic distribution, failover needs
 - **Outputs**:
@@ -441,6 +474,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 9: Development & Deployment
 
 #### 32. **CI/CD Pipeline Agent**
+
 - **Specialty**: Build, test, deployment automation
 - **Inputs**: Repository structure, deployment frequency, quality gates
 - **Outputs**:
@@ -452,6 +486,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Testing Agent, IaC Agent, Release Management Agent
 
 #### 33. **Infrastructure as Code Agent**
+
 - **Specialty**: Declarative infrastructure provisioning
 - **Inputs**: Infrastructure requirements, team workflows, state management
 - **Outputs**:
@@ -462,6 +497,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, CI/CD Agent
 
 #### 34. **Testing Strategy Agent**
+
 - **Specialty**: Test architecture & quality assurance
 - **Inputs**: Quality requirements, deployment frequency, risk tolerance
 - **Outputs**:
@@ -473,6 +509,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Backend Agent, CI/CD Agent, Resilience Agent
 
 #### 35. **Release Management Agent**
+
 - **Specialty**: Version control & deployment coordination
 - **Inputs**: Deployment frequency, rollback requirements, feature flags
 - **Outputs**:
@@ -488,6 +525,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 10: Cost & Governance
 
 #### 36. **Cost Optimization Agent**
+
 - **Specialty**: Resource efficiency & financial planning
 - **Inputs**: Budget constraints, usage patterns, business priorities
 - **Outputs**:
@@ -499,6 +537,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Cloud Infrastructure Agent, Scalability Agent
 
 #### 37. **Technical Debt Management Agent**
+
 - **Specialty**: Architecture evolution & modernization
 - **Inputs**: Current system state, pain points, innovation goals
 - **Outputs**:
@@ -509,6 +548,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Meta-Coordinator, all technical agents
 
 #### 38. **Documentation & Standards Agent**
+
 - **Specialty**: Architecture documentation & governance
 - **Inputs**: System designs from all agents, team onboarding needs
 - **Outputs**:
@@ -524,6 +564,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Phase 11: Emerging Technologies
 
 #### 39. **IoT & Edge Computing Agent**
+
 - **Specialty**: IoT device management, edge computing, real-time streams
 - **Inputs**: Device types, data volume, latency, connectivity constraints
 - **Outputs**:
@@ -535,6 +576,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 - **Collaborates With**: Event Streaming Agent, Data Agent, Security Agent
 
 #### 40. **Blockchain & Web3 Agent**
+
 - **Specialty**: Blockchain integration, smart contracts, decentralized systems
 - **Inputs**: Trust requirements, decentralization needs, transaction volume
 - **Outputs**:
@@ -550,6 +592,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ### Meta Layer
 
 #### 41. **Meta-Coordinator Agent**
+
 - **Specialty**: Workflow orchestration & conflict resolution
 - **Responsibilities**:
   - Intake requirements & decompose into architectural decisions
@@ -561,6 +604,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
   - Synthesize final architecture blueprint
 
 #### 42. **Dynamic Agent Factory**
+
 - **Specialty**: Ephemeral agent creation for unknown technologies
 - **Capabilities**:
   - Technology detection & classification from requirements
@@ -573,9 +617,11 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
 ## Phase 11: Implementation Planning
 
 ### **Implementation Planning Agent**
+
 - **Specialty**: Architecture → Executable tasks conversion
 - **Inputs**: Complete architecture blueprint from Phase 1-10
 - **Outputs**:
+
   ```typescript
   interface ImplementationPlan {
     milestones: Milestone[];
@@ -584,7 +630,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
     parallelWorkStreams: WorkStream[];
     qualityGates: QualityGate[];
   }
-  
+
   interface Task {
     id: string;
     title: string;
@@ -597,7 +643,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
     acceptanceCriteria: string[];
     qualityChecks: QualityCheck[];
   }
-  
+
   interface Step {
     order: number;
     action: string; // Precise, unambiguous instruction
@@ -605,7 +651,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
     validation: string;
     troubleshooting: string[];
   }
-  
+
   interface WorkStream {
     name: string;
     tasks: string[];
@@ -616,6 +662,7 @@ A production-ready MCP server implementing 40+ specialized AI agents that automa
   ```
 
 **Example Output**:
+
 ```json
 {
   "milestones": [
@@ -656,37 +703,37 @@ class MetaCoordinator {
   async orchestrate(initialRequest: string): Promise<ArchitectureBlueprint> {
     // Phase 1: Parse & breakdown
     const breakdown = await this.analyzeRequest(initialRequest);
-    
+
     // Phase 2: Detect unknown technologies
     const unknownTechs = this.detectUnknownTechnologies(breakdown);
     if (unknownTechs.length > 0) {
       await this.createEphemeralAgents(unknownTechs);
     }
-    
+
     // Phase 3: Plan workflow with dependencies
     const workflow = this.workflowEngine.planWorkflow(breakdown);
-    
+
     // Phase 4: Execute phases (parallel within, sequential across)
     const decisions = await this.executeWorkflow(workflow);
-    
+
     // Phase 5: Conflict resolution
     const conflicts = this.detectConflicts(decisions);
     if (conflicts.length > 0) {
       await this.resolveConflicts(conflicts);
     }
-    
+
     // Phase 6: Synthesize blueprint
     const blueprint = this.synthesizeBlueprint(decisions);
-    
+
     // Phase 7: Generate implementation plan
     const implPlan = await this.implementationPlanningAgent.plan(blueprint);
-    
+
     return { blueprint, implementationPlan: implPlan };
   }
-  
+
   private async executeWorkflow(workflow: Workflow) {
     const results = [];
-    
+
     for (const phase of workflow.phases) {
       // Execute agents in parallel within same phase
       const phaseResults = await Promise.all(
@@ -696,15 +743,15 @@ class MetaCoordinator {
           return agent.decide(context);
         })
       );
-      
+
       // Store results for downstream agents
       phaseResults.forEach(result => {
         this.contextStore.addDecision(result);
       });
-      
+
       results.push(...phaseResults);
     }
-    
+
     return results;
   }
 }
@@ -723,7 +770,7 @@ interface AgentDecision {
   };
   dependencies: {
     requires: string[]; // Other agent decisions needed
-    enables: string[];  // Decisions this unlocks
+    enables: string[]; // Decisions this unlocks
   };
   alternatives_considered: string[];
   confidence: number; // 0-1
@@ -835,12 +882,12 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 const server = new Server(
   {
     name: 'architecture-agents',
-    version: '1.0.0'
+    version: '1.0.0',
   },
   {
     capabilities: {
-      tools: {}
-    }
+      tools: {},
+    },
   }
 );
 
@@ -855,10 +902,10 @@ server.setRequestHandler('tools/list', async () => ({
         properties: {
           requirements: { type: 'string' },
           success_metrics: { type: 'array', items: { type: 'string' } },
-          constraints: { type: 'object' }
+          constraints: { type: 'object' },
         },
-        required: ['requirements']
-      }
+        required: ['requirements'],
+      },
     },
     // ... 40 more agent tools
     {
@@ -869,28 +916,30 @@ server.setRequestHandler('tools/list', async () => ({
         properties: {
           requirements: { type: 'string' },
           constraints: { type: 'object' },
-          preferences: { type: 'object' }
-        }
-      }
-    }
-  ]
+          preferences: { type: 'object' },
+        },
+      },
+    },
+  ],
 }));
 
 // Handle tool calls
-server.setRequestHandler('tools/call', async (request) => {
+server.setRequestHandler('tools/call', async request => {
   const { name, arguments: args } = request.params;
-  
+
   if (name === 'orchestrate_architecture') {
     const coordinator = new MetaCoordinator();
     const result = await coordinator.orchestrate(args.requirements);
-    return { 
-      content: [{ 
-        type: 'text', 
-        text: JSON.stringify(result, null, 2) 
-      }] 
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
     };
   }
-  
+
   // Route to individual agent tools
   // ...
 });
@@ -910,22 +959,22 @@ await server.connect(transport);
 export const agentConfig = {
   // Orchestration strategy per agent
   requirements_analysis: {
-    orchestration: 'api',           // 'api' or 'prompt'
+    orchestration: 'api', // 'api' or 'prompt'
     model: 'claude-sonnet-4-20250514',
     timeout: 30000,
     retries: 3,
-    complexity: 'high'
+    complexity: 'high',
   },
   caching_strategy: {
     orchestration: 'prompt',
     priority: 'low',
-    complexity: 'low'
+    complexity: 'low',
   },
   security_architecture: {
     orchestration: 'api',
     model: 'claude-opus-4-20250514', // More powerful for security
     timeout: 60000,
-    complexity: 'critical'
+    complexity: 'critical',
   },
   // ... configure all 42 agents
 };
@@ -934,16 +983,16 @@ export const agentConfig = {
 export const defaultOrchestration = {
   critical: {
     strategy: 'api',
-    agents: ['requirements', 'domain_design', 'system_topology', 'security']
+    agents: ['requirements', 'domain_design', 'system_topology', 'security'],
   },
   complex: {
     strategy: 'api',
-    agents: ['ai_integration', 'ml_pipeline', 'data_architecture']
+    agents: ['ai_integration', 'ml_pipeline', 'data_architecture'],
   },
   standard: {
     strategy: 'prompt',
-    agents: ['caching', 'load_balancing', 'documentation']
-  }
+    agents: ['caching', 'load_balancing', 'documentation'],
+  },
 };
 ```
 
@@ -1013,7 +1062,7 @@ project-root/
 claude code
 
 # In Claude Code:
-"Use architecture-agents to design a SaaS appointment booking system with 
+"Use architecture-agents to design a SaaS appointment booking system with
 the following requirements:
 - Users can book appointments
 - Admins manage availability
@@ -1032,7 +1081,7 @@ the following requirements:
 
 ```bash
 # Use full orchestration tool
-"Use architecture-agents:orchestrate_architecture to design an enterprise 
+"Use architecture-agents:orchestrate_architecture to design an enterprise
 healthcare platform with:
 - HIPAA compliance required
 - Multi-tenant SaaS
@@ -1052,6 +1101,7 @@ healthcare platform with:
 ## Implementation Phases
 
 ### Phase 1: Core MCP Server (Weeks 1-3)
+
 - [ ] Base MCP server scaffold
 - [ ] Meta-Coordinator implementation
 - [ ] Context Store & Decision Record system
@@ -1064,6 +1114,7 @@ healthcare platform with:
 - [ ] Test with TESBinDeployment project
 
 ### Phase 2: Infrastructure & Data Agents (Weeks 4-6)
+
 - [ ] Cloud Infrastructure Agent
 - [ ] Container Orchestration Agent
 - [ ] Network Architecture Agent
@@ -1074,6 +1125,7 @@ healthcare platform with:
 - [ ] Cloud provider specialists (AWS, Azure, GCP)
 
 ### Phase 3: Application & AI Agents (Weeks 7-9)
+
 - [ ] Backend Architecture Agent
 - [ ] Frontend Architecture Agent
 - [ ] AI Integration Orchestrator
@@ -1083,6 +1135,7 @@ healthcare platform with:
 - [ ] AI Safety & Governance Agent
 
 ### Phase 4: Resilience & Operations (Weeks 10-12)
+
 - [ ] Resilience & Fault Tolerance Agent
 - [ ] High Availability Agent
 - [ ] Disaster Recovery Agent
@@ -1092,6 +1145,7 @@ healthcare platform with:
 - [ ] Load Balancing Agent
 
 ### Phase 5: DevOps & Governance (Weeks 13-15)
+
 - [ ] CI/CD Pipeline Agent
 - [ ] Infrastructure as Code Agent
 - [ ] Testing Strategy Agent
@@ -1101,12 +1155,14 @@ healthcare platform with:
 - [ ] Compliance & Governance Agent
 
 ### Phase 6: Implementation Planning (Weeks 16-18)
+
 - [ ] Implementation Planning Agent
 - [ ] Parallel execution orchestrator
 - [ ] Task dependency resolver
 - [ ] Quality gate system
 
 ### Phase 7: Polish & Production (Weeks 19-20)
+
 - [ ] Dynamic Agent Factory
 - [ ] Emerging tech agents (IoT, Blockchain)
 - [ ] Comprehensive testing
@@ -1118,6 +1174,7 @@ healthcare platform with:
 ## Technology Stack
 
 ### Core Technologies
+
 - **Language**: TypeScript (Node.js runtime)
 - **MCP SDK**: @modelcontextprotocol/sdk
 - **LLM Provider**: Anthropic Claude API (configurable)
@@ -1125,6 +1182,7 @@ healthcare platform with:
 - **Testing**: Vitest + Playwright
 
 ### Dependencies
+
 ```json
 {
   "dependencies": {
@@ -1146,16 +1204,19 @@ healthcare platform with:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Each agent tested independently
 - Mock context store & other agents
 - Validate decision output structure
 
 ### Integration Tests
+
 - Meta-Coordinator workflow execution
 - Agent collaboration scenarios
 - Conflict resolution mechanisms
 
 ### End-to-End Tests
+
 - Complete architecture generation for sample projects
 - TESBinDeployment validation
 - E-commerce platform scenario
@@ -1166,6 +1227,7 @@ healthcare platform with:
 ## Success Metrics
 
 ### Quantitative
+
 - **Architecture Generation Time**: <30 minutes for standard project
 - **Documentation Completeness**: 100% (all sections generated)
 - **ADR Count**: Avg 15-40 per project
@@ -1173,6 +1235,7 @@ healthcare platform with:
 - **User Satisfaction**: Net Promoter Score >70
 
 ### Qualitative
+
 - Architecture quality validated by experienced architects
 - Implementation plans successfully executed
 - Consistent output format across projects
@@ -1183,12 +1246,14 @@ healthcare platform with:
 ## Distribution & Monetization
 
 ### Open Source (Core)
+
 - MIT License
 - GitHub: github.com/[username]/arch-agents-mcp
 - Core 20 agents free
 - Community contributions encouraged
 
 ### Premium (Extended)
+
 - Full 40-agent suite
 - Priority support
 - Custom agent development
@@ -1196,6 +1261,7 @@ healthcare platform with:
 - **Pricing**: $49/month per developer
 
 ### Enterprise
+
 - On-premise deployment
 - Custom agents for organization
 - SLA guarantees
@@ -1206,24 +1272,28 @@ healthcare platform with:
 ## Roadmap
 
 ### Q1 2026
+
 - [x] Core architecture specification
 - [ ] MVP with 5 agents
 - [ ] TESBinDeployment validation
 - [ ] Alpha release
 
 ### Q2 2026
+
 - [ ] Full 40-agent suite
 - [ ] Implementation Planning Agent
 - [ ] Beta release
 - [ ] First 100 users
 
 ### Q3 2026
+
 - [ ] Dynamic Agent Factory
 - [ ] API-based orchestration option
 - [ ] Public v1.0 release
 - [ ] Documentation site
 
 ### Q4 2026
+
 - [ ] Premium tier launch
 - [ ] Enterprise features
 - [ ] Integration with popular IDEs
@@ -1233,17 +1303,17 @@ healthcare platform with:
 
 ## Appendix A: Comparison Matrix
 
-| Feature | MAAD (Research) | wshobson (Dev Agents) | **This System** |
-|---------|----------------|---------------------|-----------------|
-| Agent Count | 4 | 91 | 40 + dynamic |
-| Focus | Academic | Development tasks | Architecture design |
-| Production Ready | ❌ | ✅ | ✅ (planned) |
-| MCP Server | ❌ | ✅ | ✅ |
-| Architecture Docs | Limited | ❌ | ✅ (comprehensive) |
-| Implementation Plan | ❌ | ❌ | ✅ |
-| Cloud Specialists | ❌ | Generic | AWS/Azure/GCP |
-| AI/ML Layer | ❌ | ❌ | 5 specialized agents |
-| Dynamic Agents | ❌ | ❌ | ✅ |
+| Feature             | MAAD (Research) | wshobson (Dev Agents) | **This System**      |
+| ------------------- | --------------- | --------------------- | -------------------- |
+| Agent Count         | 4               | 91                    | 40 + dynamic         |
+| Focus               | Academic        | Development tasks     | Architecture design  |
+| Production Ready    | ❌              | ✅                    | ✅ (planned)         |
+| MCP Server          | ❌              | ✅                    | ✅                   |
+| Architecture Docs   | Limited         | ❌                    | ✅ (comprehensive)   |
+| Implementation Plan | ❌              | ❌                    | ✅                   |
+| Cloud Specialists   | ❌              | Generic               | AWS/Azure/GCP        |
+| AI/ML Layer         | ❌              | ❌                    | 5 specialized agents |
+| Dynamic Agents      | ❌              | ❌                    | ✅                   |
 
 ---
 

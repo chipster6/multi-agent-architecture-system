@@ -109,7 +109,9 @@ export abstract class BaseAgent {
     try {
       return BaseAgentInputSchema.parse(input);
     } catch (error) {
-      console.error(`Input validation failed for agent ${this.agentId}`, { error });
+      console.error(`Input validation failed for agent ${this.agentId}`, {
+        error,
+      });
       throw new Error(`Invalid input for agent ${this.agentId}: ${error}`);
     }
   }
@@ -119,11 +121,15 @@ export abstract class BaseAgent {
    */
   protected async checkDependencies(context: any): Promise<void> {
     const contextDecisions = context.decisions || [];
-    const availableAgents = new Set(contextDecisions.map((d: any) => d.agentId));
+    const availableAgents = new Set(
+      contextDecisions.map((d: any) => d.agentId)
+    );
 
     for (const dependency of this.dependencies) {
       if (!availableAgents.has(dependency)) {
-        throw new Error(`Dependency not satisfied: ${dependency} required by ${this.agentId}`);
+        throw new Error(
+          `Dependency not satisfied: ${dependency} required by ${this.agentId}`
+        );
       }
     }
   }
@@ -138,7 +144,10 @@ export abstract class BaseAgent {
    * Make architectural decisions based on analysis
    * Must be implemented by each specialized agent
    */
-  protected abstract decide(analysis: any, input: BaseAgentInput): Promise<ArchitecturalDecision[]>;
+  protected abstract decide(
+    analysis: any,
+    input: BaseAgentInput
+  ): Promise<ArchitecturalDecision[]>;
 
   /**
    * Generate artifacts (documentation, diagrams, specifications)
@@ -202,7 +211,9 @@ export abstract class BaseAgent {
     try {
       return BaseAgentOutputSchema.parse(output);
     } catch (error) {
-      console.error(`Output validation failed for agent ${this.agentId}`, { error });
+      console.error(`Output validation failed for agent ${this.agentId}`, {
+        error,
+      });
       throw new Error(`Invalid output from agent ${this.agentId}: ${error}`);
     }
   }
@@ -210,7 +221,9 @@ export abstract class BaseAgent {
   /**
    * Generate recommendations based on decisions
    */
-  protected generateRecommendations(decisions: ArchitecturalDecision[]): string[] {
+  protected generateRecommendations(
+    decisions: ArchitecturalDecision[]
+  ): string[] {
     const recommendations: string[] = [];
 
     // Check for low confidence decisions
@@ -241,7 +254,9 @@ export abstract class BaseAgent {
     // Suggest validation for high-impact decisions
     const highImpactDecisions = decisions.filter(d =>
       d.consequences.some(
-        c => c.toLowerCase().includes('critical') || c.toLowerCase().includes('major')
+        c =>
+          c.toLowerCase().includes('critical') ||
+          c.toLowerCase().includes('major')
       )
     );
 
@@ -251,7 +266,9 @@ export abstract class BaseAgent {
 
     // Suggest documentation for complex decisions
     if (decisions.length > 5) {
-      nextSteps.push('Create detailed documentation for architectural decisions');
+      nextSteps.push(
+        'Create detailed documentation for architectural decisions'
+      );
     }
 
     return nextSteps;

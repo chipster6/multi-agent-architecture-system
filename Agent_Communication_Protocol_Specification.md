@@ -1,4 +1,5 @@
 # Agent Communication Protocol Specification
+
 ## Multi-Agent Software Architecture Design System
 
 **Version**: 1.0.0  
@@ -33,14 +34,14 @@ The Architecture Agent Communication Protocol (AACP) defines the standards for i
 
 ### Key Design Principles
 
-| Principle | Description |
-|-----------|-------------|
+| Principle              | Description                                                             |
+| ---------------------- | ----------------------------------------------------------------------- |
 | **Asynchronous-First** | Non-blocking communication with synchronous fallback for critical paths |
-| **Context-Aware** | Full decision history propagates through the agent graph |
-| **Conflict-Tolerant** | Built-in mechanisms for detecting and resolving agent disagreements |
-| **Observable** | Every message traceable through distributed tracing |
-| **Extensible** | Support for dynamic agents and custom message types |
-| **Idempotent** | Safe message replay for recovery scenarios |
+| **Context-Aware**      | Full decision history propagates through the agent graph                |
+| **Conflict-Tolerant**  | Built-in mechanisms for detecting and resolving agent disagreements     |
+| **Observable**         | Every message traceable through distributed tracing                     |
+| **Extensible**         | Support for dynamic agents and custom message types                     |
+| **Idempotent**         | Safe message replay for recovery scenarios                              |
 
 ---
 
@@ -118,46 +119,46 @@ Every message in AACP uses a common envelope structure that wraps the payload:
 ```typescript
 interface MessageEnvelope<T extends MessagePayload> {
   // === Identity ===
-  id: string;                    // UUID v7 (time-ordered)
-  correlationId: string;         // Links related messages
-  causationId?: string;          // ID of message that caused this one
-  
+  id: string; // UUID v7 (time-ordered)
+  correlationId: string; // Links related messages
+  causationId?: string; // ID of message that caused this one
+
   // === Routing ===
-  source: AgentIdentifier;       // Sender agent
-  destination: Destination;      // Target agent(s)
-  
+  source: AgentIdentifier; // Sender agent
+  destination: Destination; // Target agent(s)
+
   // === Metadata ===
-  type: MessageType;             // Discriminator for payload type
-  version: string;               // Protocol version (semver)
-  timestamp: string;             // ISO 8601 with microseconds
-  ttl?: number;                  // Time-to-live in milliseconds
-  priority: Priority;            // Message priority level
-  
+  type: MessageType; // Discriminator for payload type
+  version: string; // Protocol version (semver)
+  timestamp: string; // ISO 8601 with microseconds
+  ttl?: number; // Time-to-live in milliseconds
+  priority: Priority; // Message priority level
+
   // === Context ===
-  context: PropagatedContext;    // Shared state across agents
-  tracing: TracingContext;       // Distributed tracing info
-  
+  context: PropagatedContext; // Shared state across agents
+  tracing: TracingContext; // Distributed tracing info
+
   // === Payload ===
-  payload: T;                    // Type-specific message content
-  
+  payload: T; // Type-specific message content
+
   // === Security ===
-  auth?: AuthContext;            // Authentication/authorization
-  signature?: string;            // Message integrity (optional)
+  auth?: AuthContext; // Authentication/authorization
+  signature?: string; // Message integrity (optional)
 }
 
 interface AgentIdentifier {
-  id: string;                    // Unique agent instance ID
-  type: AgentType;               // Agent classification
-  phase: number;                 // Workflow phase (1-11)
-  instance?: string;             // For scaled agents
+  id: string; // Unique agent instance ID
+  type: AgentType; // Agent classification
+  phase: number; // Workflow phase (1-11)
+  instance?: string; // For scaled agents
 }
 
-type Destination = 
+type Destination =
   | { type: 'direct'; agentId: string }
   | { type: 'broadcast'; channel: string }
   | { type: 'multicast'; agentIds: string[] }
   | { type: 'coordinator' }
-  | { type: 'reply' };           // Reply to source
+  | { type: 'reply' }; // Reply to source
 
 type Priority = 'critical' | 'high' | 'normal' | 'low' | 'background';
 ```
@@ -170,12 +171,12 @@ enum AgentType {
   META_COORDINATOR = 'meta_coordinator',
   DYNAMIC_FACTORY = 'dynamic_factory',
   IMPLEMENTATION_PLANNER = 'implementation_planner',
-  
+
   // Phase 1: Strategic Design
   REQUIREMENTS_ANALYSIS = 'requirements_analysis',
   DOMAIN_DRIVEN_DESIGN = 'domain_driven_design',
   SYSTEM_TOPOLOGY = 'system_topology',
-  
+
   // Phase 2: Infrastructure
   CLOUD_INFRASTRUCTURE = 'cloud_infrastructure',
   CONTAINER_ORCHESTRATION = 'container_orchestration',
@@ -183,58 +184,58 @@ enum AgentType {
   AWS_SPECIALIST = 'aws_specialist',
   AZURE_SPECIALIST = 'azure_specialist',
   GCP_SPECIALIST = 'gcp_specialist',
-  
+
   // Phase 3: Data & Integration
   DATA_ARCHITECTURE = 'data_architecture',
   CACHING_STRATEGY = 'caching_strategy',
   EVENT_STREAMING = 'event_streaming',
   API_DESIGN = 'api_design',
   INTEGRATION_PATTERNS = 'integration_patterns',
-  
+
   // Phase 4: Application
   BACKEND_ARCHITECTURE = 'backend_architecture',
   FRONTEND_ARCHITECTURE = 'frontend_architecture',
-  
+
   // Phase 5: AI/ML
   AI_INTEGRATION_ORCHESTRATOR = 'ai_integration_orchestrator',
   LLM_INTEGRATION = 'llm_integration',
   ML_PIPELINE = 'ml_pipeline',
   VECTOR_DATABASE = 'vector_database',
   AI_SAFETY_GOVERNANCE = 'ai_safety_governance',
-  
+
   // Phase 6: Security
   SECURITY_ARCHITECTURE = 'security_architecture',
   IAM = 'iam',
   COMPLIANCE_GOVERNANCE = 'compliance_governance',
-  
+
   // Phase 7: Resilience
   RESILIENCE_FAULT_TOLERANCE = 'resilience_fault_tolerance',
   HIGH_AVAILABILITY = 'high_availability',
   DISASTER_RECOVERY = 'disaster_recovery',
   OBSERVABILITY_MONITORING = 'observability_monitoring',
-  
+
   // Phase 8: Performance
   PERFORMANCE_OPTIMIZATION = 'performance_optimization',
   SCALABILITY_DESIGN = 'scalability_design',
   LOAD_BALANCING = 'load_balancing',
-  
+
   // Phase 9: DevOps
   CICD_PIPELINE = 'cicd_pipeline',
   INFRASTRUCTURE_AS_CODE = 'infrastructure_as_code',
   TESTING_STRATEGY = 'testing_strategy',
   RELEASE_MANAGEMENT = 'release_management',
-  
+
   // Phase 10: Governance
   COST_OPTIMIZATION = 'cost_optimization',
   TECHNICAL_DEBT = 'technical_debt',
   DOCUMENTATION_STANDARDS = 'documentation_standards',
-  
+
   // Phase 11: Emerging Tech
   IOT_EDGE_COMPUTING = 'iot_edge_computing',
   BLOCKCHAIN_WEB3 = 'blockchain_web3',
-  
+
   // Dynamic Agents
-  EPHEMERAL = 'ephemeral'
+  EPHEMERAL = 'ephemeral',
 }
 ```
 
@@ -286,30 +287,30 @@ Primary message type for requesting architectural decisions from agents:
 ```typescript
 interface DecisionRequest {
   type: 'DECISION_REQUEST';
-  
+
   // What decision is needed
   decision: {
-    domain: DecisionDomain;        // e.g., 'database', 'api_protocol'
-    question: string;              // Natural language question
-    scope: string;                 // System/service scope
+    domain: DecisionDomain; // e.g., 'database', 'api_protocol'
+    question: string; // Natural language question
+    scope: string; // System/service scope
     urgency: 'blocking' | 'parallel' | 'optional';
   };
-  
+
   // Input context for the decision
   context: {
-    requirements: Requirement[];   // Relevant requirements
-    constraints: Constraint[];     // Must-haves and limitations
-    preferences: Preference[];     // Nice-to-haves
-    assumptions: Assumption[];     // Working assumptions
+    requirements: Requirement[]; // Relevant requirements
+    constraints: Constraint[]; // Must-haves and limitations
+    preferences: Preference[]; // Nice-to-haves
+    assumptions: Assumption[]; // Working assumptions
   };
-  
+
   // Related decisions
   dependencies: {
     requires: DecisionReference[]; // Decisions that must exist
     influences: DecisionReference[]; // Decisions to consider
     conflicts_with?: DecisionReference[]; // Known conflicts
   };
-  
+
   // Expected output format
   expectedOutput: {
     format: 'recommendation' | 'comparison' | 'validation';
@@ -317,16 +318,16 @@ interface DecisionRequest {
     maxAlternatives?: number;
     requireQuantification: boolean;
   };
-  
+
   // Collaboration requirements
   collaboration: {
     primaryAgent: AgentType;
-    consultAgents: AgentType[];    // Must consult
-    notifyAgents: AgentType[];     // Inform of decision
+    consultAgents: AgentType[]; // Must consult
+    notifyAgents: AgentType[]; // Inform of decision
   };
 }
 
-type DecisionDomain = 
+type DecisionDomain =
   | 'architecture_style'
   | 'database_selection'
   | 'api_protocol'
@@ -356,26 +357,26 @@ Response containing an architectural decision and its rationale:
 ```typescript
 interface DecisionResponse {
   type: 'DECISION_RESPONSE';
-  
+
   // Request linkage
-  requestId: string;               // Original request ID
-  
+  requestId: string; // Original request ID
+
   // The decision
   decision: {
-    id: string;                    // Unique decision ID
+    id: string; // Unique decision ID
     domain: DecisionDomain;
-    recommendation: string;        // Primary recommendation
-    confidence: number;            // 0.0 - 1.0
+    recommendation: string; // Primary recommendation
+    confidence: number; // 0.0 - 1.0
     status: 'final' | 'tentative' | 'requires_input';
   };
-  
+
   // Rationale
   rationale: {
-    summary: string;               // Brief explanation
-    reasoning: ReasoningStep[];    // Chain of thought
-    keyFactors: Factor[];          // Decision drivers
+    summary: string; // Brief explanation
+    reasoning: ReasoningStep[]; // Chain of thought
+    keyFactors: Factor[]; // Decision drivers
   };
-  
+
   // Trade-off analysis
   tradeoffs: {
     pros: TradeoffItem[];
@@ -383,28 +384,28 @@ interface DecisionResponse {
     risks: Risk[];
     mitigations: Mitigation[];
   };
-  
+
   // Alternatives considered
   alternatives: Alternative[];
-  
+
   // Impact analysis
   impact: {
     affects: AffectedComponent[];
     dependencies: {
-      enables: string[];           // Decisions this unlocks
-      requires: string[];          // Decisions needed
-      conflicts: string[];         // Potential conflicts
+      enables: string[]; // Decisions this unlocks
+      requires: string[]; // Decisions needed
+      conflicts: string[]; // Potential conflicts
     };
     estimatedEffort: EffortEstimate;
   };
-  
+
   // Generated artifacts
   artifacts: {
-    adr?: ADRDocument;             // Architecture Decision Record
+    adr?: ADRDocument; // Architecture Decision Record
     diagrams?: Diagram[];
     specifications?: Specification[];
   };
-  
+
   // Follow-up actions
   followUp: {
     questionsForUser: Question[];
@@ -422,8 +423,8 @@ interface ReasoningStep {
 
 interface Factor {
   name: string;
-  weight: number;                  // 0.0 - 1.0
-  score: number;                   // How well recommendation satisfies
+  weight: number; // 0.0 - 1.0
+  score: number; // How well recommendation satisfies
   explanation: string;
 }
 
@@ -437,7 +438,7 @@ interface TradeoffItem {
 interface Alternative {
   name: string;
   description: string;
-  score: number;                   // Overall score
+  score: number; // Overall score
   factors: Factor[];
   whyNotChosen: string;
 }
@@ -464,34 +465,34 @@ For advisory input without making a binding decision:
 ```typescript
 interface ConsultationRequest {
   type: 'CONSULTATION_REQUEST';
-  
+
   // What input is needed
   consultation: {
     topic: string;
     question: string;
     perspective: 'technical' | 'security' | 'cost' | 'operational';
   };
-  
+
   // Context being evaluated
   proposal: {
     description: string;
     options?: string[];
     currentLeaning?: string;
   };
-  
+
   // What kind of input
   inputType: 'opinion' | 'constraints' | 'requirements' | 'risks' | 'validation';
-  
+
   // Urgency
-  deadline?: string;               // ISO 8601
+  deadline?: string; // ISO 8601
   blocking: boolean;
 }
 
 interface ConsultationResponse {
   type: 'CONSULTATION_RESPONSE';
-  
+
   requestId: string;
-  
+
   // The input
   input: {
     recommendation?: string;
@@ -500,13 +501,13 @@ interface ConsultationResponse {
     suggestions: Suggestion[];
     approval?: boolean;
   };
-  
+
   // Confidence and caveats
   confidence: number;
   caveats: string[];
-  
+
   // Further consultation
-  deferTo?: AgentType[];           // Other agents to consult
+  deferTo?: AgentType[]; // Other agents to consult
 }
 
 interface Concern {
@@ -531,7 +532,7 @@ Broadcast notifications about system state changes:
 ```typescript
 interface DecisionMadeEvent {
   type: 'DECISION_MADE';
-  
+
   decision: {
     id: string;
     domain: DecisionDomain;
@@ -539,31 +540,31 @@ interface DecisionMadeEvent {
     agent: AgentType;
     phase: number;
   };
-  
+
   impact: {
-    blocksAgents: AgentType[];     // Agents waiting on this
-    enablesAgents: AgentType[];    // Agents now unblocked
-    affectsDecisions: string[];    // Related decision IDs
+    blocksAgents: AgentType[]; // Agents waiting on this
+    enablesAgents: AgentType[]; // Agents now unblocked
+    affectsDecisions: string[]; // Related decision IDs
   };
-  
-  artifacts: string[];             // Generated artifact paths
+
+  artifacts: string[]; // Generated artifact paths
 }
 
 interface ConflictDetectedEvent {
   type: 'CONFLICT_DETECTED';
-  
+
   conflict: {
     id: string;
     severity: 'minor' | 'major' | 'critical';
     description: string;
   };
-  
+
   parties: {
     agent: AgentType;
     decisionId: string;
     position: string;
   }[];
-  
+
   resolution: {
     required: boolean;
     suggestedApproach: string;
@@ -573,36 +574,36 @@ interface ConflictDetectedEvent {
 
 interface PhaseTransitionEvent {
   type: 'PHASE_TRANSITION';
-  
+
   transition: {
     from: number;
     to: number;
     trigger: 'completion' | 'skip' | 'rollback';
   };
-  
+
   summary: {
     decisionsCompleted: number;
     conflictsResolved: number;
     artifactsGenerated: string[];
   };
-  
+
   nextPhase: {
     agents: AgentType[];
-    estimatedDuration: number;     // milliseconds
-    blockedBy: string[];           // Outstanding dependencies
+    estimatedDuration: number; // milliseconds
+    blockedBy: string[]; // Outstanding dependencies
   };
 }
 
 interface ContextUpdatedEvent {
   type: 'CONTEXT_UPDATED';
-  
+
   update: {
-    path: string;                  // JSON path to updated value
+    path: string; // JSON path to updated value
     previousValue: any;
     newValue: any;
     reason: string;
   };
-  
+
   source: AgentType;
   affectsAgents: AgentType[];
 }
@@ -615,21 +616,21 @@ Workflow orchestration and synchronization:
 ```typescript
 interface WorkflowStartMessage {
   type: 'WORKFLOW_START';
-  
+
   workflow: {
     id: string;
     name: string;
-    requestedBy: string;           // User or system
+    requestedBy: string; // User or system
   };
-  
+
   scope: {
-    phases: number[];              // Phases to execute
-    agents: AgentType[];           // Agents to involve
-    outputFormats: string[];       // Required outputs
+    phases: number[]; // Phases to execute
+    agents: AgentType[]; // Agents to involve
+    outputFormats: string[]; // Required outputs
   };
-  
+
   initialContext: PropagatedContext;
-  
+
   constraints: {
     timeout: number;
     maxIterations: number;
@@ -639,15 +640,15 @@ interface WorkflowStartMessage {
 
 interface DependencySatisfiedMessage {
   type: 'DEPENDENCY_SATISFIED';
-  
+
   dependency: {
     id: string;
     type: 'decision' | 'artifact' | 'validation';
     provider: AgentType;
   };
-  
-  consumers: AgentType[];          // Agents waiting on this
-  
+
+  consumers: AgentType[]; // Agents waiting on this
+
   artifact?: {
     type: string;
     location: string;
@@ -657,17 +658,17 @@ interface DependencySatisfiedMessage {
 
 interface BarrierSyncMessage {
   type: 'BARRIER_SYNC';
-  
+
   barrier: {
     id: string;
-    name: string;                  // e.g., "phase_2_complete"
+    name: string; // e.g., "phase_2_complete"
     requiredAgents: AgentType[];
   };
-  
+
   status: 'waiting' | 'ready' | 'released';
-  
-  arrived: AgentType[];            // Agents that reached barrier
-  missing: AgentType[];            // Agents still working
+
+  arrived: AgentType[]; // Agents that reached barrier
+  missing: AgentType[]; // Agents still working
 }
 ```
 
@@ -693,6 +694,7 @@ interface BarrierSyncMessage {
 ```
 
 **Use Cases:**
+
 - Blocking dependency resolution
 - Validation requests
 - Critical path decisions
@@ -702,14 +704,14 @@ interface BarrierSyncMessage {
 ```typescript
 class RequestResponsePattern {
   private pendingRequests: Map<string, PendingRequest> = new Map();
-  
+
   async request<T extends MessagePayload>(
     destination: AgentType,
     payload: T,
     options: RequestOptions = {}
   ): Promise<ResponsePayload> {
     const envelope = this.createEnvelope(destination, payload);
-    
+
     const promise = new Promise((resolve, reject) => {
       this.pendingRequests.set(envelope.id, {
         resolve,
@@ -717,14 +719,14 @@ class RequestResponsePattern {
         timeout: setTimeout(() => {
           this.pendingRequests.delete(envelope.id);
           reject(new TimeoutError(envelope.id));
-        }, options.timeout ?? 30000)
+        }, options.timeout ?? 30000),
       });
     });
-    
+
     await this.messageBus.send(envelope);
     return promise;
   }
-  
+
   handleResponse(envelope: MessageEnvelope<ResponsePayload>) {
     const pending = this.pendingRequests.get(envelope.correlationId);
     if (pending) {
@@ -751,6 +753,7 @@ class RequestResponsePattern {
 ```
 
 **Use Cases:**
+
 - Decision announcements
 - Context updates
 - Status notifications
@@ -787,23 +790,23 @@ const CHANNELS = {
   'decisions.architecture': ['meta_coordinator', 'documentation_standards'],
   'decisions.database': ['caching_strategy', 'event_streaming', 'performance_optimization'],
   'decisions.api': ['frontend_architecture', 'integration_patterns', 'security_architecture'],
-  'decisions.security': ['*'],  // All agents subscribe
+  'decisions.security': ['*'], // All agents subscribe
   'decisions.infrastructure': ['container_orchestration', 'network_architecture', 'cicd_pipeline'],
-  
+
   // Phase transitions
   'workflow.phase': ['*'],
-  
+
   // Conflicts
   'conflicts.detected': ['meta_coordinator'],
   'conflicts.resolved': ['*'],
-  
+
   // Context updates
   'context.requirements': ['*'],
   'context.constraints': ['*'],
-  
+
   // System health
   'system.heartbeat': ['meta_coordinator'],
-  'system.errors': ['meta_coordinator', 'observability_monitoring']
+  'system.errors': ['meta_coordinator', 'observability_monitoring'],
 };
 ```
 
@@ -835,6 +838,7 @@ const CHANNELS = {
 ```
 
 **Use Cases:**
+
 - Cross-cutting concern validation (security review)
 - Multi-perspective consultation
 - Consensus gathering
@@ -843,8 +847,8 @@ const CHANNELS = {
 
 ```typescript
 interface MulticastRequest {
-  minResponses: number;           // Minimum responses needed
-  maxWait: number;                // Max time to wait
+  minResponses: number; // Minimum responses needed
+  maxWait: number; // Max time to wait
   aggregation: 'all' | 'majority' | 'any';
   failOnConflict: boolean;
 }
@@ -856,19 +860,16 @@ async function multicastRequest(
 ): Promise<AggregatedResponse> {
   const responses: ConsultationResponse[] = [];
   const errors: Error[] = [];
-  
-  const promises = targets.map(target => 
+
+  const promises = targets.map(target =>
     this.request(target, payload)
       .then(r => responses.push(r))
       .catch(e => errors.push(e))
   );
-  
+
   // Wait for minimum responses or timeout
-  await Promise.race([
-    waitForN(responses, options.minResponses),
-    delay(options.maxWait)
-  ]);
-  
+  await Promise.race([waitForN(responses, options.minResponses), delay(options.maxWait)]);
+
   return aggregateResponses(responses, options.aggregation);
 }
 ```
@@ -933,7 +934,7 @@ interface SagaDefinition {
 class SagaCoordinator {
   async executeSaga(saga: SagaDefinition): Promise<SagaResult> {
     const completedSteps: CompletedStep[] = [];
-    
+
     for (const step of saga.steps) {
       try {
         const result = await this.executeStep(step);
@@ -945,10 +946,10 @@ class SagaCoordinator {
         throw new SagaFailureError(saga.id, step, error, completedSteps);
       }
     }
-    
+
     return { status: 'completed', steps: completedSteps };
   }
-  
+
   private async compensate(steps: CompletedStep[]) {
     for (const { step, result } of steps) {
       await this.executeCompensation(step.compensation, result);
@@ -974,7 +975,7 @@ interface PropagatedContext {
     type: ProjectType;
     startedAt: string;
   };
-  
+
   // === Requirements Context ===
   requirements: {
     functional: FunctionalRequirement[];
@@ -982,7 +983,7 @@ interface PropagatedContext {
     constraints: Constraint[];
     assumptions: Assumption[];
   };
-  
+
   // === Decision History ===
   decisions: {
     byDomain: Map<DecisionDomain, Decision[]>;
@@ -990,7 +991,7 @@ interface PropagatedContext {
     byPhase: Map<number, Decision[]>;
     conflicts: ConflictRecord[];
   };
-  
+
   // === Architecture State ===
   architecture: {
     style: ArchitectureStyle;
@@ -999,15 +1000,15 @@ interface PropagatedContext {
     integrations: IntegrationDefinition[];
     security: SecurityProfile;
   };
-  
+
   // === Workflow State ===
   workflow: {
     currentPhase: number;
     completedPhases: number[];
     activeAgents: AgentType[];
-    blockedAgents: Map<AgentType, string[]>;  // agent -> blocking reasons
+    blockedAgents: Map<AgentType, string[]>; // agent -> blocking reasons
   };
-  
+
   // === User Preferences ===
   preferences: {
     technologyBias: TechnologyPreference[];
@@ -1015,7 +1016,7 @@ interface PropagatedContext {
     teamSkills: SkillProfile;
     riskTolerance: 'low' | 'medium' | 'high';
   };
-  
+
   // === Artifacts Generated ===
   artifacts: {
     adrs: ADRReference[];
@@ -1031,36 +1032,36 @@ interface PropagatedContext {
 class ContextStore {
   private context: PropagatedContext;
   private history: ContextSnapshot[] = [];
-  
+
   // Immutable update with history
   update(path: string, value: any, reason: string): PropagatedContext {
     const snapshot = this.createSnapshot();
     this.history.push(snapshot);
-    
+
     this.context = this.immutableSet(this.context, path, value);
-    
+
     this.emit('context.updated', {
       path,
       previousValue: get(snapshot.context, path),
       newValue: value,
-      reason
+      reason,
     });
-    
+
     return this.context;
   }
-  
+
   // Get context scoped for specific agent
   getForAgent(agentType: AgentType): ScopedContext {
     const relevantDecisions = this.getRelevantDecisions(agentType);
     const relevantContext = this.filterContextForAgent(agentType);
-    
+
     return {
       ...relevantContext,
       decisions: relevantDecisions,
-      collaborators: this.getCollaborators(agentType)
+      collaborators: this.getCollaborators(agentType),
     };
   }
-  
+
   // Add decision to context
   addDecision(decision: Decision): void {
     this.update(
@@ -1069,7 +1070,7 @@ class ContextStore {
       `New decision from ${decision.agentType}`
     );
   }
-  
+
   // Time-travel for debugging
   rollbackTo(snapshotId: string): void {
     const snapshot = this.history.find(s => s.id === snapshotId);
@@ -1087,35 +1088,30 @@ const CONTEXT_INHERITANCE: Record<AgentType, ContextInheritance> = {
   // Phase 1 agents get minimal context
   [AgentType.REQUIREMENTS_ANALYSIS]: {
     inherit: ['project', 'preferences'],
-    ignore: ['decisions', 'architecture']
+    ignore: ['decisions', 'architecture'],
   },
-  
+
   // Phase 2 agents inherit from Phase 1
   [AgentType.CLOUD_INFRASTRUCTURE]: {
     inherit: ['*'],
     filter: {
-      decisions: ['architecture_style', 'system_topology']
-    }
+      decisions: ['architecture_style', 'system_topology'],
+    },
   },
-  
+
   // Cross-cutting agents get full context
   [AgentType.SECURITY_ARCHITECTURE]: {
     inherit: ['*'],
-    filter: {} // No filtering
+    filter: {}, // No filtering
   },
-  
+
   // Downstream agents get accumulated context
   [AgentType.CICD_PIPELINE]: {
     inherit: ['*'],
     filter: {
-      decisions: [
-        'architecture_style',
-        'container_orchestration',
-        'infrastructure',
-        'testing'
-      ]
-    }
-  }
+      decisions: ['architecture_style', 'container_orchestration', 'infrastructure', 'testing'],
+    },
+  },
 };
 ```
 
@@ -1177,20 +1173,20 @@ interface AgentState {
   id: string;
   agentType: AgentType;
   status: AgentStatus;
-  
+
   // Current work
   currentRequest?: DecisionRequest;
   consultations: Map<string, ConsultationStatus>;
-  
+
   // Decision progress
   analysis?: AnalysisResult;
   proposedDecision?: Decision;
   validationResult?: ValidationResult;
-  
+
   // History
   completedDecisions: DecisionSummary[];
   conflictHistory: ConflictRecord[];
-  
+
   // Metrics
   metrics: {
     requestsProcessed: number;
@@ -1198,25 +1194,25 @@ interface AgentState {
     conflictsEncountered: number;
     consultationsInitiated: number;
   };
-  
+
   // Checkpointing
-  lastCheckpoint: string;          // ISO timestamp
+  lastCheckpoint: string; // ISO timestamp
   checkpointData: any;
 }
 
 class AgentStateManager {
   private state: AgentState;
   private storage: StateStorage;
-  
+
   async checkpoint(): Promise<string> {
     const checkpointId = this.generateCheckpointId();
     await this.storage.save(checkpointId, this.state);
     this.state.lastCheckpoint = new Date().toISOString();
     return checkpointId;
   }
-  
+
   async recover(checkpointId?: string): Promise<void> {
-    const id = checkpointId || await this.storage.getLatestCheckpoint(this.state.id);
+    const id = checkpointId || (await this.storage.getLatestCheckpoint(this.state.id));
     if (id) {
       this.state = await this.storage.load(id);
     }
@@ -1244,22 +1240,22 @@ interface Conflict {
   id: string;
   type: ConflictType;
   severity: 'minor' | 'major' | 'critical';
-  
+
   parties: ConflictParty[];
-  
+
   description: string;
   technicalDetails: string;
-  
+
   suggestedResolutions: Resolution[];
 }
 
 type ConflictType =
-  | 'direct_contradiction'      // Mutually exclusive choices
-  | 'resource_contention'       // Same resource, different uses
-  | 'requirement_violation'     // Decision violates a requirement
-  | 'dependency_cycle'          // Circular dependencies
-  | 'constraint_violation'      // Breaks a constraint
-  | 'tradeoff_disagreement';    // Different priority weightings
+  | 'direct_contradiction' // Mutually exclusive choices
+  | 'resource_contention' // Same resource, different uses
+  | 'requirement_violation' // Decision violates a requirement
+  | 'dependency_cycle' // Circular dependencies
+  | 'constraint_violation' // Breaks a constraint
+  | 'tradeoff_disagreement'; // Different priority weightings
 
 interface ConflictParty {
   agent: AgentType;
@@ -1275,22 +1271,22 @@ interface ConflictParty {
 ```typescript
 enum ResolutionStrategy {
   // Automatic resolution
-  PRIORITY_BASED = 'priority_based',      // Higher-priority agent wins
-  RECENCY_BASED = 'recency_based',        // More recent decision wins
-  CONSTRAINT_BASED = 'constraint_based',  // Use constraints to determine
-  
+  PRIORITY_BASED = 'priority_based', // Higher-priority agent wins
+  RECENCY_BASED = 'recency_based', // More recent decision wins
+  CONSTRAINT_BASED = 'constraint_based', // Use constraints to determine
+
   // Negotiated resolution
-  COMPROMISE = 'compromise',               // Find middle ground
-  ALTERNATION = 'alternation',             // Use both in different contexts
-  DECOMPOSITION = 'decomposition',         // Split the problem
-  
+  COMPROMISE = 'compromise', // Find middle ground
+  ALTERNATION = 'alternation', // Use both in different contexts
+  DECOMPOSITION = 'decomposition', // Split the problem
+
   // Escalation
-  COORDINATOR_DECISION = 'coordinator',    // Meta-coordinator decides
-  USER_INPUT = 'user_input',               // Ask user to decide
-  
+  COORDINATOR_DECISION = 'coordinator', // Meta-coordinator decides
+  USER_INPUT = 'user_input', // Ask user to decide
+
   // Deferral
-  DEFER = 'defer',                         // Delay decision
-  PARALLEL_EXPLORATION = 'parallel'        // Explore both paths
+  DEFER = 'defer', // Delay decision
+  PARALLEL_EXPLORATION = 'parallel', // Explore both paths
 }
 
 class ConflictResolver {
@@ -1298,39 +1294,35 @@ class ConflictResolver {
     // 1. Try automatic resolution first
     const autoResolution = await this.tryAutoResolve(conflict);
     if (autoResolution) return autoResolution;
-    
+
     // 2. Attempt negotiation between parties
     const negotiated = await this.negotiate(conflict);
     if (negotiated) return negotiated;
-    
+
     // 3. Escalate to coordinator
     return this.escalate(conflict);
   }
-  
+
   private async negotiate(conflict: Conflict): Promise<Resolution | null> {
     // Request flexibility assessment from each party
     const assessments = await Promise.all(
-      conflict.parties.map(party => 
-        this.requestFlexibilityAssessment(party)
-      )
+      conflict.parties.map(party => this.requestFlexibilityAssessment(party))
     );
-    
+
     // Find potential compromise
     const compromise = this.findCompromise(conflict, assessments);
-    
+
     if (compromise) {
       // Validate compromise with all parties
       const validations = await Promise.all(
-        conflict.parties.map(party =>
-          this.validateCompromise(party, compromise)
-        )
+        conflict.parties.map(party => this.validateCompromise(party, compromise))
       );
-      
+
       if (validations.every(v => v.acceptable)) {
         return compromise;
       }
     }
-    
+
     return null;
   }
 }
@@ -1373,13 +1365,13 @@ class ConflictResolver {
 interface ConflictResolutionRecord {
   conflictId: string;
   resolvedAt: string;
-  
+
   resolution: {
     strategy: ResolutionStrategy;
     outcome: string;
     rationale: string;
   };
-  
+
   decisions: {
     accepted: DecisionReference[];
     rejected: DecisionReference[];
@@ -1389,7 +1381,7 @@ interface ConflictResolutionRecord {
       changes: string[];
     }[];
   };
-  
+
   // For ADR generation
   dissent: {
     agent: AgentType;
@@ -1397,7 +1389,7 @@ interface ConflictResolutionRecord {
     concerns: string[];
     acknowledgment: string;
   }[];
-  
+
   // Impact
   impact: {
     affectedDecisions: string[];
@@ -1420,32 +1412,32 @@ enum ErrorCategory {
   NETWORK = 'network',
   RATE_LIMIT = 'rate_limit',
   TEMPORARY_UNAVAILABLE = 'temp_unavailable',
-  
+
   // Agent errors
   AGENT_FAILURE = 'agent_failure',
   INVALID_INPUT = 'invalid_input',
   INVALID_OUTPUT = 'invalid_output',
   STATE_CORRUPTION = 'state_corruption',
-  
+
   // Protocol errors
   MALFORMED_MESSAGE = 'malformed_message',
   UNKNOWN_MESSAGE_TYPE = 'unknown_type',
   VERSION_MISMATCH = 'version_mismatch',
-  
+
   // Workflow errors
   DEPENDENCY_FAILURE = 'dependency_failure',
   CIRCULAR_DEPENDENCY = 'circular_dependency',
   DEADLINE_EXCEEDED = 'deadline_exceeded',
-  
+
   // Business errors
   CONSTRAINT_VIOLATION = 'constraint_violation',
   UNRESOLVABLE_CONFLICT = 'unresolvable_conflict',
-  INSUFFICIENT_CONTEXT = 'insufficient_context'
+  INSUFFICIENT_CONTEXT = 'insufficient_context',
 }
 
 interface ErrorMessage {
   type: 'ERROR';
-  
+
   error: {
     id: string;
     category: ErrorCategory;
@@ -1453,19 +1445,19 @@ interface ErrorMessage {
     message: string;
     details?: any;
   };
-  
+
   source: {
     agent: AgentType;
     operation: string;
     messageId?: string;
   };
-  
+
   recovery: {
     retryable: boolean;
     suggestedAction: RecoveryAction;
-    retryAfter?: number;          // milliseconds
+    retryAfter?: number; // milliseconds
   };
-  
+
   context: {
     correlationId: string;
     timestamp: string;
@@ -1488,16 +1480,16 @@ type RecoveryAction =
 ```typescript
 interface RetryPolicy {
   maxAttempts: number;
-  initialDelay: number;           // milliseconds
+  initialDelay: number; // milliseconds
   maxDelay: number;
   backoffMultiplier: number;
   retryableErrors: ErrorCategory[];
-  
+
   // Circuit breaker
   circuitBreaker: {
     enabled: boolean;
-    failureThreshold: number;     // failures before opening
-    resetTimeout: number;         // ms before half-open
+    failureThreshold: number; // failures before opening
+    resetTimeout: number; // ms before half-open
   };
 }
 
@@ -1510,13 +1502,13 @@ const DEFAULT_RETRY_POLICY: RetryPolicy = {
     ErrorCategory.TIMEOUT,
     ErrorCategory.NETWORK,
     ErrorCategory.RATE_LIMIT,
-    ErrorCategory.TEMPORARY_UNAVAILABLE
+    ErrorCategory.TEMPORARY_UNAVAILABLE,
   ],
   circuitBreaker: {
     enabled: true,
     failureThreshold: 5,
-    resetTimeout: 60000
-  }
+    resetTimeout: 60000,
+  },
 };
 
 class RetryHandler {
@@ -1526,24 +1518,24 @@ class RetryHandler {
   ): Promise<T> {
     let lastError: Error;
     let delay = policy.initialDelay;
-    
+
     for (let attempt = 1; attempt <= policy.maxAttempts; attempt++) {
       try {
         return await operation();
       } catch (error) {
         lastError = error;
-        
+
         if (!this.isRetryable(error, policy)) {
           throw error;
         }
-        
+
         if (attempt < policy.maxAttempts) {
           await this.delay(delay);
           delay = Math.min(delay * policy.backoffMultiplier, policy.maxDelay);
         }
       }
     }
-    
+
     throw new MaxRetriesExceededError(lastError);
   }
 }
@@ -1578,16 +1570,16 @@ class DeadLetterQueue {
       attempts: [],
       status: 'pending',
       createdAt: new Date().toISOString(),
-      lastAttemptAt: new Date().toISOString()
+      lastAttemptAt: new Date().toISOString(),
     };
-    
+
     await this.storage.save(entry);
     this.emit('dlq.enqueued', entry);
   }
-  
+
   async processRetries(): Promise<void> {
     const pending = await this.storage.findByStatus('pending');
-    
+
     for (const entry of pending) {
       if (this.shouldRetry(entry)) {
         await this.retry(entry);
@@ -1611,24 +1603,24 @@ interface AuthContext {
   agentId: string;
   agentType: AgentType;
   instanceId: string;
-  
+
   // Credentials
   credentials: {
     type: 'token' | 'certificate' | 'api_key';
     value: string;
     expiresAt?: string;
   };
-  
+
   // Permissions
   permissions: Permission[];
-  
+
   // Session
   sessionId: string;
   createdAt: string;
 }
 
 interface Permission {
-  resource: string;               // e.g., 'decisions.database'
+  resource: string; // e.g., 'decisions.database'
   actions: ('read' | 'write' | 'execute')[];
   conditions?: PermissionCondition[];
 }
@@ -1649,30 +1641,30 @@ const AUTHORIZATION_MATRIX: Record<AgentType, AuthorizationRules> = {
     canReceiveFrom: ['*'],
     canModifyContext: ['*'],
     canResolveConflicts: true,
-    canInitiateWorkflow: true
+    canInitiateWorkflow: true,
   },
-  
+
   [AgentType.REQUIREMENTS_ANALYSIS]: {
     canSendTo: [
       AgentType.DOMAIN_DRIVEN_DESIGN,
       AgentType.SYSTEM_TOPOLOGY,
-      AgentType.META_COORDINATOR
+      AgentType.META_COORDINATOR,
     ],
     canReceiveFrom: [AgentType.META_COORDINATOR],
     canModifyContext: ['requirements'],
     canResolveConflicts: false,
-    canInitiateWorkflow: false
+    canInitiateWorkflow: false,
   },
-  
+
   [AgentType.SECURITY_ARCHITECTURE]: {
-    canSendTo: ['*'],             // Security can advise anyone
+    canSendTo: ['*'], // Security can advise anyone
     canReceiveFrom: ['*'],
     canModifyContext: ['architecture.security'],
     canResolveConflicts: false,
     canInitiateWorkflow: false,
-    specialPermissions: ['veto_insecure_decisions']
+    specialPermissions: ['veto_insecure_decisions'],
   },
-  
+
   // ... other agents
 };
 ```
@@ -1685,7 +1677,7 @@ interface SignedEnvelope<T> extends MessageEnvelope<T> {
     algorithm: 'ed25519' | 'rsa-sha256';
     value: string;
     keyId: string;
-    signedFields: string[];       // Fields included in signature
+    signedFields: string[]; // Fields included in signature
   };
 }
 
@@ -1694,18 +1686,18 @@ class MessageSigner {
     const signedFields = ['id', 'source', 'destination', 'type', 'payload', 'timestamp'];
     const dataToSign = this.extractFields(envelope, signedFields);
     const signature = this.crypto.sign(JSON.stringify(dataToSign), this.privateKey);
-    
+
     return {
       ...envelope,
       signature: {
         algorithm: 'ed25519',
         value: signature,
         keyId: this.keyId,
-        signedFields
-      }
+        signedFields,
+      },
     };
   }
-  
+
   verify<T>(envelope: SignedEnvelope<T>): boolean {
     const dataToVerify = this.extractFields(envelope, envelope.signature.signedFields);
     return this.crypto.verify(
@@ -1726,17 +1718,17 @@ class MessageSigner {
 ```typescript
 interface TracingContext {
   // W3C Trace Context compatible
-  traceId: string;                // 128-bit hex
-  spanId: string;                 // 64-bit hex
+  traceId: string; // 128-bit hex
+  spanId: string; // 64-bit hex
   parentSpanId?: string;
-  
+
   // Sampling
   sampled: boolean;
   samplingPriority: number;
-  
+
   // Baggage (propagated key-values)
   baggage: Record<string, string>;
-  
+
   // Timestamps
   startTime: string;
   endTime?: string;
@@ -1746,12 +1738,12 @@ interface TracingContext {
 class TracingPropagator {
   inject(context: TracingContext): Record<string, string> {
     return {
-      'traceparent': `00-${context.traceId}-${context.spanId}-${context.sampled ? '01' : '00'}`,
-      'tracestate': this.encodeTraceState(context),
-      'baggage': this.encodeBaggage(context.baggage)
+      traceparent: `00-${context.traceId}-${context.spanId}-${context.sampled ? '01' : '00'}`,
+      tracestate: this.encodeTraceState(context),
+      baggage: this.encodeBaggage(context.baggage),
     };
   }
-  
+
   extract(headers: Record<string, string>): TracingContext {
     const [, traceId, spanId, flags] = headers['traceparent'].split('-');
     return {
@@ -1760,10 +1752,10 @@ class TracingPropagator {
       sampled: flags === '01',
       samplingPriority: this.extractSamplingPriority(headers),
       baggage: this.decodeBaggage(headers['baggage']),
-      startTime: new Date().toISOString()
+      startTime: new Date().toISOString(),
     };
   }
-  
+
   createChildSpan(parent: TracingContext): TracingContext {
     return {
       ...parent,
@@ -1771,7 +1763,7 @@ class TracingPropagator {
       spanId: this.generateSpanId(),
       startTime: new Date().toISOString(),
       endTime: undefined,
-      duration: undefined
+      duration: undefined,
     };
   }
 }
@@ -1786,18 +1778,18 @@ interface AgentMetrics {
   messagesSent: Counter;
   messageProcessingTime: Histogram;
   messageErrors: Counter;
-  
+
   // Decision metrics
   decisionsGenerated: Counter;
   decisionConfidence: Histogram;
   consultationsInitiated: Counter;
   consultationResponseTime: Histogram;
-  
+
   // Conflict metrics
   conflictsDetected: Counter;
   conflictsResolved: Counter;
   conflictResolutionTime: Histogram;
-  
+
   // Resource metrics
   contextSize: Gauge;
   pendingRequests: Gauge;
@@ -1808,7 +1800,7 @@ const METRICS_LABELS = {
   messagesReceived: ['agent_type', 'message_type', 'source_agent'],
   messagesSent: ['agent_type', 'message_type', 'destination_agent'],
   decisionConfidence: ['agent_type', 'decision_domain'],
-  conflictsDetected: ['agent_type', 'conflict_type', 'severity']
+  conflictsDetected: ['agent_type', 'conflict_type', 'severity'],
 };
 ```
 
@@ -1818,20 +1810,20 @@ const METRICS_LABELS = {
 interface LogEntry {
   timestamp: string;
   level: 'debug' | 'info' | 'warn' | 'error';
-  
+
   // Context
   traceId: string;
   spanId: string;
   agentType: AgentType;
   agentId: string;
-  
+
   // Event
   event: string;
   message: string;
-  
+
   // Structured data
   data?: Record<string, any>;
-  
+
   // Error details
   error?: {
     type: string;
@@ -1854,8 +1846,8 @@ const exampleLogs: LogEntry[] = [
     data: {
       requestId: 'req-789',
       domain: 'database_selection',
-      context: { serviceCount: 5, estimatedVolume: '100M records' }
-    }
+      context: { serviceCount: 5, estimatedVolume: '100M records' },
+    },
   },
   {
     timestamp: '2025-12-15T10:30:05.456Z',
@@ -1869,9 +1861,9 @@ const exampleLogs: LogEntry[] = [
     data: {
       consultationType: 'opinion',
       targetAgent: AgentType.PERFORMANCE_OPTIMIZATION,
-      topic: 'database_performance_requirements'
-    }
-  }
+      topic: 'database_performance_requirements',
+    },
+  },
 ];
 ```
 
@@ -1889,7 +1881,7 @@ abstract class BaseAgent {
   protected readonly stateManager: AgentStateManager;
   protected readonly metrics: AgentMetrics;
   protected readonly logger: Logger;
-  
+
   constructor(config: AgentConfig) {
     this.agentType = config.agentType;
     this.messageBus = config.messageBus;
@@ -1897,34 +1889,44 @@ abstract class BaseAgent {
     this.stateManager = new AgentStateManager(config.agentType);
     this.metrics = createMetrics(config.agentType);
     this.logger = createLogger(config.agentType);
-    
+
     this.registerHandlers();
   }
-  
+
   // === Message Handlers ===
-  
+
   private registerHandlers(): void {
-    this.messageBus.subscribe(this.agentType, 'DECISION_REQUEST', this.handleDecisionRequest.bind(this));
-    this.messageBus.subscribe(this.agentType, 'CONSULTATION_REQUEST', this.handleConsultationRequest.bind(this));
-    this.messageBus.subscribe(this.agentType, 'CONTEXT_UPDATED', this.handleContextUpdate.bind(this));
+    this.messageBus.subscribe(
+      this.agentType,
+      'DECISION_REQUEST',
+      this.handleDecisionRequest.bind(this)
+    );
+    this.messageBus.subscribe(
+      this.agentType,
+      'CONSULTATION_REQUEST',
+      this.handleConsultationRequest.bind(this)
+    );
+    this.messageBus.subscribe(
+      this.agentType,
+      'CONTEXT_UPDATED',
+      this.handleContextUpdate.bind(this)
+    );
     this.messageBus.subscribe(this.agentType, 'CONFLICT_DETECTED', this.handleConflict.bind(this));
   }
-  
-  protected async handleDecisionRequest(
-    envelope: MessageEnvelope<DecisionRequest>
-  ): Promise<void> {
+
+  protected async handleDecisionRequest(envelope: MessageEnvelope<DecisionRequest>): Promise<void> {
     const span = this.startSpan('handleDecisionRequest', envelope.tracing);
-    
+
     try {
       this.stateManager.transition('analyzing');
       this.metrics.messagesReceived.inc({ message_type: 'DECISION_REQUEST' });
-      
+
       // 1. Get relevant context
       const context = this.contextStore.getForAgent(this.agentType);
-      
+
       // 2. Analyze the request
       const analysis = await this.analyze(envelope.payload, context);
-      
+
       // 3. Consult collaborators if needed
       if (analysis.requiresConsultation) {
         this.stateManager.transition('consulting');
@@ -1934,85 +1936,84 @@ abstract class BaseAgent {
         );
         analysis.consultationResults = consultations;
       }
-      
+
       // 4. Make decision
       this.stateManager.transition('deciding');
       const decision = await this.decide(envelope.payload, analysis, context);
-      
+
       // 5. Validate decision
       this.stateManager.transition('validating');
       const validation = await this.validate(decision, context);
-      
+
       if (!validation.valid) {
         // Handle validation failure
         await this.handleValidationFailure(decision, validation, envelope);
         return;
       }
-      
+
       // 6. Send response
       const response = this.buildResponse(envelope, decision);
       await this.messageBus.send(response);
-      
+
       // 7. Broadcast decision
       await this.broadcastDecision(decision);
-      
+
       // 8. Update context
       this.contextStore.addDecision(decision);
-      
+
       this.stateManager.transition('idle');
       this.metrics.decisionsGenerated.inc({ decision_domain: decision.domain });
-      
     } catch (error) {
       this.handleError(error, envelope, span);
     } finally {
       this.endSpan(span);
     }
   }
-  
+
   // === Abstract Methods (implement per agent) ===
-  
+
   protected abstract analyze(
     request: DecisionRequest,
     context: ScopedContext
   ): Promise<AnalysisResult>;
-  
+
   protected abstract decide(
     request: DecisionRequest,
     analysis: AnalysisResult,
     context: ScopedContext
   ): Promise<Decision>;
-  
+
   protected abstract validate(
     decision: Decision,
     context: ScopedContext
   ): Promise<ValidationResult>;
-  
+
   // === Helper Methods ===
-  
+
   protected async consultCollaborators(
     collaborators: AgentType[],
     analysis: AnalysisResult
   ): Promise<Map<AgentType, ConsultationResponse>> {
     const results = new Map();
-    
+
     await Promise.all(
-      collaborators.map(async (collaborator) => {
+      collaborators.map(async collaborator => {
         const request: ConsultationRequest = {
           type: 'CONSULTATION_REQUEST',
           consultation: {
             topic: analysis.topic,
             question: analysis.consultationQuestion,
-            perspective: this.getCollaboratorPerspective(collaborator)
+            perspective: this.getCollaboratorPerspective(collaborator),
           },
           proposal: {
             description: analysis.proposal,
             options: analysis.options,
-            currentLeaning: analysis.currentLeaning
+            currentLeaning: analysis.currentLeaning,
           },
           inputType: 'opinion',
-          blocking: true
+          blocking: true,
         };
-        
+
         try {
           const response = await this.messageBus.request<ConsultationResponse>(
             collaborator,
@@ -2025,10 +2026,10 @@ abstract class BaseAgent {
         }
       })
     );
-    
+
     return results;
   }
-  
+
   protected buildResponse(
     originalEnvelope: MessageEnvelope<DecisionRequest>,
     decision: Decision
@@ -2040,7 +2041,7 @@ abstract class BaseAgent {
       source: {
         id: this.agentType,
         type: this.agentType,
-        phase: this.getPhase()
+        phase: this.getPhase(),
       },
       destination: { type: 'reply' },
       type: 'DECISION_RESPONSE',
@@ -2049,7 +2050,7 @@ abstract class BaseAgent {
       priority: 'normal',
       context: originalEnvelope.context,
       tracing: this.createChildSpan(originalEnvelope.tracing),
-      payload: this.mapToDecisionResponse(decision, originalEnvelope.payload)
+      payload: this.mapToDecisionResponse(decision, originalEnvelope.payload),
     };
   }
 }
@@ -2061,40 +2062,33 @@ abstract class BaseAgent {
 interface MessageBus {
   // Send message
   send<T extends MessagePayload>(envelope: MessageEnvelope<T>): Promise<void>;
-  
+
   // Request-response pattern
   request<R extends MessagePayload>(
     destination: AgentType,
     payload: MessagePayload,
     options?: RequestOptions
   ): Promise<R>;
-  
+
   // Subscribe to messages
-  subscribe(
-    agent: AgentType,
-    messageType: MessageType,
-    handler: MessageHandler
-  ): Subscription;
-  
+  subscribe(agent: AgentType, messageType: MessageType, handler: MessageHandler): Subscription;
+
   // Publish to channel
   publish(channel: string, event: EventMessage): Promise<void>;
-  
+
   // Subscribe to channel
-  subscribeChannel(
-    channel: string,
-    handler: EventHandler
-  ): Subscription;
+  subscribeChannel(channel: string, handler: EventHandler): Subscription;
 }
 
 class InProcessMessageBus implements MessageBus {
   private handlers: Map<string, MessageHandler[]> = new Map();
   private channels: Map<string, EventHandler[]> = new Map();
   private pendingRequests: Map<string, PendingRequest> = new Map();
-  
+
   async send<T extends MessagePayload>(envelope: MessageEnvelope<T>): Promise<void> {
     const key = this.getHandlerKey(envelope.destination, envelope.type);
     const handlers = this.handlers.get(key) || [];
-    
+
     // Check if this is a response to a pending request
     if (envelope.correlationId && this.pendingRequests.has(envelope.correlationId)) {
       const pending = this.pendingRequests.get(envelope.correlationId)!;
@@ -2103,41 +2097,37 @@ class InProcessMessageBus implements MessageBus {
       pending.resolve(envelope.payload);
       return;
     }
-    
+
     // Dispatch to handlers
     await Promise.all(handlers.map(handler => handler(envelope)));
   }
-  
+
   async request<R extends MessagePayload>(
     destination: AgentType,
     payload: MessagePayload,
     options: RequestOptions = {}
   ): Promise<R> {
     const envelope = this.createEnvelope(destination, payload);
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(envelope.id);
         reject(new TimeoutError(envelope.id));
       }, options.timeout ?? 30000);
-      
+
       this.pendingRequests.set(envelope.id, { resolve, reject, timeout });
       this.send(envelope);
     });
   }
-  
-  subscribe(
-    agent: AgentType,
-    messageType: MessageType,
-    handler: MessageHandler
-  ): Subscription {
+
+  subscribe(agent: AgentType, messageType: MessageType, handler: MessageHandler): Subscription {
     const key = this.getHandlerKey({ type: 'direct', agentId: agent }, messageType);
-    
+
     if (!this.handlers.has(key)) {
       this.handlers.set(key, []);
     }
     this.handlers.get(key)!.push(handler);
-    
+
     return {
       unsubscribe: () => {
         const handlers = this.handlers.get(key);
@@ -2145,18 +2135,15 @@ class InProcessMessageBus implements MessageBus {
           const index = handlers.indexOf(handler);
           if (index > -1) handlers.splice(index, 1);
         }
-      }
+      },
     };
   }
-  
+
   async publish(channel: string, event: EventMessage): Promise<void> {
     const handlers = this.channels.get(channel) || [];
     const wildcardHandlers = this.channels.get('*') || [];
-    
-    await Promise.all([
-      ...handlers.map(h => h(event)),
-      ...wildcardHandlers.map(h => h(event))
-    ]);
+
+    await Promise.all([...handlers.map(h => h(event)), ...wildcardHandlers.map(h => h(event))]);
   }
 }
 ```
@@ -2395,7 +2382,7 @@ const request: MessageEnvelope<DecisionRequest> = {
   source: {
     id: 'meta-coord-001',
     type: AgentType.META_COORDINATOR,
-    phase: 0
+    phase: 0,
   },
   destination: { type: 'direct', agentId: 'data-arch-001' },
   type: 'DECISION_REQUEST',
@@ -2408,16 +2395,32 @@ const request: MessageEnvelope<DecisionRequest> = {
       functional: [{ id: 'F001', description: 'User management' }],
       nonFunctional: [
         { type: 'performance', metric: 'latency', target: '<100ms' },
-        { type: 'scalability', metric: 'users', target: '1M concurrent' }
+        { type: 'scalability', metric: 'users', target: '1M concurrent' },
       ],
       constraints: [{ type: 'budget', value: '$5000/month' }],
-      assumptions: []
+      assumptions: [],
     },
     decisions: { byDomain: new Map(), byAgent: new Map(), byPhase: new Map(), conflicts: [] },
-    architecture: { style: 'microservices', services: [], dataStores: [], integrations: [], security: {} },
-    workflow: { currentPhase: 3, completedPhases: [1, 2], activeAgents: [], blockedAgents: new Map() },
-    preferences: { technologyBias: [], budgetConstraints: {}, teamSkills: { postgres: 'expert', mongodb: 'intermediate' }, riskTolerance: 'medium' },
-    artifacts: { adrs: [], diagrams: [], specifications: [] }
+    architecture: {
+      style: 'microservices',
+      services: [],
+      dataStores: [],
+      integrations: [],
+      security: {},
+    },
+    workflow: {
+      currentPhase: 3,
+      completedPhases: [1, 2],
+      activeAgents: [],
+      blockedAgents: new Map(),
+    },
+    preferences: {
+      technologyBias: [],
+      budgetConstraints: {},
+      teamSkills: { postgres: 'expert', mongodb: 'intermediate' },
+      riskTolerance: 'medium',
+    },
+    artifacts: { adrs: [], diagrams: [], specifications: [] },
   },
   tracing: {
     traceId: 'abc123def456789012345678901234567',
@@ -2425,7 +2428,7 @@ const request: MessageEnvelope<DecisionRequest> = {
     sampled: true,
     samplingPriority: 1,
     baggage: { userId: 'user-001' },
-    startTime: '2025-12-15T10:00:00.000Z'
+    startTime: '2025-12-15T10:00:00.000Z',
   },
   payload: {
     type: 'DECISION_REQUEST',
@@ -2433,45 +2436,51 @@ const request: MessageEnvelope<DecisionRequest> = {
       domain: 'database_selection',
       question: 'Select primary database technology for user service',
       scope: 'user-service',
-      urgency: 'blocking'
+      urgency: 'blocking',
     },
     context: {
       requirements: [
         { type: 'read_heavy', ratio: '80/20' },
         { type: 'consistency', level: 'strong' },
-        { type: 'query_patterns', patterns: ['pk_lookup', 'range_scans', 'complex_joins'] }
+        { type: 'query_patterns', patterns: ['pk_lookup', 'range_scans', 'complex_joins'] },
       ],
       constraints: [
         { type: 'budget', limit: '$500/month for database' },
-        { type: 'team_skills', skills: ['PostgreSQL: expert', 'MongoDB: intermediate'] }
+        { type: 'team_skills', skills: ['PostgreSQL: expert', 'MongoDB: intermediate'] },
       ],
-      preferences: [
-        { type: 'managed_service', preferred: true }
-      ],
-      assumptions: [
-        { assumption: 'Data volume will grow to 100M records in 2 years' }
-      ]
+      preferences: [{ type: 'managed_service', preferred: true }],
+      assumptions: [{ assumption: 'Data volume will grow to 100M records in 2 years' }],
     },
     dependencies: {
       requires: [
-        { decisionId: 'dec-001', agentType: AgentType.SYSTEM_TOPOLOGY, domain: 'architecture_style', summary: 'Microservices architecture selected' }
+        {
+          decisionId: 'dec-001',
+          agentType: AgentType.SYSTEM_TOPOLOGY,
+          domain: 'architecture_style',
+          summary: 'Microservices architecture selected',
+        },
       ],
       influences: [
-        { decisionId: 'dec-002', agentType: AgentType.DOMAIN_DRIVEN_DESIGN, domain: 'domain_model', summary: 'User aggregate defined' }
-      ]
+        {
+          decisionId: 'dec-002',
+          agentType: AgentType.DOMAIN_DRIVEN_DESIGN,
+          domain: 'domain_model',
+          summary: 'User aggregate defined',
+        },
+      ],
     },
     expectedOutput: {
       format: 'recommendation',
       includeAlternatives: true,
       maxAlternatives: 3,
-      requireQuantification: true
+      requireQuantification: true,
     },
     collaboration: {
       primaryAgent: AgentType.DATA_ARCHITECTURE,
       consultAgents: [AgentType.PERFORMANCE_OPTIMIZATION, AgentType.COST_OPTIMIZATION],
-      notifyAgents: [AgentType.CACHING_STRATEGY, AgentType.HIGH_AVAILABILITY]
-    }
-  }
+      notifyAgents: [AgentType.CACHING_STRATEGY, AgentType.HIGH_AVAILABILITY],
+    },
+  },
 };
 
 // 2. Data Architecture Agent consults Performance Agent
@@ -2482,7 +2491,7 @@ const consultationRequest: MessageEnvelope<ConsultationRequest> = {
   source: {
     id: 'data-arch-001',
     type: AgentType.DATA_ARCHITECTURE,
-    phase: 3
+    phase: 3,
   },
   destination: { type: 'direct', agentId: 'perf-opt-001' },
   type: 'CONSULTATION_REQUEST',
@@ -2494,23 +2503,23 @@ const consultationRequest: MessageEnvelope<ConsultationRequest> = {
     ...request.tracing,
     parentSpanId: request.tracing.spanId,
     spanId: 'fedcba0987654321',
-    startTime: '2025-12-15T10:00:05.000Z'
+    startTime: '2025-12-15T10:00:05.000Z',
   },
   payload: {
     type: 'CONSULTATION_REQUEST',
     consultation: {
       topic: 'Database performance for user service',
       question: 'What are your performance concerns with PostgreSQL vs MongoDB for this use case?',
-      perspective: 'technical'
+      perspective: 'technical',
     },
     proposal: {
       description: 'Considering PostgreSQL for strong consistency and complex joins',
       options: ['PostgreSQL', 'MongoDB', 'CockroachDB'],
-      currentLeaning: 'PostgreSQL'
+      currentLeaning: 'PostgreSQL',
     },
     inputType: 'opinion',
-    blocking: true
-  }
+    blocking: true,
+  },
 };
 
 // 3. Performance Agent responds
@@ -2521,7 +2530,7 @@ const consultationResponse: MessageEnvelope<ConsultationResponse> = {
   source: {
     id: 'perf-opt-001',
     type: AgentType.PERFORMANCE_OPTIMIZATION,
-    phase: 8
+    phase: 8,
   },
   destination: { type: 'reply' },
   type: 'CONSULTATION_RESPONSE',
@@ -2532,7 +2541,7 @@ const consultationResponse: MessageEnvelope<ConsultationResponse> = {
   tracing: {
     ...consultationRequest.tracing,
     endTime: '2025-12-15T10:00:10.000Z',
-    duration: 5000
+    duration: 5000,
   },
   payload: {
     type: 'CONSULTATION_RESPONSE',
@@ -2544,26 +2553,26 @@ const consultationResponse: MessageEnvelope<ConsultationResponse> = {
           severity: 'warning',
           category: 'scalability',
           description: 'PostgreSQL may face vertical scaling limits at very high scale',
-          recommendation: 'Plan for read replicas and connection pooling from the start'
-        }
+          recommendation: 'Plan for read replicas and connection pooling from the start',
+        },
       ],
       constraints: [
         { type: 'connection_pooling', requirement: 'Use PgBouncer or similar' },
-        { type: 'indexing', requirement: 'Index strategy critical for range scans' }
+        { type: 'indexing', requirement: 'Index strategy critical for range scans' },
       ],
       suggestions: [
         {
           type: 'enhancement',
           description: 'Consider partitioning for the users table if expecting 100M+ records',
           rationale: 'Improves query performance and maintenance operations',
-          effort: 'medium'
-        }
-      ]
+          effort: 'medium',
+        },
+      ],
     },
     confidence: 0.85,
     caveats: ['Analysis based on stated 80/20 read/write ratio'],
-    deferTo: [AgentType.CACHING_STRATEGY]
-  }
+    deferTo: [AgentType.CACHING_STRATEGY],
+  },
 };
 
 // 4. Data Architecture Agent makes decision
@@ -2574,7 +2583,7 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
   source: {
     id: 'data-arch-001',
     type: AgentType.DATA_ARCHITECTURE,
-    phase: 3
+    phase: 3,
   },
   destination: { type: 'reply' },
   type: 'DECISION_RESPONSE',
@@ -2585,7 +2594,7 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
   tracing: {
     ...request.tracing,
     endTime: '2025-12-15T10:00:20.000Z',
-    duration: 20000
+    duration: 20000,
   },
   payload: {
     type: 'DECISION_RESPONSE',
@@ -2595,39 +2604,97 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
       domain: 'database_selection',
       recommendation: 'PostgreSQL 15+ (AWS RDS)',
       confidence: 0.9,
-      status: 'final'
+      status: 'final',
     },
     rationale: {
       summary: 'PostgreSQL selected for strong consistency, team expertise, and mature ecosystem',
       reasoning: [
-        { step: 1, thought: 'User service requires strong consistency for account operations', evidence: 'Requirement: strong consistency', conclusion: 'Need ACID-compliant database' },
-        { step: 2, thought: 'Team has expert-level PostgreSQL skills', evidence: 'Constraint: team_skills', conclusion: 'Reduces implementation risk' },
-        { step: 3, thought: 'Complex joins required for user relationships', evidence: 'Query pattern: complex_joins', conclusion: 'Relational database preferred' }
+        {
+          step: 1,
+          thought: 'User service requires strong consistency for account operations',
+          evidence: 'Requirement: strong consistency',
+          conclusion: 'Need ACID-compliant database',
+        },
+        {
+          step: 2,
+          thought: 'Team has expert-level PostgreSQL skills',
+          evidence: 'Constraint: team_skills',
+          conclusion: 'Reduces implementation risk',
+        },
+        {
+          step: 3,
+          thought: 'Complex joins required for user relationships',
+          evidence: 'Query pattern: complex_joins',
+          conclusion: 'Relational database preferred',
+        },
       ],
       keyFactors: [
-        { name: 'Consistency', weight: 0.3, score: 0.95, explanation: 'PostgreSQL provides strong ACID compliance' },
-        { name: 'Team Expertise', weight: 0.25, score: 0.9, explanation: 'Team has expert-level PostgreSQL experience' },
-        { name: 'Query Support', weight: 0.2, score: 0.85, explanation: 'Excellent support for complex joins and range scans' },
-        { name: 'Managed Service', weight: 0.15, score: 0.8, explanation: 'AWS RDS provides fully managed PostgreSQL' },
-        { name: 'Cost', weight: 0.1, score: 0.75, explanation: 'Within budget at ~$200/month for expected load' }
-      ]
+        {
+          name: 'Consistency',
+          weight: 0.3,
+          score: 0.95,
+          explanation: 'PostgreSQL provides strong ACID compliance',
+        },
+        {
+          name: 'Team Expertise',
+          weight: 0.25,
+          score: 0.9,
+          explanation: 'Team has expert-level PostgreSQL experience',
+        },
+        {
+          name: 'Query Support',
+          weight: 0.2,
+          score: 0.85,
+          explanation: 'Excellent support for complex joins and range scans',
+        },
+        {
+          name: 'Managed Service',
+          weight: 0.15,
+          score: 0.8,
+          explanation: 'AWS RDS provides fully managed PostgreSQL',
+        },
+        {
+          name: 'Cost',
+          weight: 0.1,
+          score: 0.75,
+          explanation: 'Within budget at ~$200/month for expected load',
+        },
+      ],
     },
     tradeoffs: {
       pros: [
         { aspect: 'Consistency', description: 'Strong ACID compliance', severity: 'high' },
         { aspect: 'Team Skills', description: 'No learning curve', severity: 'high' },
-        { aspect: 'Ecosystem', description: 'Mature tooling and community', severity: 'medium' }
+        { aspect: 'Ecosystem', description: 'Mature tooling and community', severity: 'medium' },
       ],
       cons: [
-        { aspect: 'Horizontal Scaling', description: 'More complex than NoSQL options', severity: 'medium' },
-        { aspect: 'Schema Flexibility', description: 'Less flexible than document stores', severity: 'low' }
+        {
+          aspect: 'Horizontal Scaling',
+          description: 'More complex than NoSQL options',
+          severity: 'medium',
+        },
+        {
+          aspect: 'Schema Flexibility',
+          description: 'Less flexible than document stores',
+          severity: 'low',
+        },
       ],
       risks: [
-        { id: 'R001', description: 'Scaling bottleneck at very high scale', probability: 'low', impact: 'high', category: 'scalability' }
+        {
+          id: 'R001',
+          description: 'Scaling bottleneck at very high scale',
+          probability: 'low',
+          impact: 'high',
+          category: 'scalability',
+        },
       ],
       mitigations: [
-        { riskId: 'R001', strategy: 'Implement read replicas and connection pooling from day one', effectiveness: 'full' }
-      ]
+        {
+          riskId: 'R001',
+          strategy: 'Implement read replicas and connection pooling from day one',
+          effectiveness: 'full',
+        },
+      ],
     },
     alternatives: [
       {
@@ -2635,10 +2702,20 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
         description: 'Document database with flexible schema',
         score: 0.7,
         factors: [
-          { name: 'Consistency', weight: 0.3, score: 0.6, explanation: 'Eventually consistent by default' },
-          { name: 'Team Expertise', weight: 0.25, score: 0.6, explanation: 'Intermediate team skills' }
+          {
+            name: 'Consistency',
+            weight: 0.3,
+            score: 0.6,
+            explanation: 'Eventually consistent by default',
+          },
+          {
+            name: 'Team Expertise',
+            weight: 0.25,
+            score: 0.6,
+            explanation: 'Intermediate team skills',
+          },
         ],
-        whyNotChosen: 'Lower consistency guarantees and less team expertise'
+        whyNotChosen: 'Lower consistency guarantees and less team expertise',
       },
       {
         name: 'CockroachDB',
@@ -2646,25 +2723,23 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
         score: 0.75,
         factors: [
           { name: 'Consistency', weight: 0.3, score: 0.9, explanation: 'Strong consistency' },
-          { name: 'Team Expertise', weight: 0.25, score: 0.3, explanation: 'No team experience' }
+          { name: 'Team Expertise', weight: 0.25, score: 0.3, explanation: 'No team experience' },
         ],
-        whyNotChosen: 'Higher learning curve and cost for current scale'
-      }
+        whyNotChosen: 'Higher learning curve and cost for current scale',
+      },
     ],
     impact: {
-      affects: [
-        { name: 'user-service', type: 'service', impact: 'primary_datastore' }
-      ],
+      affects: [{ name: 'user-service', type: 'service', impact: 'primary_datastore' }],
       dependencies: {
         enables: ['caching_strategy', 'high_availability_configuration'],
         requires: ['cloud_infrastructure'],
-        conflicts: []
+        conflicts: [],
       },
       estimatedEffort: {
         setup: '8 hours',
         integration: '16 hours',
-        testing: '8 hours'
-      }
+        testing: '8 hours',
+      },
     },
     artifacts: {
       adr: {
@@ -2673,17 +2748,17 @@ const decisionResponse: MessageEnvelope<DecisionResponse> = {
         status: 'accepted',
         context: 'The user service requires a primary database...',
         decision: 'We will use PostgreSQL 15+ via AWS RDS...',
-        consequences: 'Strong consistency, team expertise leveraged...'
-      }
+        consequences: 'Strong consistency, team expertise leveraged...',
+      },
     },
     followUp: {
       questionsForUser: [],
       recommendedConsultations: [
-        { agent: AgentType.CACHING_STRATEGY, topic: 'Caching strategy for user data' }
+        { agent: AgentType.CACHING_STRATEGY, topic: 'Caching strategy for user data' },
       ],
-      blockedPendingDecisions: []
-    }
-  }
+      blockedPendingDecisions: [],
+    },
+  },
 };
 
 // 5. Broadcast decision to interested agents
@@ -2694,7 +2769,7 @@ const decisionEvent: MessageEnvelope<DecisionMadeEvent> = {
   source: {
     id: 'data-arch-001',
     type: AgentType.DATA_ARCHITECTURE,
-    phase: 3
+    phase: 3,
   },
   destination: { type: 'broadcast', channel: 'decisions.database' },
   type: 'DECISION_MADE',
@@ -2706,7 +2781,7 @@ const decisionEvent: MessageEnvelope<DecisionMadeEvent> = {
     ...decisionResponse.tracing,
     parentSpanId: decisionResponse.tracing.spanId,
     spanId: 'abcd1234efgh5678',
-    startTime: '2025-12-15T10:00:21.000Z'
+    startTime: '2025-12-15T10:00:21.000Z',
   },
   payload: {
     type: 'DECISION_MADE',
@@ -2715,15 +2790,15 @@ const decisionEvent: MessageEnvelope<DecisionMadeEvent> = {
       domain: 'database_selection',
       summary: 'PostgreSQL 15+ (AWS RDS) selected for user service',
       agent: AgentType.DATA_ARCHITECTURE,
-      phase: 3
+      phase: 3,
     },
     impact: {
       blocksAgents: [],
       enablesAgents: [AgentType.CACHING_STRATEGY, AgentType.HIGH_AVAILABILITY],
-      affectsDecisions: ['caching_strategy', 'replication_topology']
+      affectsDecisions: ['caching_strategy', 'replication_topology'],
     },
-    artifacts: ['docs/architecture/adrs/003-postgresql-for-user-service.md']
-  }
+    artifacts: ['docs/architecture/adrs/003-postgresql-for-user-service.md'],
+  },
 };
 ```
 
@@ -2737,21 +2812,26 @@ const conflictEvent: MessageEnvelope<ConflictDetectedEvent> = {
   source: {
     id: 'security-arch-001',
     type: AgentType.SECURITY_ARCHITECTURE,
-    phase: 6
+    phase: 6,
   },
   destination: { type: 'coordinator' },
   type: 'CONFLICT_DETECTED',
   version: '1.0.0',
   timestamp: '2025-12-15T11:00:00.000Z',
   priority: 'critical',
-  context: { /* ... */ },
-  tracing: { /* ... */ },
+  context: {
+    /* ... */
+  },
+  tracing: {
+    /* ... */
+  },
   payload: {
     type: 'CONFLICT_DETECTED',
     conflict: {
       id: 'conflict-001',
       severity: 'major',
-      description: 'Caching strategy caches PII without encryption, violating security requirements'
+      description:
+        'Caching strategy caches PII without encryption, violating security requirements',
     },
     parties: [
       {
@@ -2759,22 +2839,22 @@ const conflictEvent: MessageEnvelope<ConflictDetectedEvent> = {
         decisionId: 'dec-010',
         position: 'Cache user profiles including email/phone for performance',
         rationale: 'Reduces database load by 80%',
-        flexibility: 'negotiable'
+        flexibility: 'negotiable',
       },
       {
         agent: AgentType.SECURITY_ARCHITECTURE,
         decisionId: 'dec-015',
         position: 'PII must be encrypted at rest in all storage layers',
         rationale: 'GDPR and security policy compliance',
-        flexibility: 'fixed'
-      }
+        flexibility: 'fixed',
+      },
     ],
     resolution: {
       required: true,
       suggestedApproach: 'Implement field-level encryption for PII in cache',
-      escalateTo: AgentType.META_COORDINATOR
-    }
-  }
+      escalateTo: AgentType.META_COORDINATOR,
+    },
+  },
 };
 
 // Meta-Coordinator resolves conflict
@@ -2784,48 +2864,62 @@ const resolutionMessage: MessageEnvelope<ConflictResolutionRecord> = {
   source: {
     id: 'meta-coord-001',
     type: AgentType.META_COORDINATOR,
-    phase: 0
+    phase: 0,
   },
   destination: { type: 'broadcast', channel: 'conflicts.resolved' },
   type: 'CONFLICT_RESOLVED',
   version: '1.0.0',
   timestamp: '2025-12-15T11:05:00.000Z',
   priority: 'high',
-  context: { /* ... */ },
-  tracing: { /* ... */ },
+  context: {
+    /* ... */
+  },
+  tracing: {
+    /* ... */
+  },
   payload: {
     conflictId: 'conflict-001',
     resolvedAt: '2025-12-15T11:05:00.000Z',
     resolution: {
       strategy: ResolutionStrategy.COMPROMISE,
       outcome: 'Cache user profiles with field-level encryption for PII fields',
-      rationale: 'Maintains performance benefits while ensuring security compliance'
+      rationale: 'Maintains performance benefits while ensuring security compliance',
     },
     decisions: {
       accepted: [
-        { decisionId: 'dec-015', agentType: AgentType.SECURITY_ARCHITECTURE, domain: 'security', summary: 'PII encryption requirement' }
+        {
+          decisionId: 'dec-015',
+          agentType: AgentType.SECURITY_ARCHITECTURE,
+          domain: 'security',
+          summary: 'PII encryption requirement',
+        },
       ],
       rejected: [],
       modified: [
         {
-          original: { decisionId: 'dec-010', agentType: AgentType.CACHING_STRATEGY, domain: 'caching', summary: 'Cache user profiles' },
+          original: {
+            decisionId: 'dec-010',
+            agentType: AgentType.CACHING_STRATEGY,
+            domain: 'caching',
+            summary: 'Cache user profiles',
+          },
           modified: {
             id: 'dec-010-v2',
             domain: 'caching',
             recommendation: 'Cache user profiles with encrypted PII fields',
-            confidence: 0.85
+            confidence: 0.85,
           },
-          changes: ['Added field-level encryption for email, phone, address fields']
-        }
-      ]
+          changes: ['Added field-level encryption for email, phone, address fields'],
+        },
+      ],
     },
     dissent: [],
     impact: {
       affectedDecisions: ['dec-010'],
       retriggeredAgents: [AgentType.CACHING_STRATEGY],
-      delayedWorkflow: false
-    }
-  }
+      delayedWorkflow: false,
+    },
+  },
 };
 ```
 
@@ -2833,9 +2927,9 @@ const resolutionMessage: MessageEnvelope<ConflictResolutionRecord> = {
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | Dec 2025 | Initial specification |
+| Version | Date     | Changes               |
+| ------- | -------- | --------------------- |
+| 1.0.0   | Dec 2025 | Initial specification |
 
 ---
 

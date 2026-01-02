@@ -14,7 +14,7 @@
 - Maintain global system context and architectural vision
 - Generate Architecture Decision Records (ADRs)
 
------
+---
 
 ## Core Agent Ensemble (Collaborative Workflow)
 
@@ -55,7 +55,7 @@
 - Communication pattern selection
   **Collaborates with**: All downstream agents
 
------
+---
 
 ### **Phase 2: Infrastructure & Platform Design**
 
@@ -96,7 +96,7 @@
 - DNS architecture
   **Collaborates with**: Security Agent, API Gateway Agent
 
------
+---
 
 ### **Phase 3: Data & Integration Layer**
 
@@ -163,7 +163,7 @@
 - Saga pattern for distributed transactions
   **Collaborates with**: API Agent, Event Streaming Agent, Resilience Agent
 
------
+---
 
 ### **Phase 4: Application Architecture**
 
@@ -192,7 +192,7 @@
 - Component library architecture
   **Collaborates with**: API Agent, Performance Agent, Security Agent
 
------
+---
 
 ### **Phase 5: Security & Compliance**
 
@@ -234,7 +234,7 @@
 - Compliance checkpoint documentation
   **Collaborates with**: Security Agent, Data Agent, Observability Agent
 
------
+---
 
 ### **Phase 6: Resilience & Operations**
 
@@ -290,7 +290,7 @@
 - Alert definitions and escalation policies
   **Collaborates with**: All agents (observability is cross-cutting)
 
------
+---
 
 ### **Phase 7: Performance & Scalability**
 
@@ -332,7 +332,7 @@
 - Global load balancing (GSLB) for multi-region
   **Collaborates with**: Network Agent, High Availability Agent
 
------
+---
 
 ### **Phase 8: Development & Deployment**
 
@@ -387,7 +387,7 @@
 - Release communication templates
   **Collaborates with**: CI/CD Agent, Observability Agent
 
------
+---
 
 ### **Phase 9: Cost & Governance**
 
@@ -429,7 +429,7 @@
 - Coding standards and style guides
   **Collaborates with**: Meta-Coordinator, all agents
 
------
+---
 
 ## Workflow Coordination Patterns
 
@@ -453,7 +453,7 @@ Requirements → Domain Design → System Topology → Infrastructure → Data/I
 - Cost Agent evaluates all resource selections
 - Documentation Agent captures all decisions
 
------
+---
 
 ## Inter-Agent Communication Protocol
 
@@ -506,20 +506,20 @@ When agents disagree (e.g., Security wants encryption overhead, Performance want
 4. Meta-Coordinator facilitates compromise or executive decision
 5. Documentation Agent records ADR with dissenting opinions
 
------
+---
 
 ## Key Collaboration Touchpoints
 
-|**Agent Pair**              |**Integration Point**       |**Shared Artifact**        |
-|----------------------------|----------------------------|---------------------------|
-|Domain + Data               |Aggregate → Database mapping|Entity relationship diagram|
-|API + Security              |Endpoint authentication     |API security spec          |
-|Event Streaming + Resilience|Message delivery guarantees |Retry policy matrix        |
-|Frontend + Backend          |API contracts               |OpenAPI schema             |
-|CI/CD + Testing             |Quality gates               |Test coverage report       |
-|Observability + All         |Instrumentation requirements|Telemetry spec             |
+| **Agent Pair**               | **Integration Point**        | **Shared Artifact**         |
+| ---------------------------- | ---------------------------- | --------------------------- |
+| Domain + Data                | Aggregate → Database mapping | Entity relationship diagram |
+| API + Security               | Endpoint authentication      | API security spec           |
+| Event Streaming + Resilience | Message delivery guarantees  | Retry policy matrix         |
+| Frontend + Backend           | API contracts                | OpenAPI schema              |
+| CI/CD + Testing              | Quality gates                | Test coverage report        |
+| Observability + All          | Instrumentation requirements | Telemetry spec              |
 
------
+---
 
 ## Output: Unified Architecture Blueprint
 
@@ -536,7 +536,7 @@ When agents disagree (e.g., Security wants encryption overhead, Performance want
 9. **Operational Runbooks** with monitoring dashboards
 10. **Implementation Roadmap** with phased delivery plan
 
------
+---
 
 **Next Steps:**
 

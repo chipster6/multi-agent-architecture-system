@@ -16,8 +16,13 @@
     "test:perf": "vitest run tests/performance",
     "test:property": "vitest run tests/property",
     "type-check": "tsc --noEmit",
-    "lint": "echo 'Lint check skipped for foundation setup'",
-    "format": "prettier --write \"src/**/*.{ts,json,md}\"",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --cache",
+    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --fix --cache",
+    "lint:check": "ESLINT_USE_FLAT_CONFIG=false eslint . --max-warnings 0",
+    "format": "prettier --write . --cache",
+    "format:check": "prettier --check . --cache",
+    "format:fix": "prettier --write . --cache",
+    "code-quality": "npm run type-check && npm run lint:check && npm run format:check",
     "dev": "tsx watch src/index.ts",
     "clean": "rimraf dist",
     "prebuild": "npm run clean"
@@ -39,15 +44,21 @@
     "json-schema": "^0.4.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^20.10.0",
-    "vitest": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^9.37.0",
     "fast-check": "^3.15.0",
-    "typescript": "^5.3.0",
-    "eslint": "^8.54.0",
+    "globals": "^15.0.0",
     "prettier": "^3.1.0",
+    "rimraf": "^5.0.5",
     "tsx": "^4.6.0",
-    "rimraf": "^5.0.5"
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^1.0.0"
   },
   "files": [
     "dist",

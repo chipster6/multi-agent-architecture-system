@@ -20,13 +20,15 @@ export function registerTools(): Tool[] {
         properties: {
           description: {
             type: 'string',
-            description: 'Detailed description of the system requirements and business needs',
+            description:
+              'Detailed description of the system requirements and business needs',
             minLength: 10,
           },
           constraints: {
             type: 'array',
             items: { type: 'string' },
-            description: 'List of technical, business, or regulatory constraints (optional)',
+            description:
+              'List of technical, business, or regulatory constraints (optional)',
           },
           technologies: {
             type: 'array',
@@ -59,7 +61,8 @@ export function registerTools(): Tool[] {
         properties: {
           requirements: {
             type: 'object',
-            description: 'Requirements analysis output from analyze_requirements tool',
+            description:
+              'Requirements analysis output from analyze_requirements tool',
           },
           preferences: {
             type: 'object',
@@ -99,7 +102,8 @@ export function registerTools(): Tool[] {
           constraints: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Additional constraints to validate against (optional)',
+            description:
+              'Additional constraints to validate against (optional)',
           },
         },
         required: ['architecture'],

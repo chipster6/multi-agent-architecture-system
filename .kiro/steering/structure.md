@@ -26,6 +26,7 @@ The project follows a **multi-agent orchestration pattern** with clear separatio
 ## Agent Organization Principles
 
 ### Phase-Based Structure
+
 Agents are organized into 11 sequential phases, each building on previous phases:
 
 1. **Phase 1 - Strategic Design**: Requirements → Domain Design → System Topology
@@ -43,16 +44,19 @@ Agents are organized into 11 sequential phases, each building on previous phases
 ### Agent Collaboration Patterns
 
 #### Sequential Dependencies (Between Phases)
+
 - Phase 1 must complete before Phase 2 can begin
 - System Topology decision gates all downstream phases
 - Security reviews are mandatory checkpoints
 
 #### Parallel Execution (Within Phases)
+
 - Agents within the same phase can run concurrently
 - Context sharing enables independent work streams
 - Dependency graph prevents conflicts
 
 #### Cross-Cutting Concerns
+
 - **Security Agent**: Reviews all decisions (non-blocking unless critical)
 - **Cost Optimization Agent**: Evaluates all resource decisions
 - **Documentation Agent**: Captures all architectural decisions
@@ -60,6 +64,7 @@ Agents are organized into 11 sequential phases, each building on previous phases
 ## File Organization
 
 ### Core Structure
+
 ```
 ├── src/
 │   ├── index.ts                    # MCP server entry point
@@ -78,14 +83,18 @@ Agents are organized into 11 sequential phases, each building on previous phases
 ```
 
 ### Agent Implementation Pattern
+
 Each agent follows a consistent structure:
+
 - Extends `BaseAgent` abstract class
 - Implements required methods: `analyze()`, `decide()`, `validate()`
 - Uses standardized input/output schemas
 - Includes collaboration and handoff logic
 
 ### Output Organization
+
 Generated architecture documentation follows C4 model structure:
+
 ```
 docs/architecture/
 ├── blueprint.md                    # Executive summary
@@ -103,12 +112,14 @@ docs/architecture/
 ## Communication Protocols
 
 ### Message Types
+
 - **Decision Requests**: Request architectural decisions from agents
 - **Consultation Requests**: Request advisory input without binding decisions
 - **Event Messages**: Broadcast notifications about state changes
 - **Coordination Messages**: Workflow orchestration and synchronization
 
 ### Context Propagation
+
 - **Immutable Context**: Decisions accumulate without modification
 - **Scoped Context**: Each agent receives relevant subset
 - **Conflict Detection**: Automatic detection of contradictory decisions
@@ -117,12 +128,14 @@ docs/architecture/
 ## Quality Assurance
 
 ### Agent Quality Gates
+
 - **Input Validation**: Zod schemas validate all agent inputs
 - **Output Validation**: Structured schemas ensure consistent outputs
 - **Confidence Scoring**: Agents report confidence levels (0.0-1.0)
 - **Conflict Resolution**: Automatic detection and resolution workflows
 
 ### Testing Strategy
+
 - **Unit Tests**: Individual agent logic and decision-making
 - **Integration Tests**: Agent collaboration and handoff scenarios
 - **End-to-End Tests**: Complete architecture generation workflows
@@ -131,11 +144,13 @@ docs/architecture/
 ## Extensibility Patterns
 
 ### Dynamic Agent Factory
+
 - **Technology Detection**: Automatically identify unknown technologies
 - **Agent Template Generation**: Create ephemeral agents for new domains
 - **Integration Patterns**: Seamlessly integrate with existing workflow
 
 ### Configuration-Driven Behavior
+
 - **Agent Selection**: Configure which agents to include per project type
 - **Model Selection**: Choose appropriate LLM models per agent complexity
 - **Orchestration Strategy**: API-based vs prompt-based execution
@@ -143,12 +158,14 @@ docs/architecture/
 ## Error Handling & Recovery
 
 ### Error Categories
+
 - **Transient Errors**: Network timeouts, rate limits (retryable)
 - **Agent Errors**: Invalid inputs/outputs, state corruption
 - **Workflow Errors**: Dependency failures, circular dependencies
 - **Business Errors**: Constraint violations, unresolvable conflicts
 
 ### Recovery Mechanisms
+
 - **Retry Policies**: Exponential backoff for transient failures
 - **Circuit Breakers**: Prevent cascade failures
 - **Dead Letter Queue**: Handle permanently failed messages
@@ -157,12 +174,14 @@ docs/architecture/
 ## Documentation Standards
 
 ### Architecture Decision Records (ADRs)
+
 - **Standard Format**: Context → Decision → Consequences
 - **Traceability**: Link decisions to requirements and constraints
 - **Dissenting Opinions**: Capture alternative viewpoints
 - **Status Tracking**: Proposed → Accepted → Superseded
 
 ### Code Documentation
+
 - **TSDoc Comments**: Comprehensive API documentation
 - **README Files**: Per-module usage and examples
 - **Architecture Diagrams**: Visual representation of system structure

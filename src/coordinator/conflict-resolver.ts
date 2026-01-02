@@ -16,7 +16,9 @@ export class ConflictResolver {
   /**
    * Detect conflicts between architectural decisions
    */
-  async detectConflicts(decisions: ArchitecturalDecision[]): Promise<Conflict[]> {
+  async detectConflicts(
+    decisions: ArchitecturalDecision[]
+  ): Promise<Conflict[]> {
     console.error('Detecting conflicts in architectural decisions', {
       decisionsCount: decisions.length,
     });
@@ -89,7 +91,11 @@ export class ConflictResolver {
     architecture: any,
     constraints: string[],
     context: ArchitectureContext
-  ): Promise<{ isValid: boolean; issues: string[]; recommendations: string[] }> {
+  ): Promise<{
+    isValid: boolean;
+    issues: string[];
+    recommendations: string[];
+  }> {
     console.error('Validating architecture', {
       sessionId: context.sessionId,
       constraintsCount: constraints.length,
@@ -110,20 +116,31 @@ export class ConflictResolver {
     // Check for security considerations
     if (!architecture.security) {
       issues.push('Security architecture not defined');
-      recommendations.push('Add security architecture with authentication and authorization');
+      recommendations.push(
+        'Add security architecture with authentication and authorization'
+      );
     }
 
     // Check for monitoring and observability
     if (!architecture.deployment?.monitoring) {
       issues.push('Monitoring strategy not defined');
-      recommendations.push('Define monitoring, logging, and alerting strategies');
+      recommendations.push(
+        'Define monitoring, logging, and alerting strategies'
+      );
     }
 
     // Validate against constraints
     for (const constraint of constraints) {
-      if (constraint.toLowerCase().includes('compliance') && !architecture.security?.compliance) {
-        issues.push(`Compliance constraint "${constraint}" not addressed in security architecture`);
-        recommendations.push('Add compliance requirements and controls to security architecture');
+      if (
+        constraint.toLowerCase().includes('compliance') &&
+        !architecture.security?.compliance
+      ) {
+        issues.push(
+          `Compliance constraint "${constraint}" not addressed in security architecture`
+        );
+        recommendations.push(
+          'Add compliance requirements and controls to security architecture'
+        );
       }
     }
 
@@ -176,7 +193,9 @@ export class ConflictResolver {
     return conflicts;
   }
 
-  private findConstraintViolations(_decisions: ArchitecturalDecision[]): Conflict[] {
+  private findConstraintViolations(
+    _decisions: ArchitecturalDecision[]
+  ): Conflict[] {
     const conflicts: Conflict[] = [];
 
     // TODO: Implement constraint violation detection
@@ -271,7 +290,9 @@ export class ConflictResolver {
 
     return {
       strategy: 'highest_confidence',
-      modifiedDecisions: conflict.involvedDecisions.filter(id => id !== bestDecision.id),
+      modifiedDecisions: conflict.involvedDecisions.filter(
+        id => id !== bestDecision.id
+      ),
       newDecisions: [],
       rationale: `Selected decision with highest confidence (${bestDecision.confidence})`,
     };

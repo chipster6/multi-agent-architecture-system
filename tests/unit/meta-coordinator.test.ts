@@ -15,9 +15,10 @@ describe('MetaCoordinator', () => {
   describe('analyzeRequirements', () => {
     it('should analyze basic requirements successfully', async () => {
       const input = {
-        description: 'E-commerce platform with user management and payment processing',
+        description:
+          'E-commerce platform with user management and payment processing',
         constraints: ['PCI compliance', 'GDPR compliance'],
-        technologies: ['Node.js', 'React', 'PostgreSQL']
+        technologies: ['Node.js', 'React', 'PostgreSQL'],
       };
 
       const result = await coordinator.analyzeRequirements(input);
@@ -35,7 +36,7 @@ describe('MetaCoordinator', () => {
 
     it('should reject invalid input', async () => {
       const input = {
-        description: 'Too short' // Less than 10 characters
+        description: 'Too short', // Less than 10 characters
       };
 
       await expect(coordinator.analyzeRequirements(input)).rejects.toThrow();
@@ -43,7 +44,7 @@ describe('MetaCoordinator', () => {
 
     it('should handle missing optional fields', async () => {
       const input = {
-        description: 'Simple web application for task management'
+        description: 'Simple web application for task management',
       };
 
       const result = await coordinator.analyzeRequirements(input);
@@ -64,31 +65,31 @@ describe('MetaCoordinator', () => {
             description: 'User authentication',
             priority: 'high',
             source: 'business',
-            acceptance_criteria: ['Users can login', 'Users can logout']
-          }
+            acceptance_criteria: ['Users can login', 'Users can logout'],
+          },
         ],
         domainModel: {
           entities: [],
           relationships: [],
-          bounded_contexts: []
+          bounded_contexts: [],
         },
         systemTopology: {
           architecture_style: 'microservices',
           deployment_model: 'cloud-native',
           integration_patterns: ['api-gateway'],
           data_flow: [],
-          system_boundaries: []
+          system_boundaries: [],
         },
         constraints: [],
-        confidence: 0.8
+        confidence: 0.8,
       };
 
       const input = {
         requirements,
         preferences: {
           cloudProvider: 'AWS',
-          architectureStyle: 'microservices'
-        }
+          architectureStyle: 'microservices',
+        },
       };
 
       const result = await coordinator.generateArchitecture(input);
@@ -109,7 +110,7 @@ describe('MetaCoordinator', () => {
           description: 'Test architecture',
           architecture_style: 'microservices',
           key_principles: ['Scalability'],
-          quality_attributes: []
+          quality_attributes: [],
         },
         components: [
           {
@@ -120,14 +121,14 @@ describe('MetaCoordinator', () => {
             responsibilities: ['Routing'],
             interfaces: [],
             dependencies: [],
-            technology_stack: ['Node.js']
-          }
-        ]
+            technology_stack: ['Node.js'],
+          },
+        ],
       };
 
       const input = {
         architecture,
-        constraints: ['Must be cloud-native']
+        constraints: ['Must be cloud-native'],
       };
 
       const result = await coordinator.validateDecisions(input);
@@ -149,22 +150,22 @@ describe('MetaCoordinator', () => {
         overview: {
           system_name: 'Test System',
           description: 'Test architecture',
-          architecture_style: 'microservices'
+          architecture_style: 'microservices',
         },
         services: [
           {
             id: 'svc-001',
             name: 'User Service',
             type: 'microservice',
-            description: 'Manages users'
-          }
-        ]
+            description: 'Manages users',
+          },
+        ],
       };
 
       const input = {
         architecture,
         timeline: '3 months',
-        teamSize: 5
+        teamSize: 5,
       };
 
       const result = await coordinator.createImplementationPlan(input);

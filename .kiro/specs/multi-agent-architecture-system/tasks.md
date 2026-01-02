@@ -4,11 +4,32 @@
 
 Implementation tasks for the foundational MCP server backbone. Tasks are organized by component with dependencies noted. Each task includes acceptance criteria derived from requirements and design specifications.
 
+## 🔍 MANDATORY PRE-TASK CONSULTATION
+
+**BEFORE STARTING ANY TASK OR SUBTASK**, you MUST:
+
+1. **Identify relevant libraries/technologies** mentioned in the task
+2. **Use `resolve-library-id`** to get Context7-compatible library IDs for each technology
+3. **Use `get-library-docs`** to fetch current documentation, best practices, and API changes
+4. **Document findings** in a brief "Technology Consultation Summary" before implementation
+5. **Adjust implementation** based on latest documentation and best practices discovered
+
+This ensures our multi-agent architecture system stays current with evolving technologies and incorporates the latest patterns, security practices, and performance optimizations.
+
+**Example Technologies to Always Consult:**
+
+- `@modelcontextprotocol/sdk` - Core MCP functionality
+- `ajv` - JSON Schema validation patterns
+- `vitest` - Testing frameworks and patterns
+- `typescript` - Latest language features and best practices
+- Any cloud providers, databases, or frameworks mentioned in tasks
+
 ---
 
 ## Phase 1: Project Scaffolding
 
 ### Task 1.1: Initialize TypeScript Project
+
 - [x] Create `package.json` with name, version, scripts, and dependencies
 - [x] Configure `tsconfig.json` with strict mode, ES2022 target, Node16 module resolution
 - [x] Add dependencies: `@modelcontextprotocol/sdk`, `ajv`, `json-schema` (types)
@@ -31,47 +52,54 @@ Implementation tasks for the foundational MCP server backbone. Tasks are organiz
 _Requirements: 1.1, 8.1_
 
 **Acceptance Criteria:**
+
 - `npm install` succeeds
 - `npm run build` compiles without errors
 - `npm run type-check` passes
 - All scripts defined and runnable
 
 ### Task 1.2: Configure Vitest Test Infrastructure
-- [ ] Create `vitest.config.ts` with test patterns and coverage settings
-- [ ] Configure test projects: unit, integration, performance, property
-- [ ] Add setup files for deterministic testing (injectable Clock, IdGenerator)
-- [ ] Configure coverage thresholds (lines: 80%, branches: 80%)
-- [ ] Configure fast-check for property-based testing (min 100 iterations)
+
+- [x] Create `vitest.config.ts` with test patterns and coverage settings
+- [x] Configure test projects: unit, integration, performance, property
+- [x] Add setup files for deterministic testing (injectable Clock, IdGenerator)
+- [x] Configure coverage thresholds (lines: 80%, branches: 80%)
+- [x] Configure fast-check for property-based testing (min 100 iterations)
 
 _Requirements: 8.1, 8.5, 8.6_
 
 **Acceptance Criteria:**
+
 - `npm test` runs and reports results
 - Coverage report generates in `./coverage`
 - Deterministic test mode available via setup files
 - Property tests run with minimum 100 iterations
 
 ### Task 1.3: Implement Shared Utilities Module
+
 **File:** `src/shared/`
 
-- [ ] Create `utf8.ts` with `getUtf8ByteLength(str: string): number`
-- [ ] Create `json.ts` with `safeStringify(value: unknown): string | null` (returns null if not serializable)
-- [ ] Export from `src/shared/index.ts`
+- [x] Create `utf8.ts` with `getUtf8ByteLength(str: string): number`
+- [x] Create `json.ts` with `safeStringify(value: unknown): string | null` (returns null if not serializable)
+- [x] Export from `src/shared/index.ts`
 
 _Requirements: 3.2, 9.2_
 
 **Acceptance Criteria:**
+
 - UTF-8 byte length calculated correctly for multi-byte characters
 - `safeStringify` returns null for circular references, BigInt, etc.
 
 ### Task 1.4: Configure ESLint and Prettier
-- [ ] Create `.eslintrc.js` with TypeScript rules
-- [ ] Create `.prettierrc` with consistent formatting
-- [ ] Add lint and format scripts to `package.json`
+
+- [x] Create `.eslintrc.js` with TypeScript rules
+- [x] Create `.prettierrc` with consistent formatting
+- [x] Add lint and format scripts to `package.json`
 
 _Requirements: N/A (code quality)_
 
 **Acceptance Criteria:**
+
 - `npm run lint` passes on clean codebase
 - `npm run format` applies consistent formatting
 
@@ -79,7 +107,15 @@ _Requirements: N/A (code quality)_
 
 ## Phase 2: Core Infrastructure
 
+> **🔍 PRE-PHASE CONSULTATION**: Before starting Phase 2, consult Context7 for latest patterns on:
+>
+> - Structured logging frameworks and best practices
+> - Error handling patterns in Node.js/TypeScript
+> - Configuration management security practices
+> - Resource management and monitoring approaches
+
 ### Task 2.1: Implement Structured Logger
+
 **File:** `src/logging/structuredLogger.ts`
 
 - [ ] Define `LogEntry` interface per design
@@ -94,6 +130,7 @@ _Requirements: N/A (code quality)_
 _Requirements: 5.1-5.7, 10.1, 10.4_
 
 **Acceptance Criteria:**
+
 - Logs emit as valid JSON with timestamp, level, message to stderr
 - **Timestamps generated via injected Clock (not `new Date()` directly)**
 - Redaction replaces sensitive values with `"[REDACTED]"` (case-insensitive key match)
@@ -104,6 +141,7 @@ _Requirements: 5.1-5.7, 10.1, 10.4_
 - **Note**: Sanitization of ALL string leaf values may have performance overhead on large objects
 
 ### Task 2.2: Implement Error Handler
+
 **File:** `src/errors/errorHandler.ts`
 
 - [ ] Define `ErrorCode` enum per design (InvalidArgument, NotFound, Timeout, ResourceExhausted, Internal, Unauthorized, NotInitialized)
@@ -116,6 +154,7 @@ _Requirements: 5.1-5.7, 10.1, 10.4_
 _Requirements: 6.1-6.6_
 
 **Acceptance Criteria:**
+
 - All error codes defined and exported
 - `createError()` produces valid `StructuredError` objects
 - `toJsonRpcError()` produces valid JSON-RPC error shape with correct id handling
@@ -123,6 +162,7 @@ _Requirements: 6.1-6.6_
 - JSON-RPC error codes map correctly per design table
 
 ### Task 2.3: Implement Configuration Manager
+
 **File:** `src/config/configManager.ts`
 
 - [ ] Define `ServerConfig` interface per design
@@ -132,12 +172,14 @@ _Requirements: 6.1-6.6_
 - [ ] Provide sensible defaults for all options
 - [ ] Implement `isDynamicRegistrationEffective()` computed property:
   ```typescript
-  dynamicRegistrationEffective = tools.adminRegistrationEnabled && security.dynamicRegistrationEnabled
+  dynamicRegistrationEffective =
+    tools.adminRegistrationEnabled && security.dynamicRegistrationEnabled;
   ```
 
 _Requirements: 4.1-4.5_
 
 **Acceptance Criteria:**
+
 - Config loads from env vars and optional JSON file with correct precedence
 - Invalid config fails fast with descriptive error at startup
 - Defaults applied: `defaultTimeoutMs: 30000`, `maxPayloadBytes: 1048576`, `maxConcurrentExecutions: 10`
@@ -146,6 +188,7 @@ _Requirements: 4.1-4.5_
 - Dynamic tool registration rejects when either flag is false
 
 ### Task 2.4: Implement ID Generator and Clock
+
 **File:** `src/shared/idGenerator.ts`, `src/shared/clock.ts`
 
 - [ ] Implement `IdGenerator` interface:
@@ -158,6 +201,7 @@ _Requirements: 4.1-4.5_
 _Requirements: 5.2, 8.5_
 
 **Acceptance Criteria:**
+
 - Generated IDs are valid UUID v4 format
 - Timestamps are ISO 8601 format (e.g., `2024-01-15T10:30:00.000Z`)
 - Test mode allows injecting fixed/sequential values for determinism
@@ -167,7 +211,15 @@ _Requirements: 5.2, 8.5_
 
 ## Phase 3: Tool Registry
 
+> **🔍 PRE-PHASE CONSULTATION**: Before starting Phase 3, consult Context7 for latest patterns on:
+>
+> - JSON Schema validation with Ajv (latest version and security practices)
+> - Dynamic tool registration security patterns
+> - Schema compilation and caching strategies
+> - Input validation best practices
+
 ### Task 3.1: Implement Tool Registry Core
+
 **File:** `src/mcp/toolRegistry.ts`
 
 - [ ] Define `ToolDefinition`, `ToolHandler`, `RegisteredTool` interfaces per design
@@ -190,6 +242,7 @@ _Requirements: 5.2, 8.5_
 _Requirements: 2.1-2.9_
 
 **Acceptance Criteria:**
+
 - Tools register with name, description, inputSchema, optional version
 - **ToolContext includes `abortSignal: AbortSignal` for handler cancellation**
 - Duplicate names rejected with descriptive error
@@ -199,6 +252,7 @@ _Requirements: 2.1-2.9_
 - Tool authors can check `context.abortSignal.aborted` in handlers
 
 ### Task 3.2: Implement Schema Validation with Ajv
+
 **File:** `src/mcp/toolRegistry.ts` (continued)
 
 - [ ] Initialize Ajv instance for JSON Schema draft-07
@@ -210,6 +264,7 @@ _Requirements: 2.1-2.9_
 _Requirements: 3.2_
 
 **Acceptance Criteria:**
+
 - Schema compilation happens at registration, not at call time
 - Invalid schemas fail registration immediately with descriptive error
 - Non-object root schemas rejected with clear error message
@@ -217,6 +272,7 @@ _Requirements: 3.2_
 - `ajv.errors` array available for detailed validation failure messages
 
 ### Task 3.3: Implement Dynamic Registration Security
+
 **File:** `src/mcp/toolRegistry.ts` (continued)
 
 - [ ] Track `isDynamic` flag on registered tools
@@ -227,6 +283,7 @@ _Requirements: 3.2_
 _Requirements: 2.5-2.7, 10.2, 10.3_
 
 **Acceptance Criteria:**
+
 - Dynamic tools (`isDynamic: true`) logged at WARN level with tool name
 - ToolRegistry does NOT enforce admin policy (that's protocol handler's job)
 - Static tools (registered at startup) always allowed
@@ -237,6 +294,7 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 ## Phase 4: Resource Management
 
 ### Task 4.1: Implement Resource Manager
+
 **File:** `src/resources/resourceManager.ts`
 
 - [ ] Define `ResourceTelemetry` interface per design
@@ -259,6 +317,7 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 _Requirements: 9.1-9.5_
 
 **Acceptance Criteria:**
+
 - Slots acquired/released correctly with proper counting
 - Payload size validated using UTF-8 byte length of JSON-serialized arguments
 - `memoryUsageBytes` reports `process.memoryUsage().heapUsed`
@@ -269,6 +328,7 @@ _Requirements: 9.1-9.5_
 - **Server logs include hint on RESOURCE_EXHAUSTED**: single-line guidance for client retry behavior
 
 ### Task 4.2: Implement Health Thresholds
+
 **File:** `src/resources/resourceManager.ts` (continued)
 
 - [ ] Implement health status calculation returning 'healthy' | 'degraded' | 'unhealthy'
@@ -283,6 +343,7 @@ _Requirements: 9.1-9.5_
 _Requirements: 9.4, 9.5_
 
 **Acceptance Criteria:**
+
 - Health status calculated correctly per threshold table
 - Counter increments only on server-side rejections (not handler errors)
 - Counter resets on successful completion or non-ResourceExhausted error
@@ -293,6 +354,7 @@ _Requirements: 9.4, 9.5_
 ## Phase 5: Protocol Handlers
 
 ### Task 5.1: Implement Connection/Session Context
+
 **File:** `src/mcp/session.ts`
 
 - [ ] Define `SessionContext` interface:
@@ -310,12 +372,14 @@ _Requirements: 9.4, 9.5_
 _Requirements: 1.3, 1.4, 5.2_
 
 **Acceptance Criteria:**
+
 - Session created with unique connectionCorrelationId
 - State initialized to 'STARTING'
 - Child logger includes connectionCorrelationId in all entries
 - Transport type captured for admin policy enforcement
 
 ### Task 5.2: Implement MCP Server Entry Point
+
 **File:** `src/index.ts`
 
 - [ ] Define `ServerOptions` interface per design
@@ -327,12 +391,14 @@ _Requirements: 1.3, 1.4, 5.2_
 _Requirements: 1.1-1.5_
 
 **Acceptance Criteria:**
+
 - Server starts and accepts stdio connections
 - All components properly initialized and wired
 - Session created per connection with unique connectionCorrelationId
 - Server info (name, version) available from config
 
 ### Task 5.3: Implement Protocol Lifecycle State Machine
+
 **File:** `src/mcp/handlers.ts`
 
 - [ ] Implement per-session state tracking (STARTING → INITIALIZING → RUNNING)
@@ -348,6 +414,7 @@ _Requirements: 1.1-1.5_
 _Requirements: 1.2, 1.3_
 
 **Acceptance Criteria:**
+
 - State transitions correctly: STARTING → INITIALIZING → RUNNING
 - `initialize` returns name, version, capabilities from config
 - Methods before RUNNING return JSON-RPC error with:
@@ -357,6 +424,7 @@ _Requirements: 1.2, 1.3_
 - correlationId in state error uses connectionCorrelationId (since request correlation may not be derivable)
 
 ### Task 5.4: Implement tools/list Handler
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [ ] Implement `handleToolsList(session): ToolsListResult`
@@ -368,12 +436,14 @@ _Requirements: 1.2, 1.3_
 _Requirements: 2.3, 2.8, 2.9_
 
 **Acceptance Criteria:**
+
 - Returns all registered tools with schemas
 - Tools sorted alphabetically by name
 - Version included when present in tool definition
 - Admin tools hidden when dynamic registration not effective
 
 ### Task 5.5: Implement tools/call Handler - Processing Order
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 Implement the 10-step normative processing order:
@@ -408,6 +478,7 @@ Implement the 10-step normative processing order:
 _Requirements: 3.1-3.6, 9.1-9.3_
 
 **Acceptance Criteria:**
+
 - Processing order matches design specification exactly
 - Invalid params return JSON-RPC -32602 (not tool error)
 - Unknown tool returns tool error NOT_FOUND with isError: true
@@ -416,6 +487,7 @@ _Requirements: 3.1-3.6, 9.1-9.3_
 - runId and correlationId included in all tool error responses
 
 ### Task 5.6: Implement Timeout and Cooperative Cancellation
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [ ] Create `AbortController` per invocation
@@ -443,6 +515,7 @@ _Requirements: 3.1-3.6, 9.1-9.3_
 _Requirements: 3.5, 3.6, 5.4_
 
 **Acceptance Criteria:**
+
 - Timeout returns TIMEOUT error with abort signal fired
 - Slot held until handler actually returns (not released on timeout)
 - **Every tools/call invocation logs thin completion record using ToolCompletionOutcome enum**
@@ -453,6 +526,7 @@ _Requirements: 3.5, 3.6, 5.4_
 - AbortSignal.aborted === true after timeout fires
 
 ### Task 5.7: Implement Result Wrapping
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [ ] Implement `wrapResult(result, ctx): ToolsCallResult`:
@@ -467,6 +541,7 @@ _Requirements: 3.5, 3.6, 5.4_
 _Requirements: 3.4, 6.2, 6.3_
 
 **Acceptance Criteria:**
+
 - Successful results wrapped as `{ content: [{ type: 'text', text }], isError: false }`
 - Tool errors wrapped with `isError: true` and StructuredError JSON payload
 - Non-serializable results return INTERNAL error with reason
@@ -474,6 +549,7 @@ _Requirements: 3.4, 6.2, 6.3_
 - correlationId always present in error responses
 
 ### Task 5.8: Implement Protocol Error Handlers
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [ ] Implement parse error handler (-32700):
@@ -489,12 +565,14 @@ _Requirements: 3.4, 6.2, 6.3_
 _Requirements: 6.1, 6.2, 6.4_
 
 **Acceptance Criteria:**
+
 - Parse errors return `id: null` with connectionCorrelationId in data
 - Invalid request with bad/missing id returns `id: null`
 - Method not found includes the unknown method name in message
 - All protocol errors include correlationId (request-level or connection-level fallback)
 
 ### Task 5.9: Implement Connection Lifecycle Management
+
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [ ] Implement connection close handling with explicit semantics:
@@ -512,6 +590,7 @@ _Requirements: 6.1, 6.2, 6.4_
 _Requirements: 1.4_
 
 **Acceptance Criteria:**
+
 - **Disconnect during tools/call does not crash server**
 - **No stdout writes after disconnect**
 - **AbortSignal fired for in-flight invocations on disconnect**
@@ -521,6 +600,7 @@ _Requirements: 1.4_
 - Graceful shutdown waits for completion with configurable timeout (server.shutdownTimeoutMs)
 
 ### Task 5.10: Implement Admin Tool Handlers
+
 **File:** `src/mcp/adminHandlers.ts`
 
 - [ ] Define `ToolType` as closed union: `'echo' | 'health' | 'agentProxy'`
@@ -551,6 +631,7 @@ _Requirements: 1.4_
 _Requirements: 2.5-2.7, 10.2, 10.3_
 
 **Acceptance Criteria:**
+
 - **ToolType defined as closed union**: 'echo' | 'health' | 'agentProxy'
 - **Unknown toolType rejected** with INVALID_ARGUMENT
 - **toolType schema enforced**: server uses canonical schema; client schema must byte-match or rejected with INVALID_ARGUMENT
@@ -565,6 +646,7 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 ## Phase 6: Agent Coordination
 
 ### Task 6.1: Implement Agent Coordinator
+
 **File:** `src/agents/agentCoordinator.ts`
 
 - [ ] Define `AgentMessage`, `AgentContext`, `AgentHandler` interfaces per design
@@ -580,6 +662,7 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 _Requirements: 7.1-7.6_
 
 **Acceptance Criteria:**
+
 - Agents register/unregister correctly with duplicate prevention
 - Messages processed sequentially per agent (FIFO queue)
 - Different agents process messages concurrently
@@ -588,6 +671,7 @@ _Requirements: 7.1-7.6_
 - In-memory state only (persistence is future scope)
 
 ### Task 6.2: Implement Agent Coordination Tools
+
 **File:** `src/tools/agentTools.ts`
 
 - [ ] Implement `agent/sendMessage` tool with payload limits:
@@ -612,6 +696,7 @@ _Requirements: 7.1-7.6_
 _Requirements: 7.5_
 
 **Acceptance Criteria:**
+
 - Agent tools appear in `tools/list`
 - `agent/sendMessage` routes correctly to AgentCoordinator
 - **agent/sendMessage rejects oversized payload with RESOURCE_EXHAUSTED**
@@ -629,6 +714,7 @@ _Requirements: 7.5_
 ## Phase 7: Health Tool
 
 ### Task 7.1: Implement Health Tool
+
 **File:** `src/tools/healthTool.ts`
 
 - [ ] Define `HealthResponse` interface per design
@@ -643,6 +729,7 @@ _Requirements: 7.5_
 _Requirements: 4.5, 9.4_
 
 **Acceptance Criteria:**
+
 - Health tool appears in `tools/list`
 - Returns server name and version from config
 - Returns config summary (timeout, concurrency, payload limits, state limits)
@@ -655,6 +742,7 @@ _Requirements: 4.5, 9.4_
 ## Phase 8: Testing
 
 ### Task 8.1: Implement Test Harness
+
 **File:** `tests/helpers/testHarness.ts`
 
 - [ ] Implement reusable MCP server test harness:
@@ -671,6 +759,7 @@ _Requirements: 4.5, 9.4_
 _Requirements: 8.1_
 
 **Acceptance Criteria:**
+
 - Reusable harness reduces duplicated test code
 - Supports deterministic testing with injectable dependencies
 - Captures logs and responses for assertion
@@ -678,6 +767,7 @@ _Requirements: 8.1_
 - JSON-RPC protocol compliance validation
 
 ### Task 8.2: Unit Tests - Structured Logger
+
 **File:** `src/logging/__tests__/structuredLogger.test.ts`
 
 - [ ] Test log output format (JSON with timestamp, level, message)
@@ -693,12 +783,14 @@ _Requirements: 8.1_
 _Requirements: 5.1-5.7, 10.1_
 
 **Acceptance Criteria:**
+
 - All StructuredLogger methods covered
 - Redaction covers all denylist keys case-insensitively
 - Sanitization escapes all control chars
 - Original objects unchanged after logging
 
 ### Task 8.3: Unit Tests - Error Handler
+
 **File:** `src/errors/__tests__/errorHandler.test.ts`
 
 - [ ] Test all ErrorCode enum values
@@ -710,11 +802,13 @@ _Requirements: 5.1-5.7, 10.1_
 _Requirements: 6.1-6.6_
 
 **Acceptance Criteria:**
+
 - All error codes tested
 - Helper functions produce correct output shapes
 - id: null behavior tested for parse errors
 
 ### Task 8.4: Unit Tests - Configuration Manager
+
 **File:** `src/config/__tests__/configManager.test.ts`
 
 - [ ] Test env var precedence over config file
@@ -728,11 +822,13 @@ _Requirements: 6.1-6.6_
 _Requirements: 4.1-4.5_
 
 **Acceptance Criteria:**
+
 - All config scenarios covered
 - Invalid configs fail with descriptive errors
 - Effective dynamic registration computed correctly
 
 ### Task 8.5: Unit Tests - Tool Registry
+
 **File:** `src/mcp/__tests__/toolRegistry.test.ts`
 
 - [ ] Test registration, retrieval, ordering
@@ -745,11 +841,13 @@ _Requirements: 4.1-4.5_
 _Requirements: 2.1-2.9, 3.2_
 
 **Acceptance Criteria:**
+
 - All ToolRegistry methods covered
 - Edge cases tested (empty registry, max tools)
 - Security flags enforced correctly
 
 ### Task 8.6: Unit Tests - Resource Manager
+
 **File:** `src/resources/__tests__/resourceManager.test.ts`
 
 - [ ] Test slot acquire/release counting
@@ -762,12 +860,14 @@ _Requirements: 2.1-2.9, 3.2_
 _Requirements: 9.1-9.5_
 
 **Acceptance Criteria:**
+
 - Concurrency limits enforced correctly
 - Payload limits enforced using UTF-8 byte length
 - Health status calculated correctly per thresholds
 - Counter increments on rejection, resets on completion
 
 ### Task 8.7: Unit Tests - Timeout Contract
+
 **File:** `src/mcp/__tests__/timeout.test.ts`
 
 - [ ] Test abort signal fired on timeout
@@ -779,12 +879,14 @@ _Requirements: 9.1-9.5_
 _Requirements: 3.5, 3.6_
 
 **Acceptance Criteria:**
+
 - AbortSignal.abort() called on timeout
 - Slot held until handler returns (even after timeout)
 - Late completions logged at WARN, no duplicate response
 - **Test documents: timeout cancellation is cooperative; handler may continue running**
 
 ### Task 8.8: Unit Tests - Agent Coordinator
+
 **File:** `src/agents/__tests__/agentCoordinator.test.ts`
 
 - [ ] Test agent registration/unregistration
@@ -796,11 +898,13 @@ _Requirements: 3.5, 3.6_
 _Requirements: 7.1-7.6_
 
 **Acceptance Criteria:**
+
 - Sequential processing per agent verified
 - Concurrent processing across agents verified
 - Error on unregistered agent target
 
 ### Task 8.9: Integration Tests - Protocol Lifecycle
+
 **File:** `tests/integration/lifecycle.test.ts`
 
 - [ ] Test STARTING → INITIALIZING → RUNNING transitions
@@ -811,11 +915,13 @@ _Requirements: 7.1-7.6_
 _Requirements: 1.2, 1.3, 8.2_
 
 **Acceptance Criteria:**
+
 - State machine enforced correctly
 - NotInitialized errors returned with correct shape
 - correlationId present in state errors
 
 ### Task 8.10: Integration Tests - tools/list and tools/call
+
 **File:** `tests/integration/tools.test.ts`
 
 - [ ] Test tools/list returns registered tools in order
@@ -828,11 +934,13 @@ _Requirements: 1.2, 1.3, 8.2_
 _Requirements: 2.3, 3.1-3.6, 8.2, 8.3_
 
 **Acceptance Criteria:**
+
 - All scenarios return correct response types
 - Error codes match design specification
 - runId and correlationId present in responses
 
 ### Task 8.11: Integration Tests - Protocol Errors
+
 **File:** `tests/integration/protocol-errors.test.ts`
 
 - [ ] Test parse error (-32700) returns `id: null`
@@ -844,11 +952,13 @@ _Requirements: 2.3, 3.1-3.6, 8.2, 8.3_
 _Requirements: 6.1, 6.2, 8.3_
 
 **Acceptance Criteria:**
+
 - JSON-RPC error codes correct per spec
 - id handling per JSON-RPC spec (null when not derivable)
 - **Parse error correlation fallback uses connectionCorrelationId**
 
 ### Task 8.12: Integration Tests - Resource Exhaustion
+
 **File:** `tests/integration/resources.test.ts`
 
 - [ ] Test concurrency limit exceeded returns RESOURCE_EXHAUSTED
@@ -859,11 +969,13 @@ _Requirements: 6.1, 6.2, 8.3_
 _Requirements: 9.1-9.5, 8.3_
 
 **Acceptance Criteria:**
+
 - ResourceExhausted errors returned correctly
 - Health status reflects resource state
 - Counter behavior matches specification
 
 ### Task 8.13: Performance Tests
+
 **File:** `tests/performance/latency.test.ts`
 
 - [ ] Implement no-op tool for latency measurement
@@ -875,11 +987,13 @@ _Requirements: 9.1-9.5, 8.3_
 _Requirements: 8.6, 8.7_
 
 **Acceptance Criteria:**
+
 - Performance metrics reported (p50, p95 latency)
 - SLA targets configurable via test config
 - Tests runnable in CI with consistent results
 
 ### Task 8.14: Property-Based Tests
+
 **File:** `tests/property/`
 
 Implement property tests for all 10 correctness properties (min 100 iterations each):
@@ -908,6 +1022,7 @@ Implement property tests for all 10 correctness properties (min 100 iterations e
 _Requirements: 8.1-8.7_
 
 **Acceptance Criteria:**
+
 - All 10 correctness properties have dedicated property tests
 - Each test runs minimum 100 iterations
 - Tests use injectable Clock and IdGenerator for determinism
@@ -919,6 +1034,7 @@ _Requirements: 8.1-8.7_
 ## Phase 9: Documentation
 
 ### Task 9.1: API Documentation
+
 - [ ] Add TSDoc comments to all public interfaces
 - [ ] Document error codes and their meanings
 - [ ] Document configuration options with defaults
@@ -927,11 +1043,13 @@ _Requirements: 8.1-8.7_
 _Requirements: N/A (developer experience)_
 
 **Acceptance Criteria:**
+
 - All public APIs documented with TSDoc
 - Examples included where helpful
 - Error code reference complete
 
 ### Task 9.2: README and Usage Guide
+
 - [ ] Create README.md with quick start
 - [ ] Document configuration options (env vars, config file)
 - [ ] Document tool registration API with example
@@ -944,6 +1062,7 @@ _Requirements: N/A (developer experience)_
 _Requirements: N/A (developer experience)_
 
 **Acceptance Criteria:**
+
 - New users can start server from README
 - Tool authors have clear guidance on AbortSignal usage
 - Timeout semantics clearly documented as sharp edge
@@ -955,6 +1074,7 @@ _Requirements: N/A (developer experience)_
 **Note**: These tasks define interfaces and basic implementations for Agent-to-Agent Communication Protocol (AACP) to avoid architectural constraints in future iterations. The v0.1 implementation will be minimal (in-memory only) but architecturally sound.
 
 ### Task 10.1: Define AACP Core Interfaces
+
 **File:** `src/aacp/types.ts`
 
 - [ ] Define `AACPMessageType` type as `'REQUEST' | 'RESPONSE' | 'EVENT'`
@@ -968,6 +1088,7 @@ _Requirements: N/A (developer experience)_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **AACPMessageType defined**: explicit type definition for message types
 - **requestId stability rules**: requestId remains stable across retries for same logical request
 - **messageId uniqueness rules**: messageId unique per transmission attempt, new messageId per retry allowed
@@ -978,6 +1099,7 @@ _Requirements: Future AACP support_
 - All AACP types support the 6 AACP invariants (uniqueness, stability, ordering, pairing, acknowledgment, deduplication)
 
 ### Task 10.2: Implement AACP Persistence Adapter Interface
+
 **File:** `src/aacp/persistenceAdapter.ts`
 
 - [ ] Define `AACPPersistenceAdapter` interface with ledger-first operations:
@@ -1003,6 +1125,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **Ledger-first design**: stores structured records, not raw outputs or blob storage
 - **Small payload support**: payloads stored inline for v0.1 (completionRef for future large payloads)
 - **Avoids size blow-ups**: no "store everything forever" approach
@@ -1014,6 +1137,7 @@ _Requirements: Future AACP support_
 - Interface supports both transport acknowledgment (messageId) and semantic acknowledgment (requestId)
 
 ### Task 10.3: Define AACP Module Boundaries
+
 **File:** `src/aacp/interfaces.ts`
 
 - [ ] Define `AACPMessageType`: `export type AACPMessageType = 'REQUEST' | 'RESPONSE' | 'EVENT'`
@@ -1030,6 +1154,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **AACP module boundaries defined** with no circular imports
 - **AACPMessageType consistent** with the envelope definition
 - **Ack and dedup semantics explicitly stated** (receipt vs commit chosen)
@@ -1038,6 +1163,7 @@ _Requirements: Future AACP support_
 - Documentation explains the role of each component and processing order
 
 ### Task 10.4: Implement In-Memory AACP Ledger
+
 **File:** `src/aacp/ledger.ts`
 
 - [ ] Implement `AACPLedger` using `AACPPersistenceAdapter`
@@ -1051,6 +1177,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **Dedup by requestId works deterministically** in unit tests
 - **Completed outcomes queryable** by requestId after append/markCompleted
 - **Ledger operations do not store unbounded payloads**; completionRef reserved for large results
@@ -1058,6 +1185,7 @@ _Requirements: Future AACP support_
 - **Idempotency guarantee**: duplicate requestId handling is deterministic
 
 ### Task 10.5: Implement AACP Session Manager (Sequence + Ack Tracking)
+
 **File:** `src/aacp/sessionManager.ts`
 
 - [ ] Implement per `(sourceAgentId, targetAgentId)` session state:
@@ -1072,6 +1200,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **Sequence numbers monotonic** per pair
 - **Ack cannot skip gaps** (highest contiguous seq rule enforced)
 - **State survives within process lifetime** via adapter (durability across restart deferred)
@@ -1079,6 +1208,7 @@ _Requirements: Future AACP support_
 - **Cumulative ack semantics**: clear definition of receipt vs commit chosen and implemented
 
 ### Task 10.6: Implement Retransmission Skeleton (No Background Loop Yet)
+
 **File:** `src/aacp/retransmitter.ts`
 
 - [ ] Implement `AACPRetryPolicy`:
@@ -1092,6 +1222,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **Backoff delay deterministic** under injected RNG in tests
 - **UNKNOWN states retried**; FAILED not retried unless policy allows
 - **No background timers required** in v0.1 (manual processRetriesOnce)
@@ -1099,6 +1230,7 @@ _Requirements: Future AACP support_
 - **Jitter implementation**: prevents thundering herd on retry
 
 ### Task 10.7: Extend AgentCoordinator for v0.2 Compatibility (Non-breaking)
+
 **File:** `src/agents/agentCoordinator.ts`
 
 - [ ] Define `AgentCoordinatorV2` interface (additive):
@@ -1110,12 +1242,14 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - **TypeScript compilation passes** with existing AgentCoordinator users
 - **v0.2 methods optional** and do not break v0.1 behavior
 - **Extension is additive, not breaking**: existing methods remain intact
 - **Clear migration documentation**: explains opt-in upgrade path
 
 ### Task 10.8: Create AACP Foundation Module
+
 **File:** `src/aacp/index.ts`
 
 - [ ] Export all AACP types and interfaces
@@ -1129,6 +1263,7 @@ _Requirements: Future AACP support_
 _Requirements: Future AACP support_
 
 **Acceptance Criteria:**
+
 - Clean module exports for all AACP components
 - Documentation explains current state and future roadmap
 - Module can be imported without affecting v0.1 MCP server functionality
@@ -1155,19 +1290,19 @@ Phase 1-8 + Phase 10 → Phase 9 (Documentation)
 
 ## Estimated Effort
 
-| Phase | Tasks | Estimated Hours |
-|-------|-------|-----------------|
-| Phase 1: Scaffolding | 4 | 5 |
-| Phase 2: Core Infrastructure | 4 | 10 |
-| Phase 3: Tool Registry | 3 | 8 |
-| Phase 4: Resource Management | 2 | 6 |
-| Phase 5: Protocol Handlers | 10 | 18 |
-| Phase 6: Agent Coordination | 2 | 4 |
-| Phase 7: Health Tool | 1 | 2 |
-| Phase 8: Testing | 18 | 25 |
-| Phase 9: Documentation | 2 | 4 |
-| Phase 10: AACP Foundation | 8 | 8 |
-| **Total** | **52** | **91** |
+| Phase                        | Tasks  | Estimated Hours |
+| ---------------------------- | ------ | --------------- |
+| Phase 1: Scaffolding         | 4      | 5               |
+| Phase 2: Core Infrastructure | 4      | 10              |
+| Phase 3: Tool Registry       | 3      | 8               |
+| Phase 4: Resource Management | 2      | 6               |
+| Phase 5: Protocol Handlers   | 10     | 18              |
+| Phase 6: Agent Coordination  | 2      | 4               |
+| Phase 7: Health Tool         | 1      | 2               |
+| Phase 8: Testing             | 18     | 25              |
+| Phase 9: Documentation       | 2      | 4               |
+| Phase 10: AACP Foundation    | 8      | 8               |
+| **Total**                    | **52** | **91**          |
 
 ---
 

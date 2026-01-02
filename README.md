@@ -181,25 +181,25 @@ The system runs as an MCP server that can be integrated with Claude Code or othe
 ```typescript
 // 1. Analyze requirements
 const requirements = await analyzeRequirements({
-  description: "E-commerce platform with AI recommendations",
-  constraints: ["PCI compliance", "99.9% uptime", "global scale"],
-  technologies: ["Node.js", "React", "AWS"]
+  description: 'E-commerce platform with AI recommendations',
+  constraints: ['PCI compliance', '99.9% uptime', 'global scale'],
+  technologies: ['Node.js', 'React', 'AWS'],
 });
 
 // 2. Generate architecture
 const architecture = await generateArchitecture({
   requirements,
   preferences: {
-    cloudProvider: "AWS",
-    architectureStyle: "microservices"
-  }
+    cloudProvider: 'AWS',
+    architectureStyle: 'microservices',
+  },
 });
 
 // 3. Get implementation plan
 const plan = await createImplementationPlan({
   architecture,
-  timeline: "6 months",
-  teamSize: 8
+  timeline: '6 months',
+  teamSize: 8,
 });
 ```
 
@@ -235,6 +235,7 @@ npm run test:coverage
 ## 🔄 System Scope
 
 ### In Scope
+
 - Requirements analysis and translation
 - Architecture style selection and justification
 - Technology stack recommendations
@@ -243,6 +244,7 @@ npm run test:coverage
 - Implementation planning and task breakdown
 
 ### Out of Scope
+
 - Actual code implementation
 - Project management beyond architecture tasks
 - Business strategy or product decisions

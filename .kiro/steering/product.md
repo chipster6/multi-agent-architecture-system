@@ -28,6 +28,7 @@ This project implements a production-ready MCP (Model Context Protocol) server t
 ### System Scope
 
 **In Scope:**
+
 - Requirements analysis and translation
 - Architecture style selection and justification
 - Technology stack recommendations
@@ -36,6 +37,7 @@ This project implements a production-ready MCP (Model Context Protocol) server t
 - Implementation planning and task breakdown
 
 **Out of Scope:**
+
 - Actual code implementation
 - Project management beyond architecture tasks
 - Business strategy or product decisions

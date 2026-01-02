@@ -36,7 +36,10 @@ export class WorkflowEngine {
           description: input.description,
           priority: 'high',
           source: 'user_input',
-          acceptance_criteria: ['System must handle user requests', 'System must be scalable'],
+          acceptance_criteria: [
+            'System must handle user requests',
+            'System must be scalable',
+          ],
         },
       ],
       domainModel: {
@@ -130,7 +133,11 @@ export class WorkflowEngine {
           name: 'API Gateway',
           type: 'gateway',
           description: 'Entry point for all client requests',
-          responsibilities: ['Request routing', 'Authentication', 'Rate limiting'],
+          responsibilities: [
+            'Request routing',
+            'Authentication',
+            'Rate limiting',
+          ],
           interfaces: [
             {
               name: 'REST API',
@@ -204,7 +211,10 @@ export class WorkflowEngine {
    * Execute Phase 11: Implementation Planning
    * Task breakdown and execution planning
    */
-  async executePhase11(input: any, context: ArchitectureContext): Promise<ImplementationPlan> {
+  async executePhase11(
+    input: any,
+    context: ArchitectureContext
+  ): Promise<ImplementationPlan> {
     console.error('Executing Phase 11: Implementation Planning', {
       sessionId: context.sessionId,
     });
@@ -232,7 +242,11 @@ export class WorkflowEngine {
           description: 'Set up development infrastructure and core services',
           duration: '4 weeks',
           dependencies: [],
-          deliverables: ['CI/CD pipeline', 'Development environment', 'Core infrastructure'],
+          deliverables: [
+            'CI/CD pipeline',
+            'Development environment',
+            'Core infrastructure',
+          ],
           tasks: ['task-001', 'task-002', 'task-003'],
         },
         {
@@ -241,7 +255,11 @@ export class WorkflowEngine {
           description: 'Develop and deploy core microservices',
           duration: '8 weeks',
           dependencies: ['impl-phase-1'],
-          deliverables: ['User service', 'Authentication service', 'API Gateway'],
+          deliverables: [
+            'User service',
+            'Authentication service',
+            'API Gateway',
+          ],
           tasks: ['task-004', 'task-005', 'task-006'],
         },
       ],
@@ -249,7 +267,8 @@ export class WorkflowEngine {
         {
           id: 'task-001',
           name: 'Set up CI/CD Pipeline',
-          description: 'Configure automated build, test, and deployment pipeline',
+          description:
+            'Configure automated build, test, and deployment pipeline',
           phase: 'impl-phase-1',
           effort: '1 week',
           skills_required: ['DevOps', 'Docker', 'Kubernetes'],
@@ -265,10 +284,14 @@ export class WorkflowEngine {
         {
           id: 'milestone-1',
           name: 'Infrastructure Ready',
-          description: 'Development and deployment infrastructure is operational',
+          description:
+            'Development and deployment infrastructure is operational',
           date: '2024-02-01',
           deliverables: ['CI/CD pipeline', 'Development environment'],
-          success_criteria: ['All developers can deploy to staging', 'Automated tests pass'],
+          success_criteria: [
+            'All developers can deploy to staging',
+            'Automated tests pass',
+          ],
         },
       ],
     };
