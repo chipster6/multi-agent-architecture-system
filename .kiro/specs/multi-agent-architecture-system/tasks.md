@@ -144,12 +144,12 @@ _Requirements: 5.1-5.7, 10.1, 10.4_
 
 **File:** `src/errors/errorHandler.ts`
 
-- [ ] Define `ErrorCode` enum per design (InvalidArgument, NotFound, Timeout, ResourceExhausted, Internal, Unauthorized, NotInitialized)
-- [ ] Define `StructuredError` interface with code, message, details, runId?, correlationId?
-- [ ] Implement `createError()` factory function
-- [ ] Implement `toJsonRpcError(code, message, data, id)` helper for protocol/state errors
-- [ ] Implement `toToolError(error: StructuredError, ctx: RequestContext)` helper for tools/call wrapping
-- [ ] Define JSON-RPC error code constants (-32700, -32600, -32601, -32602, -32603, -32002)
+- [x] Define `ErrorCode` enum per design (InvalidArgument, NotFound, Timeout, ResourceExhausted, Internal, Unauthorized, NotInitialized)
+- [x] Define `StructuredError` interface with code, message, details, runId?, correlationId?
+- [x] Implement `createError()` factory function
+- [x] Implement `toJsonRpcError(code, message, data, id)` helper for protocol/state errors
+- [x] Implement `toToolError(error: StructuredError, ctx: RequestContext)` helper for tools/call wrapping
+- [x] Define JSON-RPC error code constants (-32700, -32600, -32601, -32602, -32603, -32002)
 
 _Requirements: 6.1-6.6_
 
@@ -165,12 +165,12 @@ _Requirements: 6.1-6.6_
 
 **File:** `src/config/configManager.ts`
 
-- [ ] Define `ServerConfig` interface per design
-- [ ] Define `AdminPolicy` interface with modes: 'deny_all' | 'local_stdio_only' | 'token'
-- [ ] Implement `load()` with environment variable precedence over config file over defaults
-- [ ] Implement `validate()` with fail-fast on invalid config (descriptive error messages)
-- [ ] Provide sensible defaults for all options
-- [ ] Implement `isDynamicRegistrationEffective()` computed property:
+- [x] Define `ServerConfig` interface per design
+- [x] Define `AdminPolicy` interface with modes: 'deny_all' | 'local_stdio_only' | 'token'
+- [x] Implement `load()` with environment variable precedence over config file over defaults
+- [x] Implement `validate()` with fail-fast on invalid config (descriptive error messages)
+- [x] Provide sensible defaults for all options
+- [x] Implement `isDynamicRegistrationEffective()` computed property:
   ```typescript
   dynamicRegistrationEffective =
     tools.adminRegistrationEnabled && security.dynamicRegistrationEnabled;
@@ -191,12 +191,12 @@ _Requirements: 4.1-4.5_
 
 **File:** `src/shared/idGenerator.ts`, `src/shared/clock.ts`
 
-- [ ] Implement `IdGenerator` interface:
+- [x] Implement `IdGenerator` interface:
   - `generateRunId(): string` - UUID v4 for tool invocations
   - `generateCorrelationId(): string` - UUID v4 for request chains
   - `generateConnectionCorrelationId(): string` - UUID v4 for connection lifetime
-- [ ] Implement `Clock` interface with `now()` and `timestamp()` (ISO 8601)
-- [ ] Support injection for deterministic testing (accept seed or fixed values)
+- [x] Implement `Clock` interface with `now()` and `timestamp()` (ISO 8601)
+- [x] Support injection for deterministic testing (accept seed or fixed values)
 
 _Requirements: 5.2, 8.5_
 
@@ -222,8 +222,8 @@ _Requirements: 5.2, 8.5_
 
 **File:** `src/mcp/toolRegistry.ts`
 
-- [ ] Define `ToolDefinition`, `ToolHandler`, `RegisteredTool` interfaces per design
-- [ ] Define `ToolContext` interface with **`abortSignal: AbortSignal`** for cooperative cancellation:
+- [x] Define `ToolDefinition`, `ToolHandler`, `RegisteredTool` interfaces per design
+- [x] Define `ToolContext` interface with **`abortSignal: AbortSignal`** for cooperative cancellation:
   ```typescript
   interface ToolContext {
     runId: string;
@@ -232,12 +232,12 @@ _Requirements: 5.2, 8.5_
     abortSignal: AbortSignal; // cooperative cancellation
   }
   ```
-- [ ] Constructor accepts config reference for security settings
-- [ ] Implement `register(definition, handler, opts?: { isDynamic?: boolean })` with duplicate name prevention
-- [ ] Implement `unregister(name: string): boolean`
-- [ ] Implement `get(name: string): RegisteredTool | undefined`
-- [ ] Implement `list(): ToolDefinition[]` returning tools sorted lexicographically by name
-- [ ] Implement `validateDefinition(definition, opts?: { isDynamic?: boolean }): ValidationResult`
+- [x] Constructor accepts config reference for security settings
+- [x] Implement `register(definition, handler, opts?: { isDynamic?: boolean })` with duplicate name prevention
+- [x] Implement `unregister(name: string): boolean`
+- [x] Implement `get(name: string): RegisteredTool | undefined`
+- [x] Implement `list(): ToolDefinition[]` returning tools sorted lexicographically by name
+- [x] Implement `validateDefinition(definition, opts?: { isDynamic?: boolean }): ValidationResult`
 
 _Requirements: 2.1-2.9_
 
