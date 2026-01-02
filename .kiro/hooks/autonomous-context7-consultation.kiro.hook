@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Autonomous Context7 Pre-Task Consultation",
+  "description": "During autonomous work, automatically consult the context7 MCP server before starting any significant task to retrieve the most up-to-date libraries, frameworks, and best practices. This prevents technical debt accumulation and minimizes TypeScript strict type errors by ensuring autonomous agents work with current standards.",
+  "version": "1",
+  "when": {
+    "type": "agentStart"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🔍 AUTONOMOUS CONTEXT7 CONSULTATION: Before proceeding with this autonomous task, first consult the context7 MCP server to get the most current libraries, frameworks, and best practices relevant to this work. Pay special attention to:\n\n• Latest TypeScript patterns and strict type compliance\n• Current framework versions and migration guides\n• Modern tooling configurations (ESLint, Prettier, Vitest)\n• Security best practices and vulnerability updates\n• Performance optimization techniques\n\nUse this information to ensure all autonomous work follows current standards and avoids technical debt. Then proceed with the original task using these updated guidelines.\n\nIf context7 is not available, acknowledge this and proceed with best-known practices while noting the limitation."
+  }
+}
