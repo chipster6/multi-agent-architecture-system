@@ -118,14 +118,14 @@ _Requirements: N/A (code quality)_
 
 **File:** `src/logging/structuredLogger.ts`
 
-- [ ] Define `LogEntry` interface per design
-- [ ] Implement `StructuredLogger` class with debug/info/warn/error methods
-- [ ] **Constructor accepts `clock: Clock` for timestamp generation** (enables deterministic testing)
-- [ ] Implement `child()` method for scoped loggers with inherited context and clock
-- [ ] Implement `redact()` with configurable denylist keys (case-insensitive, recursive)
-- [ ] Implement `sanitize()` for control character escaping on ALL string leaf values in log entries
-- [ ] Ensure copy-on-write semantics (no mutation of runtime data)
-- [ ] Output logs as JSON to **stderr only** (stdout reserved for MCP protocol)
+- [x] Define `LogEntry` interface per design
+- [x] Implement `StructuredLogger` class with debug/info/warn/error methods
+- [x] **Constructor accepts `clock: Clock` for timestamp generation** (enables deterministic testing)
+- [x] Implement `child()` method for scoped loggers with inherited context and clock
+- [x] Implement `redact()` with configurable denylist keys (case-insensitive, recursive)
+- [x] Implement `sanitize()` for control character escaping on ALL string leaf values in log entries
+- [x] Ensure copy-on-write semantics (no mutation of runtime data)
+- [x] Output logs as JSON to **stderr only** (stdout reserved for MCP protocol)
 
 _Requirements: 5.1-5.7, 10.1, 10.4_
 
