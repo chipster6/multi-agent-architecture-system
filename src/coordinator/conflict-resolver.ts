@@ -1,26 +1,24 @@
 /**
  * Conflict Resolver
- * 
+ *
  * Detects and resolves conflicts between architectural decisions made by different agents.
  * Implements various conflict resolution strategies and maintains decision consistency.
  */
 
-import { logger } from '../shared/utils/logger.js';
-import type { 
-  ArchitecturalDecision, 
-  Conflict, 
+import type {
+  ArchitecturalDecision,
+  Conflict,
   ConflictResolution,
-  ArchitectureContext 
+  ArchitectureContext,
 } from '../shared/types/index.js';
 
 export class ConflictResolver {
-
   /**
    * Detect conflicts between architectural decisions
    */
   async detectConflicts(decisions: ArchitecturalDecision[]): Promise<Conflict[]> {
-    logger.info('Detecting conflicts in architectural decisions', {
-      decisionsCount: decisions.length
+    console.error('Detecting conflicts in architectural decisions', {
+      decisionsCount: decisions.length,
     });
 
     const conflicts: Conflict[] = [];
@@ -37,11 +35,11 @@ export class ConflictResolver {
     const cycles = this.findDependencyCycles(decisions);
     conflicts.push(...cycles);
 
-    logger.info('Conflict detection completed', {
+    console.error('Conflict detection completed', {
       conflictsFound: conflicts.length,
       contradictions: contradictions.length,
       violations: violations.length,
-      cycles: cycles.length
+      cycles: cycles.length,
     });
 
     return conflicts;
@@ -51,12 +49,12 @@ export class ConflictResolver {
    * Resolve detected conflicts using various strategies
    */
   async resolveConflicts(
-    conflicts: Conflict[], 
+    conflicts: Conflict[],
     context: ArchitectureContext
   ): Promise<ArchitecturalDecision[]> {
-    logger.info('Resolving architectural conflicts', {
+    console.error('Resolving architectural conflicts', {
       sessionId: context.sessionId,
-      conflictsCount: conflicts.length
+      conflictsCount: conflicts.length,
     });
 
     const resolutions: ArchitecturalDecision[] = [];
@@ -69,16 +67,16 @@ export class ConflictResolver {
           resolutions.push(...resolution.newDecisions);
         }
       } catch (error) {
-        logger.error('Failed to resolve conflict', {
+        console.error('Failed to resolve conflict', {
           conflictId: conflict.id,
-          error
+          error,
         });
       }
     }
 
-    logger.info('Conflict resolution completed', {
+    console.error('Conflict resolution completed', {
       sessionId: context.sessionId,
-      resolutionsCount: resolutions.length
+      resolutionsCount: resolutions.length,
     });
 
     return resolutions;
@@ -92,9 +90,9 @@ export class ConflictResolver {
     constraints: string[],
     context: ArchitectureContext
   ): Promise<{ isValid: boolean; issues: string[]; recommendations: string[] }> {
-    logger.info('Validating architecture', {
+    console.error('Validating architecture', {
       sessionId: context.sessionId,
-      constraintsCount: constraints.length
+      constraintsCount: constraints.length,
     });
 
     const issues: string[] = [];
@@ -131,26 +129,26 @@ export class ConflictResolver {
 
     const isValid = issues.length === 0;
 
-    logger.info('Architecture validation completed', {
+    console.error('Architecture validation completed', {
       sessionId: context.sessionId,
       isValid,
       issuesCount: issues.length,
-      recommendationsCount: recommendations.length
+      recommendationsCount: recommendations.length,
     });
 
     return {
       isValid,
       issues,
-      recommendations
+      recommendations,
     };
   }
 
   private findContradictions(decisions: ArchitecturalDecision[]): Conflict[] {
     const conflicts: Conflict[] = [];
-    
+
     // Group decisions by category
     const decisionsByCategory = new Map<string, ArchitecturalDecision[]>();
-    
+
     for (const decision of decisions) {
       if (!decisionsByCategory.has(decision.category)) {
         decisionsByCategory.set(decision.category, []);
@@ -169,7 +167,7 @@ export class ConflictResolver {
             type: 'contradiction',
             description: `Contradictory decisions found in category: ${category}`,
             involvedDecisions: categoryDecisions.map(d => d.id),
-            severity: 'high'
+            severity: 'high',
           });
         }
       }
@@ -180,19 +178,19 @@ export class ConflictResolver {
 
   private findConstraintViolations(_decisions: ArchitecturalDecision[]): Conflict[] {
     const conflicts: Conflict[] = [];
-    
+
     // TODO: Implement constraint violation detection
     // This would check decisions against known architectural constraints
-    
+
     return conflicts;
   }
 
   private findDependencyCycles(decisions: ArchitecturalDecision[]): Conflict[] {
     const conflicts: Conflict[] = [];
-    
+
     // Build dependency graph
     const graph = new Map<string, string[]>();
-    
+
     for (const decision of decisions) {
       graph.set(decision.id, decision.dependencies);
     }
@@ -230,7 +228,7 @@ export class ConflictResolver {
           type: 'dependency_cycle',
           description: `Dependency cycle detected involving decision: ${decisionId}`,
           involvedDecisions: [decisionId],
-          severity: 'critical'
+          severity: 'critical',
         });
       }
     }
@@ -239,37 +237,35 @@ export class ConflictResolver {
   }
 
   private async resolveConflict(
-    conflict: Conflict, 
+    conflict: Conflict,
     context: ArchitectureContext
   ): Promise<ConflictResolution | null> {
-    
     switch (conflict.type) {
       case 'contradiction':
         return this.resolveContradiction(conflict, context);
-      
+
       case 'constraint_violation':
         return this.resolveConstraintViolation(conflict, context);
-      
+
       case 'dependency_cycle':
         return this.resolveDependencyCycle(conflict, context);
-      
+
       default:
-        logger.warn('Unknown conflict type', { conflictType: conflict.type });
+        console.error('Unknown conflict type', { conflictType: conflict.type });
         return null;
     }
   }
 
   private async resolveContradiction(
-    conflict: Conflict, 
+    conflict: Conflict,
     context: ArchitectureContext
   ): Promise<ConflictResolution> {
-    
     // Simple resolution strategy: choose the decision with highest confidence
-    const involvedDecisions = context.decisions.filter(d => 
+    const involvedDecisions = context.decisions.filter(d =>
       conflict.involvedDecisions.includes(d.id)
     );
 
-    const bestDecision = involvedDecisions.reduce((best, current) => 
+    const bestDecision = involvedDecisions.reduce((best, current) =>
       current.confidence > best.confidence ? current : best
     );
 
@@ -277,33 +273,31 @@ export class ConflictResolver {
       strategy: 'highest_confidence',
       modifiedDecisions: conflict.involvedDecisions.filter(id => id !== bestDecision.id),
       newDecisions: [],
-      rationale: `Selected decision with highest confidence (${bestDecision.confidence})`
+      rationale: `Selected decision with highest confidence (${bestDecision.confidence})`,
     };
   }
 
   private async resolveConstraintViolation(
-    conflict: Conflict, 
+    conflict: Conflict,
     _context: ArchitectureContext
   ): Promise<ConflictResolution> {
-    
     return {
       strategy: 'constraint_compliance',
       modifiedDecisions: conflict.involvedDecisions,
       newDecisions: [],
-      rationale: 'Modified decisions to comply with constraints'
+      rationale: 'Modified decisions to comply with constraints',
     };
   }
 
   private async resolveDependencyCycle(
-    conflict: Conflict, 
+    conflict: Conflict,
     _context: ArchitectureContext
   ): Promise<ConflictResolution> {
-    
     return {
       strategy: 'break_cycle',
       modifiedDecisions: conflict.involvedDecisions,
       newDecisions: [],
-      rationale: 'Removed circular dependencies by breaking the cycle'
+      rationale: 'Removed circular dependencies by breaking the cycle',
     };
   }
 }

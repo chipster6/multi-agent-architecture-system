@@ -1,35 +1,33 @@
 /**
  * Workflow Engine
- * 
+ *
  * Orchestrates the execution of agents across the 11 phases of architecture design.
  * Handles sequential dependencies between phases and parallel execution within phases.
  */
 
-import { logger } from '../shared/utils/logger.js';
-import type { 
-  ArchitectureContext, 
+import type {
+  ArchitectureContext,
   RequirementsAnalysis,
   ArchitectureBlueprint,
-  ImplementationPlan 
+  ImplementationPlan,
 } from '../shared/types/index.js';
 
 export class WorkflowEngine {
-  
   /**
    * Execute Phase 1: Strategic Design
    * Requirements → Domain Design → System Topology
    */
   async executePhase1(
-    input: any, 
+    input: any,
     context: ArchitectureContext
   ): Promise<RequirementsAnalysis & { decisions: any[]; artifacts: any[] }> {
-    logger.info('Executing Phase 1: Strategic Design', { 
-      sessionId: context.sessionId 
+    console.error('Executing Phase 1: Strategic Design', {
+      sessionId: context.sessionId,
     });
 
     // TODO: Implement actual agent orchestration
     // This is a placeholder implementation
-    
+
     const mockAnalysis: RequirementsAnalysis = {
       requirements: [
         {
@@ -38,29 +36,30 @@ export class WorkflowEngine {
           description: input.description,
           priority: 'high',
           source: 'user_input',
-          acceptance_criteria: ['System must handle user requests', 'System must be scalable']
-        }
+          acceptance_criteria: ['System must handle user requests', 'System must be scalable'],
+        },
       ],
       domainModel: {
         entities: [],
         relationships: [],
-        bounded_contexts: []
+        bounded_contexts: [],
       },
       systemTopology: {
         architecture_style: 'microservices',
         deployment_model: 'cloud-native',
         integration_patterns: ['api-gateway', 'event-driven'],
         data_flow: [],
-        system_boundaries: []
+        system_boundaries: [],
       },
-      constraints: input.constraints?.map((constraint: string, index: number) => ({
-        id: `constraint-${index + 1}`,
-        type: 'business',
-        description: constraint,
-        impact: 'medium',
-        mitigation: []
-      })) || [],
-      confidence: 0.85
+      constraints:
+        input.constraints?.map((constraint: string, index: number) => ({
+          id: `constraint-${index + 1}`,
+          type: 'business',
+          description: constraint,
+          impact: 'medium',
+          mitigation: [],
+        })) || [],
+      confidence: 0.85,
     };
 
     return {
@@ -77,8 +76,8 @@ export class WorkflowEngine {
           consequences: ['Increased complexity', 'Better scalability'],
           confidence: 0.85,
           timestamp: new Date().toISOString(),
-          dependencies: []
-        }
+          dependencies: [],
+        },
       ],
       artifacts: [
         {
@@ -89,9 +88,9 @@ export class WorkflowEngine {
           format: 'json',
           agentId: 'requirements-agent',
           phase: 'phase-1',
-          timestamp: new Date().toISOString()
-        }
-      ]
+          timestamp: new Date().toISOString(),
+        },
+      ],
     };
   }
 
@@ -103,13 +102,13 @@ export class WorkflowEngine {
     _input: any,
     context: ArchitectureContext
   ): Promise<ArchitectureBlueprint> {
-    logger.info('Executing Architecture Phases 2-10', { 
-      sessionId: context.sessionId 
+    console.error('Executing Architecture Phases 2-10', {
+      sessionId: context.sessionId,
     });
 
     // TODO: Implement actual multi-phase agent orchestration
     // This is a placeholder implementation
-    
+
     const mockBlueprint: ArchitectureBlueprint = {
       overview: {
         system_name: 'Generated Architecture',
@@ -121,9 +120,9 @@ export class WorkflowEngine {
             name: 'Performance',
             description: 'System response time and throughput',
             measures: ['Response time < 200ms', 'Throughput > 1000 RPS'],
-            targets: ['99th percentile < 500ms', '10,000 concurrent users']
-          }
-        ]
+            targets: ['99th percentile < 500ms', '10,000 concurrent users'],
+          },
+        ],
       },
       components: [
         {
@@ -137,12 +136,12 @@ export class WorkflowEngine {
               name: 'REST API',
               type: 'api',
               protocol: 'HTTPS',
-              data_format: 'JSON'
-            }
+              data_format: 'JSON',
+            },
           ],
           dependencies: ['auth-service', 'user-service'],
-          technology_stack: ['Node.js', 'Express', 'JWT']
-        }
+          technology_stack: ['Node.js', 'Express', 'JWT'],
+        },
       ],
       services: [
         {
@@ -157,8 +156,8 @@ export class WorkflowEngine {
               description: 'Get user list',
               request_schema: '{}',
               response_schema: '{"users": []}',
-              authentication: ['JWT']
-            }
+              authentication: ['JWT'],
+            },
           ],
           data_stores: ['user-db'],
           dependencies: ['auth-service'],
@@ -166,9 +165,9 @@ export class WorkflowEngine {
             availability: '99.9%',
             response_time: '< 200ms',
             throughput: '1000 RPS',
-            error_rate: '< 0.1%'
-          }
-        }
+            error_rate: '< 0.1%',
+          },
+        },
       ],
       adrs: [
         {
@@ -177,21 +176,25 @@ export class WorkflowEngine {
           status: 'accepted',
           context: 'Need to support multiple teams and rapid scaling',
           decision: 'Adopt microservices architecture pattern',
-          consequences: ['Increased operational complexity', 'Better team autonomy', 'Improved scalability'],
+          consequences: [
+            'Increased operational complexity',
+            'Better team autonomy',
+            'Improved scalability',
+          ],
           alternatives: [
             {
               name: 'Monolithic Architecture',
               description: 'Single deployable unit',
               pros: ['Simpler deployment', 'Easier testing'],
               cons: ['Scaling limitations', 'Team dependencies'],
-              rejected_reason: 'Does not support team autonomy requirements'
-            }
+              rejected_reason: 'Does not support team autonomy requirements',
+            },
           ],
           related_decisions: [],
           date: new Date().toISOString(),
-          author: 'architecture-agent'
-        }
-      ]
+          author: 'architecture-agent',
+        },
+      ],
     };
 
     return mockBlueprint;
@@ -201,17 +204,14 @@ export class WorkflowEngine {
    * Execute Phase 11: Implementation Planning
    * Task breakdown and execution planning
    */
-  async executePhase11(
-    input: any,
-    context: ArchitectureContext
-  ): Promise<ImplementationPlan> {
-    logger.info('Executing Phase 11: Implementation Planning', { 
-      sessionId: context.sessionId 
+  async executePhase11(input: any, context: ArchitectureContext): Promise<ImplementationPlan> {
+    console.error('Executing Phase 11: Implementation Planning', {
+      sessionId: context.sessionId,
     });
 
     // TODO: Implement actual implementation planning agent
     // This is a placeholder implementation
-    
+
     const mockPlan: ImplementationPlan = {
       overview: {
         project_name: 'Architecture Implementation',
@@ -222,8 +222,8 @@ export class WorkflowEngine {
         success_criteria: [
           'All services deployed and operational',
           'Performance targets met',
-          'Security requirements satisfied'
-        ]
+          'Security requirements satisfied',
+        ],
       },
       phases: [
         {
@@ -233,7 +233,7 @@ export class WorkflowEngine {
           duration: '4 weeks',
           dependencies: [],
           deliverables: ['CI/CD pipeline', 'Development environment', 'Core infrastructure'],
-          tasks: ['task-001', 'task-002', 'task-003']
+          tasks: ['task-001', 'task-002', 'task-003'],
         },
         {
           id: 'impl-phase-2',
@@ -242,8 +242,8 @@ export class WorkflowEngine {
           duration: '8 weeks',
           dependencies: ['impl-phase-1'],
           deliverables: ['User service', 'Authentication service', 'API Gateway'],
-          tasks: ['task-004', 'task-005', 'task-006']
-        }
+          tasks: ['task-004', 'task-005', 'task-006'],
+        },
       ],
       tasks: [
         {
@@ -257,9 +257,9 @@ export class WorkflowEngine {
           acceptance_criteria: [
             'Automated builds on code commit',
             'Automated testing in pipeline',
-            'Automated deployment to staging'
-          ]
-        }
+            'Automated deployment to staging',
+          ],
+        },
       ],
       milestones: [
         {
@@ -268,9 +268,9 @@ export class WorkflowEngine {
           description: 'Development and deployment infrastructure is operational',
           date: '2024-02-01',
           deliverables: ['CI/CD pipeline', 'Development environment'],
-          success_criteria: ['All developers can deploy to staging', 'Automated tests pass']
-        }
-      ]
+          success_criteria: ['All developers can deploy to staging', 'Automated tests pass'],
+        },
+      ],
     };
 
     return mockPlan;

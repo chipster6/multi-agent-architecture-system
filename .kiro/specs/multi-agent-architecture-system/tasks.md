@@ -9,11 +9,11 @@ Implementation tasks for the foundational MCP server backbone. Tasks are organiz
 ## Phase 1: Project Scaffolding
 
 ### Task 1.1: Initialize TypeScript Project
-- [ ] Create `package.json` with name, version, scripts, and dependencies
-- [ ] Configure `tsconfig.json` with strict mode, ES2022 target, Node16 module resolution
-- [ ] Add dependencies: `@modelcontextprotocol/sdk`, `ajv`, `json-schema` (types)
-- [ ] Add dev dependencies: `vitest`, `fast-check`, `typescript`, `eslint`, `prettier`
-- [ ] Create directory structure per design:
+- [x] Create `package.json` with name, version, scripts, and dependencies
+- [x] Configure `tsconfig.json` with strict mode, ES2022 target, Node16 module resolution
+- [x] Add dependencies: `@modelcontextprotocol/sdk`, `ajv`, `json-schema` (types)
+- [x] Add dev dependencies: `vitest`, `fast-check`, `typescript`, `eslint`, `prettier`
+- [x] Create directory structure per design:
   ```
   src/
   ├── index.ts
@@ -26,7 +26,7 @@ Implementation tasks for the foundational MCP server backbone. Tasks are organiz
   ├── tools/
   └── shared/
   ```
-- [ ] Add npm scripts: `build`, `start`, `test`, `test:unit`, `test:integration`, `test:perf`, `test:property`, `type-check`, `lint`, `format`
+- [x] Add npm scripts: `build`, `start`, `test`, `test:unit`, `test:integration`, `test:perf`, `test:property`, `type-check`, `lint`, `format`
 
 _Requirements: 1.1, 8.1_
 

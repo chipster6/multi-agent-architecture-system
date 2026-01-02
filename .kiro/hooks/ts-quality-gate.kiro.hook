@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "TypeScript Quality Gate",
+  "description": "Runs strict TypeScript quality checks (compile, lint, format) before staging and committing code when agent completes tasks in autonomous mode",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run check:fast || (npm run lint:fix && npm run format && npm run check:fast)"
+  }
+}

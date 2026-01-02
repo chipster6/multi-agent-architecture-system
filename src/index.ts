@@ -1,39 +1,28 @@
 #!/usr/bin/env node
 
 /**
- * Multi-Agent Software Architecture Design System
+ * Foundation MCP Runtime (v0.1)
  * MCP Server Entry Point
- * 
- * This server orchestrates 40+ specialized AI agents to automate
- * complete software architecture design processes.
+ *
+ * Foundational MCP server providing core infrastructure for hosting
+ * and orchestrating AI agents.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import dotenv from 'dotenv';
-import { MetaCoordinator } from './coordinator/meta-coordinator.js';
-import { logger } from './shared/utils/logger.js';
-import { registerTools } from './tools/index.js';
-
-// Load environment variables
-dotenv.config();
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 /**
- * Main MCP server class that handles tool registration and request routing
+ * Foundation MCP Server class
  */
-class ArchitectureDesignServer {
+class FoundationMCPServer {
   private server: Server;
-  private coordinator: MetaCoordinator;
 
   constructor() {
     this.server = new Server(
       {
-        name: 'multi-agent-architecture-system',
-        version: '1.0.0',
+        name: 'foundation-mcp-runtime',
+        version: '0.1.0',
       },
       {
         capabilities: {
@@ -42,79 +31,55 @@ class ArchitectureDesignServer {
       }
     );
 
-    this.coordinator = new MetaCoordinator();
     this.setupHandlers();
   }
 
   private setupHandlers(): void {
-    // Register tool handlers
+    // Register basic tool handlers
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: registerTools(),
+        tools: [],
       };
     });
 
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-      
-      logger.info(`Executing tool: ${name}`, { args });
-
-      try {
-        switch (name) {
-          case 'analyze_requirements':
-            return await this.coordinator.analyzeRequirements(args);
-          
-          case 'generate_architecture':
-            return await this.coordinator.generateArchitecture(args);
-          
-          case 'validate_decisions':
-            return await this.coordinator.validateDecisions(args);
-          
-          case 'create_implementation_plan':
-            return await this.coordinator.createImplementationPlan(args);
-          
-          default:
-            throw new Error(`Unknown tool: ${name}`);
-        }
-      } catch (error) {
-        logger.error(`Tool execution failed: ${name}`, { error, args });
-        throw error;
-      }
+    this.server.setRequestHandler(CallToolRequestSchema, async request => {
+      const { name } = request.params;
+      throw new Error(`Tool not implemented: ${name}`);
     });
   }
 
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    logger.info('Multi-Agent Architecture Design System MCP server started');
+    console.error('Foundation MCP Runtime v0.1 started');
   }
 }
 
 // Start the server
 async function main(): Promise<void> {
   try {
-    const server = new ArchitectureDesignServer();
+    const server = new FoundationMCPServer();
     await server.start();
   } catch (error) {
-    logger.error('Failed to start MCP server', { error });
+    console.error('Failed to start MCP server:', error);
     process.exit(1);
   }
 }
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  logger.info('Received SIGINT, shutting down gracefully');
+  console.error('Received SIGINT, shutting down gracefully');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  logger.info('Received SIGTERM, shutting down gracefully');
+  console.error('Received SIGTERM, shutting down gracefully');
   process.exit(0);
 });
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    logger.error('Unhandled error in main', { error });
+  main().catch(error => {
+    console.error('Unhandled error in main:', error);
     process.exit(1);
   });
 }
