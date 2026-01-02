@@ -1,0 +1,9 @@
+{
+  "id": "typescript-quality-gate",
+  "name": "TypeScript Quality Gate",
+  "description": "Strict quality gate that runs after every agent task to ensure no TypeScript compile errors, no lint errors (warnings treated as errors), and consistent formatting. Auto-fixes issues when possible.",
+  "eventType": "agentStop",
+  "hookAction": "askAgent",
+  "outputPrompt": "CRITICAL: Run the TypeScript Quality Gate before considering this task complete. Execute these steps in order:\n\n1. First run: `npm run check:fast` (or `npm run format:check && npm run lint && npm run type-check` if check:fast doesn't exist)\n\n2. If ANY errors are found:\n   - Run auto-fixes: `npm run lint:fix && npm run format` (or equivalent commands)\n   - Re-run: `npm run check:fast`\n   - If errors persist, fix them manually\n   - Continue until ALL checks pass\n\n3. Only proceed when:\n   ✅ TypeScript compilation passes (no type errors)\n   ✅ ESLint passes with --max-warnings=0 (no lint errors or warnings)\n   ✅ Prettier formatting is consistent\n\n4. If toolchain is missing, set up with latest standards:\n   - TypeScript ESLint v8+ with strictTypeChecked config\n   - Prettier v3+ with consistent formatting\n   - ESLint flat config (eslint.config.mjs) preferred over legacy\n   - Use projectService: true for type-aware linting\n\nDO NOT consider the task complete until this quality gate passes. This ensures production-ready code quality for the multi-agent architecture system.",
+  "why": "Ensures strict code quality by running comprehensive TypeScript, linting, and formatting checks after every agent task, with automatic fixing when possible"
+}

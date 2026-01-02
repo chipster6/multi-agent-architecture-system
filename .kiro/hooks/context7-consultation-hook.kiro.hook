@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Context7 Pre-Execution Consultation",
+  "description": "Before any agent task execution or prompt processing, automatically consult the context7 MCP server to retrieve the most up-to-date libraries, frameworks, and best practices. This prevents technical debt accumulation and minimizes TypeScript strict type errors by ensuring agents work with current standards.",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before proceeding with any task or analysis, first consult the context7 MCP server to get the most current libraries, frameworks, and best practices relevant to this request. Use this information to ensure all recommendations follow current standards and avoid technical debt, especially TypeScript strict type compliance issues. Then proceed with the original request using these updated guidelines."
+  }
+}
