@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { StructuredLogger, SystemClock, type LogContext, type Clock } from '../../../src/logging/structuredLogger.js';
+import { StructuredLogger, SystemClock, type LogContext, type Clock } from '../../../dist/logging/structuredLogger.js';
 
 /**
  * Mock clock for deterministic testing.
@@ -33,8 +33,16 @@ describe('StructuredLogger Copy-on-Write Semantics', () => {
     mockClock = new MockClock();
     logger = new StructuredLogger(mockClock);
     
-    // Spy on stderr.write to capture log output without polluting test output
-    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    // Spy on stderr.write to capture log output while still allowing it to work
+    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
+      // Store the output for test assertions but don't actually write to stderr
+      return true;
+    });
+  });
+
+  afterEach(() => {
+    // Restore all mocks to prevent interference between tests
+    vi.restoreAllMocks();
   });
 
   describe('Logging Methods Copy-on-Write', () => {

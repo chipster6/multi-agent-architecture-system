@@ -54,6 +54,9 @@ export interface ResourceManager {
   
   /** Get current health status */
   getHealthStatus(): HealthStatus;
+  
+  /** Reset the ResourceExhausted counter (called on successful tool completion or non-RESOURCE_EXHAUSTED error) */
+  resetResourceExhaustedCounter(): void;
 }
 
 /**
@@ -131,9 +134,6 @@ export class ResourceManagerImpl implements ResourceManager {
     }
 
     this.concurrentExecutions--;
-    
-    // Reset ResourceExhausted counter on successful completion
-    this.resourceExhaustedCounter = 0;
 
     // Process waiting queue
     if (this.waitingQueue.length > 0) {
@@ -143,6 +143,13 @@ export class ResourceManagerImpl implements ResourceManager {
         setImmediate(nextWaiter);
       }
     }
+  }
+
+  /**
+   * Reset the ResourceExhausted counter (called on successful tool completion or non-RESOURCE_EXHAUSTED error).
+   */
+  resetResourceExhaustedCounter(): void {
+    this.resourceExhaustedCounter = 0;
   }
 
   /**

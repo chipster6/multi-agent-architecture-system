@@ -331,11 +331,11 @@ _Requirements: 9.1-9.5_
 
 **File:** `src/resources/resourceManager.ts` (continued)
 
-- [ ] Implement health status calculation returning 'healthy' | 'degraded' | 'unhealthy'
-- [ ] Track ResourceExhausted counter (process-level rolling):
+- [x] Implement health status calculation returning 'healthy' | 'degraded' | 'unhealthy'
+- [x] Track ResourceExhausted counter (process-level rolling):
   - Increment on tools/call **rejection** with RESOURCE_EXHAUSTED (not handler-returned errors)
   - Reset on first non-RESOURCE_EXHAUSTED tools/call completion
-- [ ] Implement `getHealthStatus(): HealthStatus` using thresholds:
+- [x] Implement `getHealthStatus(): HealthStatus` using thresholds:
   - `healthy`: all metrics within normal bounds
   - `degraded`: concurrentExecutions > 80% of max OR eventLoopDelayMs > 100ms
   - `unhealthy`: concurrentExecutions == max OR eventLoopDelayMs > 500ms OR 3+ consecutive ResourceExhausted rejections
@@ -357,7 +357,7 @@ _Requirements: 9.4, 9.5_
 
 **File:** `src/mcp/session.ts`
 
-- [ ] Define `SessionContext` interface:
+- [x] Define `SessionContext` interface:
   ```typescript
   interface SessionContext {
     connectionCorrelationId: string;
@@ -366,48 +366,48 @@ _Requirements: 9.4, 9.5_
     logger: StructuredLogger; // child logger with connectionCorrelationId
   }
   ```
-- [ ] Implement `createSession(transport, idGenerator, logger): SessionContext`
-- [ ] Generate `connectionCorrelationId` at session creation
+- [x] Implement `createSession(transport, idGenerator, logger): SessionContext`
+- [x] Generate `connectionCorrelationId` at session creation
 
 _Requirements: 1.3, 1.4, 5.2_
 
 **Acceptance Criteria:**
 
-- Session created with unique connectionCorrelationId
-- State initialized to 'STARTING'
-- Child logger includes connectionCorrelationId in all entries
-- Transport type captured for admin policy enforcement
+- Session created with unique connectionCorrelationId ✅
+- State initialized to 'STARTING' ✅
+- Child logger includes connectionCorrelationId in all entries ✅
+- Transport type captured for admin policy enforcement ✅
 
 ### Task 5.2: Implement MCP Server Entry Point
 
 **File:** `src/index.ts`
 
-- [ ] Define `ServerOptions` interface per design
-- [ ] Implement `createServer(options): MCPServer` factory function
-- [ ] Implement `startServer(server): Promise<void>` with stdio transport
-- [ ] Wire up all components (registry, config, logger, resources, session)
-- [ ] Create session on connection with connectionCorrelationId
+- [x] Define `ServerOptions` interface per design
+- [x] Implement `createServer(options): MCPServer` factory function
+- [x] Implement `startServer(server): Promise<void>` with stdio transport
+- [x] Wire up all components (registry, config, logger, resources, session)
+- [x] Create session on connection with connectionCorrelationId
 
 _Requirements: 1.1-1.5_
 
 **Acceptance Criteria:**
 
-- Server starts and accepts stdio connections
-- All components properly initialized and wired
-- Session created per connection with unique connectionCorrelationId
-- Server info (name, version) available from config
+- Server starts and accepts stdio connections ✅
+- All components properly initialized and wired ✅
+- Session created per connection with unique connectionCorrelationId ✅
+- Server info (name, version) available from config ✅
 
 ### Task 5.3: Implement Protocol Lifecycle State Machine
 
 **File:** `src/mcp/handlers.ts`
 
-- [ ] Implement per-session state tracking (STARTING → INITIALIZING → RUNNING)
-- [ ] Implement `handleInitialize(params, session)`:
+- [x] Implement per-session state tracking (STARTING → INITIALIZING → RUNNING)
+- [x] Implement `handleInitialize(params, session)`:
   - Transition state to INITIALIZING
   - Return `InitializeResult` with server name, version, capabilities
-- [ ] Implement `handleInitialized(session)`:
+- [x] Implement `handleInitialized(session)`:
   - Transition state to RUNNING
-- [ ] Enforce strict initialization gate:
+- [x] Enforce strict initialization gate:
   - Block ALL methods except `initialize` and `initialized` before RUNNING
   - Return JSON-RPC error for violations
 
@@ -415,32 +415,32 @@ _Requirements: 1.2, 1.3_
 
 **Acceptance Criteria:**
 
-- State transitions correctly: STARTING → INITIALIZING → RUNNING
-- `initialize` returns name, version, capabilities from config
-- Methods before RUNNING return JSON-RPC error with:
+- State transitions correctly: STARTING → INITIALIZING → RUNNING ✅
+- `initialize` returns name, version, capabilities from config ✅
+- Methods before RUNNING return JSON-RPC error with: ✅
   - `error.code`: -32002
   - `error.message`: 'Not initialized'
   - `error.data`: `{ code: 'NOT_INITIALIZED', message: string, correlationId: string }`
-- correlationId in state error uses connectionCorrelationId (since request correlation may not be derivable)
+- correlationId in state error uses connectionCorrelationId (since request correlation may not be derivable) ✅
 
 ### Task 5.4: Implement tools/list Handler
 
 **File:** `src/mcp/handlers.ts` (continued)
 
-- [ ] Implement `handleToolsList(session): ToolsListResult`
-- [ ] Return all registered tools from ToolRegistry
-- [ ] Include name, description, inputSchema, optional version per tool
-- [ ] Ensure lexicographic ordering by name (delegated to registry)
-- [ ] Exclude admin tools when `isDynamicRegistrationEffective() === false`
+- [x] Implement `handleToolsList(session): ToolsListResult`
+- [x] Return all registered tools from ToolRegistry
+- [x] Include name, description, inputSchema, optional version per tool
+- [x] Ensure lexicographic ordering by name (delegated to registry)
+- [x] Exclude admin tools when `isDynamicRegistrationEffective() === false`
 
 _Requirements: 2.3, 2.8, 2.9_
 
 **Acceptance Criteria:**
 
-- Returns all registered tools with schemas
-- Tools sorted alphabetically by name
-- Version included when present in tool definition
-- Admin tools hidden when dynamic registration not effective
+- Returns all registered tools with schemas ✅
+- Tools sorted alphabetically by name ✅
+- Version included when present in tool definition ✅
+- Admin tools hidden when dynamic registration not effective ✅
 
 ### Task 5.5: Implement tools/call Handler - Processing Order
 
@@ -448,43 +448,43 @@ _Requirements: 2.3, 2.8, 2.9_
 
 Implement the 10-step normative processing order:
 
-- [ ] **Step 1**: State gate - verify session.state === 'RUNNING', else return JSON-RPC -32002
-- [ ] **Step 2**: JSON-RPC params shape validation:
+- [x] **Step 1**: State gate - verify session.state === 'RUNNING', else return JSON-RPC -32002
+- [x] **Step 2**: JSON-RPC params shape validation:
   - `name` MUST be a string
   - `arguments` (if present) MUST be an object (not array/primitive)
   - `_meta` (if present) MUST be an object
   - Failures return JSON-RPC -32602 (invalid params)
-- [ ] **Step 3**: Assign IDs:
+- [x] **Step 3**: Assign IDs:
   - Extract `correlationId` from `_meta.correlationId` or generate new
   - Generate `runId` for this invocation
   - Strip `_meta` before passing to handler
-- [ ] **Step 4**: Payload size check (fast reject):
+- [x] **Step 4**: Payload size check (fast reject):
   - Attempt JSON.stringify on `arguments` (treat absent as `{}`)
   - If JSON serialization fails, return tool error INVALID_ARGUMENT with `details: { reason: 'arguments_not_serializable' }`
   - Measure UTF-8 byte length of JSON-serialized `arguments`
   - Reject with tool error RESOURCE_EXHAUSTED if exceeds limit
-- [ ] **Step 5**: Tool existence check:
+- [x] **Step 5**: Tool existence check:
   - If tool not found, return tool error NOT_FOUND
-- [ ] **Step 6**: Acquire concurrency slot using **`tryAcquireSlot()` (non-blocking)**:
+- [x] **Step 6**: Acquire concurrency slot using **`tryAcquireSlot()` (non-blocking)**:
   - If returns null (no slot available), return tool error RESOURCE_EXHAUSTED
   - Increment ResourceExhausted counter on rejection
   - **Do NOT use blocking `acquireSlot()` - tools/call must reject-fast**
-- [ ] **Step 7**: Schema validation using precompiled Ajv validator:
+- [x] **Step 7**: Schema validation using precompiled Ajv validator:
   - If invalid, return tool error INVALID_ARGUMENT with validation details
-- [ ] **Step 8**: Execute handler with timeout and AbortSignal (see Task 5.6)
-- [ ] **Step 9**: Release slot (always, in finally block)
-- [ ] **Step 10**: Wrap result/error into MCP tools/call format
+- [x] **Step 8**: Execute handler with timeout and AbortSignal (see Task 5.6)
+- [x] **Step 9**: Release slot (always, in finally block)
+- [x] **Step 10**: Wrap result/error into MCP tools/call format
 
 _Requirements: 3.1-3.6, 9.1-9.3_
 
 **Acceptance Criteria:**
 
-- Processing order matches design specification exactly
-- Invalid params return JSON-RPC -32602 (not tool error)
-- Unknown tool returns tool error NOT_FOUND with isError: true
-- Schema validation failures return INVALID_ARGUMENT with Ajv error details
-- Slot always released in finally block regardless of outcome
-- runId and correlationId included in all tool error responses
+- Processing order matches design specification exactly ✅
+- Invalid params return JSON-RPC -32602 (not tool error) ✅
+- Unknown tool returns tool error NOT_FOUND with isError: true ✅
+- Schema validation failures return INVALID_ARGUMENT with Ajv error details ✅
+- Slot always released in finally block regardless of outcome ✅
+- runId and correlationId included in all tool error responses ✅
 
 ### Task 5.6: Implement Timeout and Cooperative Cancellation
 

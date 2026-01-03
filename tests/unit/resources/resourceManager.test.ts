@@ -329,5 +329,47 @@ describe('ResourceManager', () => {
       // Clean up
       releaseSlots.forEach(release => release());
     });
+
+    it('should reset ResourceExhausted counter when explicitly reset', () => {
+      // Increment counter to 3
+      (resourceManager as any).incrementResourceExhaustedCounter();
+      (resourceManager as any).incrementResourceExhaustedCounter();
+      (resourceManager as any).incrementResourceExhaustedCounter();
+
+      let status = resourceManager.getHealthStatus();
+      expect(status).toBe('unhealthy');
+
+      // Reset counter
+      resourceManager.resetResourceExhaustedCounter();
+
+      // Check telemetry to understand current state
+      const telemetry = resourceManager.getTelemetry();
+      status = resourceManager.getHealthStatus();
+      
+      // If event loop delay is high, we might get degraded or unhealthy
+      if (telemetry.eventLoopDelayMs > 500) {
+        expect(status).toBe('unhealthy');
+      } else if (telemetry.eventLoopDelayMs > 100) {
+        expect(status).toBe('degraded');
+      } else {
+        expect(status).toBe('healthy');
+      }
+    });
+
+    it('should not reset counter on slot release', () => {
+      // Increment counter to 3
+      (resourceManager as any).incrementResourceExhaustedCounter();
+      (resourceManager as any).incrementResourceExhaustedCounter();
+      (resourceManager as any).incrementResourceExhaustedCounter();
+
+      // Acquire and release a slot
+      const releaseSlot = resourceManager.tryAcquireSlot();
+      expect(releaseSlot).not.toBeNull();
+      releaseSlot!();
+
+      // Counter should still be 3 (not reset by slot release)
+      const status = resourceManager.getHealthStatus();
+      expect(status).toBe('unhealthy');
+    });
   });
 });
