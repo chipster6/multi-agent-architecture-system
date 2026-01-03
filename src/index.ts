@@ -255,7 +255,7 @@ class FoundationMCPServer implements MCPServer {
       });
       
       // Map to MCP tools/list response format
-      const tools = filteredTools.map((tool) => {
+      const allToolDefs = filteredTools.map((tool) => {
         const toolDef: { name: string; description: string; inputSchema: Record<string, unknown>; version?: string } = {
           name: tool.name,
           description: tool.description,
@@ -269,12 +269,62 @@ class FoundationMCPServer implements MCPServer {
         return toolDef;
       });
       
+      // **General rule**: Any tool returning variable-size lists MUST enforce max serialized response size
+      // and truncate deterministically. For MCP tools/list, we truncate silently without adding fields
+      // to maintain protocol compliance.
+      
+      // Create initial response with all tools
+      let response: { tools: typeof allToolDefs } = {
+        tools: allToolDefs,
+      };
+      
+      // Check if the response exceeds the maximum payload size
+      const validation = this.options.resourceManager.validatePayloadSize(response);
+      
+      if (!validation.valid) {
+        this.session.logger.warn('Tools list response too large, truncating', {
+          totalTools: allToolDefs.length,
+          validationErrors: validation.errors,
+        });
+
+        // Binary search to find the maximum number of tools we can include
+        let left = 0;
+        let right = allToolDefs.length;
+        let maxTools = 0;
+
+        while (left <= right) {
+          const mid = Math.floor((left + right) / 2);
+          const truncatedResponse = {
+            tools: allToolDefs.slice(0, mid),
+          };
+
+          const truncatedValidation = this.options.resourceManager.validatePayloadSize(truncatedResponse);
+
+          if (truncatedValidation.valid) {
+            maxTools = mid;
+            left = mid + 1;
+          } else {
+            right = mid - 1;
+          }
+        }
+
+        // Create the final truncated response (silently truncated to maintain MCP compliance)
+        response = {
+          tools: allToolDefs.slice(0, maxTools),
+        };
+
+        this.session.logger.info('Tools list truncated for size compliance', {
+          originalCount: allToolDefs.length,
+          truncatedCount: maxTools,
+        });
+      }
+      
       this.session.logger.debug('Returning tools list', {
-        toolCount: tools.length,
-        toolNames: tools.map(t => t.name),
+        toolCount: response.tools.length,
+        toolNames: response.tools.map(t => t.name),
       });
       
-      return { tools };
+      return response;
     });
 
     // Handler for tools/call request
@@ -641,6 +691,10 @@ async function main(): Promise<void> {
     const resourceManager = createResourceManager(config);
     const idGenerator = new ProductionIdGenerator();
 
+    // Initialize agent coordinator
+    const { AgentCoordinatorImpl } = await import('./agents/agentCoordinatorImpl.js');
+    const agentCoordinator = new AgentCoordinatorImpl(logger);
+
     // Register health tool (static tool, always available)
     const { healthToolDefinition, healthToolHandler } = await import('./tools/healthTool.js');
     
@@ -656,6 +710,27 @@ async function main(): Promise<void> {
     
     logger.info('Health tool registered', {
       toolName: healthToolDefinition.name
+    });
+
+    // Register agent tools (static tools, always available)
+    const { createAgentTools } = await import('./tools/agentTools.js');
+    const agentTools = createAgentTools(agentCoordinator, resourceManager, config);
+    
+    for (const agentTool of agentTools) {
+      // Create a wrapper handler that matches the ToolHandler interface
+      const wrappedAgentHandler = async (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
+        const result = await agentTool.handler(args, context);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result) }]
+        };
+      };
+      
+      toolRegistry.register(agentTool.definition, wrappedAgentHandler, { isDynamic: false });
+    }
+    
+    logger.info('Agent tools registered', {
+      agentToolCount: agentTools.length,
+      agentToolNames: agentTools.map(t => t.definition.name)
     });
 
     // Register admin tools if dynamic registration is effective
@@ -728,6 +803,7 @@ async function main(): Promise<void> {
       resourceManager,
       idGenerator,
       clock,
+      agentCoordinator,
     });
 
     await startServer(server);

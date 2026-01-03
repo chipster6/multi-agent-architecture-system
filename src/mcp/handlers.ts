@@ -186,16 +186,20 @@ export interface ToolsListResult {
  * Handles the tools/list request.
  * Returns all registered tools from the ToolRegistry.
  * Excludes admin tools when dynamic registration is not effective.
+ * Implements the general rule: Any tool returning variable-size lists MUST enforce 
+ * max serialized response size and truncate deterministically with truncated marker.
  * 
  * @param session - Session context for this connection
  * @param toolRegistry - Tool registry to get tools from
  * @param config - Server configuration for admin policy checks
- * @returns ToolsListResult with all available tools
+ * @param resourceManager - Resource manager for payload size validation
+ * @returns ToolsListResult with all available tools, potentially truncated
  */
 export function handleToolsList(
   session: SessionContext,
-  toolRegistry: ToolRegistry, // Fixed type
-  config: ServerConfig
+  toolRegistry: ToolRegistry,
+  config: ServerConfig,
+  resourceManager: { validatePayloadSize: (payload: unknown) => { valid: boolean; errors?: string[] } }
 ): ToolsListResult {
   // Get all registered tools from registry (already sorted lexicographically)
   const allTools = toolRegistry.list();
@@ -214,19 +218,69 @@ export function handleToolsList(
   });
   
   // Map to MCP tools/list response format
-  const tools = filteredTools.map((tool) => ({
+  const allToolDefs = filteredTools.map((tool) => ({
     name: tool.name,
     description: tool.description,
     inputSchema: tool.inputSchema,
     ...(tool.version ? { version: tool.version } : {}),
   }));
   
+  // **General rule**: Any tool returning variable-size lists MUST enforce max serialized response size
+  // and truncate deterministically. For MCP tools/list, we truncate silently without adding fields
+  // to maintain protocol compliance.
+  
+  // Create initial response with all tools
+  let response: ToolsListResult = {
+    tools: allToolDefs,
+  };
+  
+  // Check if the response exceeds the maximum payload size
+  const validation = resourceManager.validatePayloadSize(response);
+  
+  if (!validation.valid) {
+    session.logger.warn('Tools list response too large, truncating', {
+      totalTools: allToolDefs.length,
+      validationErrors: validation.errors,
+    });
+
+    // Binary search to find the maximum number of tools we can include
+    let left = 0;
+    let right = allToolDefs.length;
+    let maxTools = 0;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const truncatedResponse: ToolsListResult = {
+        tools: allToolDefs.slice(0, mid),
+      };
+
+      const truncatedValidation = resourceManager.validatePayloadSize(truncatedResponse);
+
+      if (truncatedValidation.valid) {
+        maxTools = mid;
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+
+    // Create the final truncated response (silently truncated to maintain MCP compliance)
+    response = {
+      tools: allToolDefs.slice(0, maxTools),
+    };
+
+    session.logger.info('Tools list truncated for size compliance', {
+      originalCount: allToolDefs.length,
+      truncatedCount: maxTools,
+    });
+  }
+  
   session.logger.debug('Returning tools list', {
-    toolCount: tools.length,
-    toolNames: tools.map((t: { name: string }) => t.name),
+    toolCount: response.tools.length,
+    toolNames: response.tools.map((t: { name: string }) => t.name),
   });
   
-  return { tools };
+  return response;
 }
 
 /**

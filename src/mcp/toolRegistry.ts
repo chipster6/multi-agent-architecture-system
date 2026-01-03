@@ -186,8 +186,8 @@ export class ToolRegistryImpl implements ToolRegistry {
     // Validate name
     if (typeof definition.name !== 'string' || definition.name.length === 0) {
       errors.push({ path: 'name', message: 'Must be a non-empty string' });
-    } else if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(definition.name)) {
-      errors.push({ path: 'name', message: 'Must start with a letter and contain only letters, numbers, underscores, and hyphens' });
+    } else if (!/^[a-zA-Z][a-zA-Z0-9_/-]*$/.test(definition.name)) {
+      errors.push({ path: 'name', message: 'Must start with a letter and contain only letters, numbers, underscores, hyphens, and forward slashes' });
     }
 
     // Validate description

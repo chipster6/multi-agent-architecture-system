@@ -424,7 +424,7 @@ _Requirements: 1.2, 1.3_
 - correlationId in state error uses connectionCorrelationId (since request correlation may not be derivable) ✅
 
 ### Task 5.4: Implement tools/list Handler
-conte
+conteconsult th
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [x] Implement `handleToolsList(session): ToolsListResult`
@@ -649,15 +649,15 @@ _Requirements: 2.5-2.7, 10.2, 10.3_
 
 **File:** `src/agents/agentCoordinator.ts`
 
-- [ ] Define `AgentMessage`, `AgentContext`, `AgentHandler` interfaces per design
-- [ ] Implement `registerAgent(id, handler)` with duplicate prevention
-- [ ] Implement `unregisterAgent(id): boolean`
-- [ ] Implement `sendMessage(targetAgentId, message): Promise<AgentResponse>`:
+- [x] Define `AgentMessage`, `AgentContext`, `AgentHandler` interfaces per design
+- [x] Implement `registerAgent(id, handler)` with duplicate prevention
+- [x] Implement `unregisterAgent(id): boolean`
+- [x] Implement `sendMessage(targetAgentId, message): Promise<AgentResponse>`:
   - If agent not registered, throw error (caller converts to NOT_FOUND if via tool)
   - Use per-agent FIFO queue for sequential processing
   - Different agents process concurrently
-- [ ] Implement `getAgentState(agentId): Map<string, unknown> | undefined`
-- [ ] Implement optional `onStateChange` callback hook
+- [x] Implement `getAgentState(agentId): Map<string, unknown> | undefined`
+- [x] Implement optional `onStateChange` callback hook
 
 _Requirements: 7.1-7.6_
 
@@ -674,24 +674,24 @@ _Requirements: 7.1-7.6_
 
 **File:** `src/tools/agentTools.ts`
 
-- [ ] Implement `agent/sendMessage` tool with payload limits:
+- [x] Implement `agent/sendMessage` tool with payload limits:
   - Schema: `{ targetAgentId: string, message: { type: string, payload: unknown } }`
   - **Enforce same payload size limit as tools/call** (maxPayloadBytes using UTF-8 measurement)
   - Route to `agentCoordinator.sendMessage(targetAgentId, message)`
   - Return agent response or NOT_FOUND error if agent not registered
   - Reject oversized payload with RESOURCE_EXHAUSTED
-- [ ] Implement `agent/list` tool with bounded response:
+- [x] Implement `agent/list` tool with bounded response:
   - **Enforce max serialized response size** (same mechanism as result wrapping)
   - **Truncate deterministically** with `{ agentIds: string[], truncated: boolean }` if needed
   - Return list of registered agent IDs
-- [ ] Implement `agent/getState` tool with size and redaction limits:
+- [x] Implement `agent/getState` tool with size and redaction limits:
   - Schema: `{ agentId: string }`
   - **Enforce maximum response size** (tools.maxStateBytes with default)
   - **Return bounded state view**: either keys-only summary OR size-limited serialized state with truncation
   - **Redact sensitive keys**: MUST NOT return values for keys matching redactKeys unless explicitly allowed (return "[REDACTED]")
   - Return agent state or NOT_FOUND error
-- [ ] Register tools at server startup (static, not dynamic)
-- [ ] **General rule**: Any tool returning variable-size lists MUST enforce max serialized response size and truncate deterministically with truncated marker
+- [x] Register tools at server startup (static, not dynamic)
+- [x] **General rule**: Any tool returning variable-size lists MUST enforce max serialized response size and truncate deterministically with truncated marker
 
 _Requirements: 7.5_
 
