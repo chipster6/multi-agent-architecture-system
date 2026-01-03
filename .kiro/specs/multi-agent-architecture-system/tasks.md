@@ -424,7 +424,7 @@ _Requirements: 1.2, 1.3_
 - correlationId in state error uses connectionCorrelationId (since request correlation may not be derivable) ✅
 
 ### Task 5.4: Implement tools/list Handler
-
+conte
 **File:** `src/mcp/handlers.ts` (continued)
 
 - [x] Implement `handleToolsList(session): ToolsListResult`
@@ -490,24 +490,24 @@ _Requirements: 3.1-3.6, 9.1-9.3_
 
 **File:** `src/mcp/handlers.ts` (continued)
 
-- [ ] Create `AbortController` per invocation
-- [ ] Pass `abortController.signal` to handler via `ToolContext.abortSignal`
-- [ ] Start timeout timer using `config.tools.defaultTimeoutMs`
-- [ ] On timeout:
+- [x] Create `AbortController` per invocation
+- [x] Pass `abortController.signal` to handler via `ToolContext.abortSignal`
+- [x] Start timeout timer using `config.tools.defaultTimeoutMs`
+- [x] On timeout:
   - Call `abortController.abort()`
   - Return tool error TIMEOUT immediately
   - **Do NOT release slot** - slot held until handler returns
-- [ ] On handler completion (success or error):
+- [x] On handler completion (success or error):
   - Cancel timeout timer
   - Release slot in finally block
   - **Log thin completion record using ToolCompletionOutcome enum**: `{ runId, correlationId, toolName, durationMs, outcome: ToolCompletionOutcome, errorCode?, payloadBytes }`
   - **MUST NOT log**: full tool arguments, full tool results, agent state contents
   - **MUST sanitize/redact**: any logged string fields via sanitize(), any logged objects via redact()+sanitize()
-- [ ] On late handler completion (after timeout returned):
+- [x] On late handler completion (after timeout returned):
   - Log completion record with `outcome: ToolCompletionOutcome.LateCompleted`
   - **MUST NOT emit MCP response**
   - Log at WARN level with runId, correlationId
-- [ ] On disconnect-triggered completion:
+- [x] On disconnect-triggered completion:
   - If handler returns normally: `outcome: ToolCompletionOutcome.DisconnectedCompleted`
   - If handler throws due to abort: `outcome: ToolCompletionOutcome.Aborted`
   - If handler exceeds deadline after disconnect: `outcome: ToolCompletionOutcome.LateCompleted`
@@ -529,14 +529,14 @@ _Requirements: 3.5, 3.6, 5.4_
 
 **File:** `src/mcp/handlers.ts` (continued)
 
-- [ ] Implement `wrapResult(result, ctx): ToolsCallResult`:
+- [x] Implement `wrapResult(result, ctx): ToolsCallResult`:
   - Attempt JSON.stringify on result
   - Return `{ content: [{ type: 'text', text: JSON }], isError: false }`
   - On serialization failure, return INTERNAL error with `{ reason: 'result_not_serializable' }`
-- [ ] Implement `wrapToolError(error, ctx): ToolsCallResult`:
+- [x] Implement `wrapToolError(error, ctx): ToolsCallResult`:
   - Enrich error with correlationId and runId from ctx
   - Return `{ content: [{ type: 'text', text: JSON }], isError: true }`
-- [ ] For protocol/state errors (not tools/call): runId is absent, only correlationId present
+- [x] For protocol/state errors (not tools/call): runId is absent, only correlationId present
 
 _Requirements: 3.4, 6.2, 6.3_
 
@@ -552,14 +552,14 @@ _Requirements: 3.4, 6.2, 6.3_
 
 **File:** `src/mcp/handlers.ts` (continued)
 
-- [ ] Implement parse error handler (-32700):
+- [x] Implement parse error handler (-32700):
   - Return JSON-RPC error with `id: null`
   - Include `connectionCorrelationId` in `error.data.correlationId`
-- [ ] Implement invalid request handler (-32600):
+- [x] Implement invalid request handler (-32600):
   - Return JSON-RPC error with `id: null` if id invalid/missing
-- [ ] Implement method not found handler (-32601):
+- [x] Implement method not found handler (-32601):
   - Return JSON-RPC error with request id
-- [ ] Implement invalid params handler (-32602):
+- [x] Implement invalid params handler (-32602):
   - Return JSON-RPC error with request id
 
 _Requirements: 6.1, 6.2, 6.4_
@@ -575,14 +575,14 @@ _Requirements: 6.1, 6.2, 6.4_
 
 **File:** `src/mcp/handlers.ts` (continued)
 
-- [ ] Implement connection close handling with explicit semantics:
+- [x] Implement connection close handling with explicit semantics:
   - **On transport disconnect, server MUST**:
     - Mark session CLOSED and stop writing responses for that connection
     - Abort all in-flight tool invocations by firing their AbortControllers
     - Continue running handlers until return (cooperative cancellation), holding slots until return
     - Emit normal completion log record for each invocation (even though client is gone)
     - Ensure no slot leaks: all slots eventually released when handlers exit
-- [ ] Implement graceful shutdown:
+- [x] Implement graceful shutdown:
   - Wait for in-flight tool calls to complete (with timeout)
   - Release all resource slots
   - Close transport cleanly
@@ -591,20 +591,20 @@ _Requirements: 1.4_
 
 **Acceptance Criteria:**
 
-- **Disconnect during tools/call does not crash server**
-- **No stdout writes after disconnect**
-- **AbortSignal fired for in-flight invocations on disconnect**
-- **Slots eventually released; concurrentExecutions returns to prior level**
-- **Completion record logged for each in-flight invocation**
-- Session resources cleaned up on disconnection
-- Graceful shutdown waits for completion with configurable timeout (server.shutdownTimeoutMs)
+- [x] **Disconnect during tools/call does not crash server**
+- [x] **No stdout writes after disconnect**
+- [x] **AbortSignal fired for in-flight invocations on disconnect**
+- [x] **Slots eventually released; concurrentExecutions returns to prior level**
+- [x] **Completion record logged for each in-flight invocation**
+- [x] Session resources cleaned up on disconnection
+- [x] Graceful shutdown waits for completion with configurable timeout (server.shutdownTimeoutMs)
 
 ### Task 5.10: Implement Admin Tool Handlers
 
 **File:** `src/mcp/adminHandlers.ts`
 
-- [ ] Define `ToolType` as closed union: `'echo' | 'health' | 'agentProxy'`
-- [ ] Implement `admin/registerTool` handler (definition-only registration):
+- [x] Define `ToolType` as closed union: `'echo' | 'health' | 'agentProxy'`
+- [x] Implement `admin/registerTool` handler (definition-only registration):
   - Call `enforceAdminPolicy(config.tools.adminPolicy, transport)`
   - Require `toolType` field in registration payload
   - Reject unknown `toolType` with INVALID_ARGUMENT
@@ -616,30 +616,30 @@ _Requirements: 1.4_
   - Register tool definition with predefined handler mapping
   - Log at WARN level: "Dynamic tool registered: {toolName} (type: {toolType})"
   - Return success response
-- [ ] Implement `admin/unregisterTool` handler:
+- [x] Implement `admin/unregisterTool` handler:
   - Call `enforceAdminPolicy(config.tools.adminPolicy, transport)`
   - Call `toolRegistry.unregister(name)`
   - Log at WARN level: "Tool unregistered: {toolName}"
   - Return success/not-found response
-- [ ] Implement `enforceAdminPolicy(policy, transport)`:
+- [x] Implement `enforceAdminPolicy(policy, transport)`:
   - `deny_all`: throw UNAUTHORIZED
   - `local_stdio_only`: throw UNAUTHORIZED if transport.type !== 'stdio'
   - `token`: throw UNAUTHORIZED (not supported in v0.1)
-- [ ] Register admin tools only when `isDynamicRegistrationEffective() === true`
-- [ ] Exclude admin tools from `tools/list` when not enabled
+- [x] Register admin tools only when `isDynamicRegistrationEffective() === true`
+- [x] Exclude admin tools from `tools/list` when not enabled
 
 _Requirements: 2.5-2.7, 10.2, 10.3_
 
 **Acceptance Criteria:**
 
-- **ToolType defined as closed union**: 'echo' | 'health' | 'agentProxy'
-- **Unknown toolType rejected** with INVALID_ARGUMENT
-- **toolType schema enforced**: server uses canonical schema; client schema must byte-match or rejected with INVALID_ARGUMENT
-- **tools/list shows dynamic tool definitions deterministically**
-- **tools/call for dynamic tool routes to mapped implementation**
-- Security enforcement: admin policy correctly gates access based on transport type
-- Dynamic registrations logged at WARN level with toolType information
-- Admin tools hidden from `tools/list` when not enabled
+- [x] **ToolType defined as closed union**: 'echo' | 'health' | 'agentProxy'
+- [x] **Unknown toolType rejected** with INVALID_ARGUMENT
+- [x] **toolType schema enforced**: server uses canonical schema; client schema must byte-match or rejected with INVALID_ARGUMENT
+- [x] **tools/list shows dynamic tool definitions deterministically**
+- [x] **tools/call for dynamic tool routes to mapped implementation**
+- [x] Security enforcement: admin policy correctly gates access based on transport type
+- [x] Dynamic registrations logged at WARN level with toolType information
+- [x] Admin tools hidden from `tools/list` when not enabled
 
 ---
 
@@ -717,25 +717,25 @@ _Requirements: 7.5_
 
 **File:** `src/tools/healthTool.ts`
 
-- [ ] Define `HealthResponse` interface per design
-- [ ] Implement health tool handler returning:
+- [x] Define `HealthResponse` interface per design
+- [x] Implement health tool handler returning:
   - `server`: { name, version } from config
   - `config`: { toolTimeoutMs, maxConcurrentExecutions, maxPayloadBytes, maxStateBytes }
   - `resources`: ResourceTelemetry from ResourceManager
   - `status`: health status from ResourceManager
-- [ ] Register health tool at server startup (static, not dynamic)
-- [ ] Tool name: `health`
+- [x] Register health tool at server startup (static, not dynamic)
+- [x] Tool name: `health`
 
 _Requirements: 4.5, 9.4_
 
 **Acceptance Criteria:**
 
-- Health tool appears in `tools/list`
-- Returns server name and version from config
-- Returns config summary (timeout, concurrency, payload limits, state limits)
-- Returns resource telemetry (memory, event loop delay, concurrent executions)
-- Returns health status (healthy/degraded/unhealthy)
-- Registered as static tool (always available)
+- [x] Health tool appears in `tools/list`
+- [x] Returns server name and version from config
+- [x] Returns config summary (timeout, concurrency, payload limits, state limits)
+- [x] Returns resource telemetry (memory, event loop delay, concurrent executions)
+- [x] Returns health status (healthy/degraded/unhealthy)
+- [x] Registered as static tool (always available)
 
 ---
 

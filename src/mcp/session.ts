@@ -5,7 +5,7 @@
  */
 
 import type { IdGenerator } from '../shared/idGenerator.js';
-import { StructuredLogger } from '../logging/structuredLogger.js';
+import type { StructuredLogger } from '../logging/structuredLogger.js';
 
 /**
  * Transport type enumeration for identifying connection types.

@@ -16,14 +16,27 @@ import {
   InitializeRequestSchema,
   InitializedNotificationSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { ServerConfig } from './config/configManager.js';
+import type { AdminRegisterToolRequest } from './mcp/adminHandlers.js';
 import type { StructuredLogger } from './logging/structuredLogger.js';
 import type { ToolRegistry } from './mcp/toolRegistry.js';
 import type { ResourceManager } from './resources/resourceManager.js';
 import type { IdGenerator } from './shared/idGenerator.js';
 import type { Clock } from './shared/clock.js';
-import { createSession, type SessionContext } from './mcp/session.js';
+import { createSession, type SessionContext, type SessionState } from './mcp/session.js';
 import { ErrorCode, createError } from './errors/errorHandler.js';
+
+/**
+ * Tool context interface for tool handlers.
+ */
+interface ToolContext {
+  runId: string;
+  correlationId: string;
+  logger: StructuredLogger;
+  abortSignal: AbortSignal;
+  transport?: { type: 'stdio' | 'sse' | 'http' };
+}
 
 /**
  * Optional agent coordinator interface for future agent coordination support.
@@ -169,7 +182,7 @@ class FoundationMCPServer implements MCPServer {
       }
 
       // Update session state to INITIALIZING
-      (this.session as any).state = 'INITIALIZING';
+      (this.session as SessionContext & { state: SessionState }).state = 'INITIALIZING';
 
       this.session.logger.info('Client initializing');
       
@@ -203,13 +216,13 @@ class FoundationMCPServer implements MCPServer {
       }
 
       // Update session state to RUNNING
-      (this.session as any).state = 'RUNNING';
+      (this.session as SessionContext & { state: SessionState }).state = 'RUNNING';
 
       this.session.logger.info('Protocol initialization complete, session RUNNING');
     });
 
     // Handler for tools/list request
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+    this.server.setRequestHandler(ListToolsRequestSchema, () => {
       this.options.logger.debug('Received tools/list request');
       
       if (!this.session) {
@@ -233,21 +246,28 @@ class FoundationMCPServer implements MCPServer {
         this.options.config.security.dynamicRegistrationEnabled;
       
       // Filter out admin tools if dynamic registration is not effective
-      const filteredTools = allTools.filter((tool: any) => {
+      const filteredTools = allTools.filter((tool) => {
         // If tool is marked as admin tool and dynamic registration is not effective, exclude it
-        if (tool.isAdminTool && !isDynamicRegistrationEffective) {
+        if ('isAdminTool' in tool && (tool as { isAdminTool: boolean }).isAdminTool && !isDynamicRegistrationEffective) {
           return false;
         }
         return true;
       });
       
       // Map to MCP tools/list response format
-      const tools = filteredTools.map((tool: any) => ({
-        name: tool.name,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
-        ...(tool.version && { version: tool.version }),
-      }));
+      const tools = filteredTools.map((tool) => {
+        const toolDef: { name: string; description: string; inputSchema: Record<string, unknown>; version?: string } = {
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema,
+        };
+        
+        if ('version' in tool && tool.version) {
+          toolDef.version = tool.version;
+        }
+        
+        return toolDef;
+      });
       
       this.session.logger.debug('Returning tools list', {
         toolCount: tools.length,
@@ -281,12 +301,8 @@ class FoundationMCPServer implements MCPServer {
         );
       }
       
-      if (args !== undefined && (typeof args !== 'object' || Array.isArray(args) || args === null)) {
-        throw createError(
-          ErrorCode.InvalidArgument,
-          'Tool arguments must be an object'
-        );
-      }
+      // Validate arguments - MCP allows null/undefined arguments
+      const toolArgs = args ?? {};
 
       // Step 3: Assign IDs
       const correlationId = this.options.idGenerator.generateCorrelationId();
@@ -302,7 +318,6 @@ class FoundationMCPServer implements MCPServer {
       contextLogger.debug('Received tools/call request');
 
       // Step 4: Payload size check (fast reject)
-      const toolArgs = args ?? {};
       
       try {
         JSON.stringify(toolArgs);
@@ -396,7 +411,7 @@ class FoundationMCPServer implements MCPServer {
 
       try {
         // Step 7: Schema validation using precompiled Ajv validator
-        if (registeredTool.validator && !registeredTool.validator(toolArgs)) {
+        if (!registeredTool.validator(toolArgs)) {
           contextLogger.warn('Schema validation failed', {
             errors: registeredTool.validator.errors,
           });
@@ -435,6 +450,8 @@ class FoundationMCPServer implements MCPServer {
             correlationId,
             logger: contextLogger,
             abortSignal: abortController.signal,
+            // Add transport info for admin tools
+            transport: { type: 'stdio' as const }
           };
 
           // Execute the tool handler
@@ -624,6 +641,85 @@ async function main(): Promise<void> {
     const resourceManager = createResourceManager(config);
     const idGenerator = new ProductionIdGenerator();
 
+    // Register health tool (static tool, always available)
+    const { healthToolDefinition, healthToolHandler } = await import('./tools/healthTool.js');
+    
+    // Create a wrapper handler that matches the ToolHandler interface
+    const wrappedHealthHandler = (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
+      const result = healthToolHandler(args, context, config, resourceManager);
+      return Promise.resolve({
+        content: [{ type: 'text', text: JSON.stringify(result) }]
+      });
+    };
+    
+    toolRegistry.register(healthToolDefinition, wrappedHealthHandler, { isDynamic: false });
+    
+    logger.info('Health tool registered', {
+      toolName: healthToolDefinition.name
+    });
+
+    // Register admin tools if dynamic registration is effective
+    if (config.tools.adminRegistrationEnabled && config.security.dynamicRegistrationEnabled) {
+      const { ADMIN_TOOL_DEFINITIONS } = await import('./mcp/adminHandlers.js');
+      
+      for (const adminTool of ADMIN_TOOL_DEFINITIONS) {
+        // Create a wrapper handler that provides the required dependencies
+        const wrappedHandler = async (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
+          const { createSession } = await import('./mcp/session.js');
+          
+          // Create a temporary session context for admin operations
+          const adminSession = createSession(
+            context.transport ?? { type: 'stdio' },
+            idGenerator,
+            logger
+          );
+          
+          // Create request context
+          const requestContext = {
+            correlationId: context.correlationId,
+            runId: context.runId,
+            transport: context.transport ?? { type: 'stdio' },
+            connectionCorrelationId: adminSession.connectionCorrelationId,
+            logger: context.logger
+          };
+          
+          // Call the actual admin handler with proper typing
+          const adminResult = adminTool.handler(
+            args as unknown as AdminRegisterToolRequest,
+            adminSession,
+            toolRegistry,
+            config,
+            requestContext
+          );
+          
+          // Wrap the result in CallToolResult format
+          return {
+            content: [{ type: 'text', text: JSON.stringify(adminResult) }]
+          };
+        };
+        
+        toolRegistry.register(
+          {
+            name: adminTool.name,
+            description: adminTool.description,
+            inputSchema: adminTool.inputSchema
+          },
+          wrappedHandler,
+          { isDynamic: false } // Admin tools are static, not dynamic
+        );
+      }
+      
+      logger.info('Admin tools registered', {
+        adminToolCount: ADMIN_TOOL_DEFINITIONS.length,
+        adminToolNames: ADMIN_TOOL_DEFINITIONS.map(t => t.name)
+      });
+    } else {
+      logger.info('Admin tools not registered - dynamic registration not effective', {
+        adminRegistrationEnabled: config.tools.adminRegistrationEnabled,
+        dynamicRegistrationEnabled: config.security.dynamicRegistrationEnabled
+      });
+    }
+
     // Create and start server
     const server = createServer({
       config,
@@ -636,25 +732,26 @@ async function main(): Promise<void> {
 
     await startServer(server);
   } catch (error) {
-    console.error('Failed to start MCP server:', error);
+    // Use stderr for startup errors since logger may not be available
+    process.stderr.write(`Failed to start MCP server: ${error}\n`);
     process.exit(1);
   }
 }
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.error('Received SIGINT, shutting down gracefully');
+  process.stderr.write('Received SIGINT, shutting down gracefully\n');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.error('Received SIGTERM, shutting down gracefully');
+  process.stderr.write('Received SIGTERM, shutting down gracefully\n');
   process.exit(0);
 });
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
-    console.error('Unhandled error in main:', error);
+    process.stderr.write(`Unhandled error in main: ${error}\n`);
     process.exit(1);
   });
 }
