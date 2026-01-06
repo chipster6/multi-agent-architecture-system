@@ -250,7 +250,7 @@ export function createAgentGetStateHandler(
   agentCoordinator: AgentCoordinator,
   config: ServerConfig
 ): ToolHandler {
-  return async (args: Record<string, unknown>, context: ToolContext): Promise<AgentGetStateResponse> => {
+  return (args: Record<string, unknown>, context: ToolContext): Promise<AgentGetStateResponse> => {
     const { agentId } = args as unknown as AgentGetStateArgs;
 
     context.logger.debug('Processing agent/getState request', {
@@ -395,7 +395,7 @@ export function createAgentGetStateHandler(
         correlationId: context.correlationId,
       });
 
-      return response;
+      return Promise.resolve(response);
     } catch (error) {
       // Re-throw known errors (like NOT_FOUND)
       if (error && typeof error === 'object' && 'code' in error) {
@@ -433,7 +433,7 @@ export function createAgentListHandler(
   agentCoordinator: AgentCoordinator,
   resourceManager: ResourceManager
 ): ToolHandler {
-  return async (_args: Record<string, unknown>, context: ToolContext): Promise<AgentListResponse> => {
+  return (_args: Record<string, unknown>, context: ToolContext): Promise<AgentListResponse> => {
     context.logger.debug('Processing agent/list request', {
       runId: context.runId,
       correlationId: context.correlationId,
@@ -510,7 +510,7 @@ export function createAgentListHandler(
         correlationId: context.correlationId,
       });
 
-      return response;
+      return Promise.resolve(response);
     } catch (error) {
       context.logger.error('Error listing agents', {
         runId: context.runId,

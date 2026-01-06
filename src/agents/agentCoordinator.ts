@@ -16,7 +16,7 @@
  * persistent storage and the full Agent-to-Agent Communication Protocol (AACP).
  */
 
-import { StructuredLogger } from '../logging/structuredLogger.js';
+import type { StructuredLogger } from '../logging/structuredLogger.js';
 
 /**
  * Message sent from one agent to another.

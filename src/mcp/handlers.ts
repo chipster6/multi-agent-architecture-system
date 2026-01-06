@@ -305,12 +305,24 @@ export function handleParseError(session: SessionContext): ReturnType<typeof toJ
 
 /**
  * Handles invalid JSON-RPC request structure (-32600).
- * Returns a JSON-RPC error response with id: null since request structure is invalid.
+ * Returns a JSON-RPC error response with id: null when id is bad/missing,
+ * or with the original id when id is valid but request structure is invalid.
  * 
  * @param session - Session context for this connection
+ * @param requestId - Optional request ID from the original request
  * @returns JSON-RPC error response for invalid request
  */
-export function handleInvalidRequest(session: SessionContext): ReturnType<typeof toJsonRpcError> {
+export function handleInvalidRequest(
+  session: SessionContext,
+  requestId?: string | number | null
+): ReturnType<typeof toJsonRpcError> {
+  // Per JSON-RPC 2.0 spec: if id is invalid/missing, return null
+  // If id is valid but request structure is invalid, return the original id
+  const responseId = (requestId === undefined || 
+                     (typeof requestId !== 'string' && typeof requestId !== 'number' && requestId !== null))
+                     ? null 
+                     : requestId;
+
   return toJsonRpcError(
     JSON_RPC_ERROR_CODES.INVALID_REQUEST,
     'Invalid Request',
@@ -319,7 +331,7 @@ export function handleInvalidRequest(session: SessionContext): ReturnType<typeof
       message: 'Invalid JSON-RPC request structure',
       correlationId: session.connectionCorrelationId,
     },
-    null // Invalid requests have id: null
+    responseId
   );
 }
 
@@ -568,14 +580,14 @@ export function handleMethodNotFound(
  * Returns a JSON-RPC error response when method parameters are invalid.
  * 
  * @param session - Session context for this connection
+ * @param requestId - Request ID from the original request
  * @param details - Optional details about the parameter validation error
- * @param requestId - Optional request ID from the original request
  * @returns JSON-RPC error response for invalid parameters
  */
 export function handleInvalidParams(
   session: SessionContext,
-  details?: string,
-  requestId?: string | number | null
+  requestId?: string | number | null,
+  details?: string
 ): ReturnType<typeof toJsonRpcError> {
   const message = details !== undefined ? `Invalid params: ${details}` : 'Invalid params';
   const dataMessage = details ?? 'Invalid method parameters';

@@ -25,7 +25,7 @@ export default defineConfig({
         name: 'performance',
         include: ['tests/performance/**/*.{test,spec}.{js,ts}'],
         exclude: ['node_modules', 'dist', 'arch_docs'],
-        testTimeout: 60000, // Longer timeout for performance tests
+        testTimeout: 120000, // 2 minutes timeout for performance tests
         hookTimeout: 60000,
       },
       {

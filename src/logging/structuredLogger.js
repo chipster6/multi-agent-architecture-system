@@ -178,9 +178,11 @@ class StructuredLogger {
      *
      * Performs case-insensitive matching against the configured redact keys and
      * recursively processes nested objects and arrays. Uses copy-on-write semantics
-     * to ensure the original object is never mutated.
+     * to ensure the original object is never mutated. Handles circular references
+     * by tracking visited objects.
      *
      * @param obj Object to redact sensitive information from
+     * @param visited Set of visited objects to handle circular references
      * @returns New object with sensitive values replaced with "[REDACTED]"
      *
      * @example
@@ -209,7 +211,7 @@ class StructuredLogger {
      * // }
      * ```
      */
-    redact(obj) {
+    redact(obj, visited = new WeakSet()) {
         // Handle null, undefined, and primitive types
         if (obj === null || obj === undefined) {
             return obj;
@@ -217,23 +219,35 @@ class StructuredLogger {
         if (typeof obj !== 'object') {
             return obj;
         }
-        // Handle arrays recursively
-        if (Array.isArray(obj)) {
-            return obj.map(item => this.redact(item));
+        // Handle circular references
+        if (visited.has(obj)) {
+            return '[CIRCULAR]';
         }
-        // Handle objects recursively
-        const result = {};
-        for (const [key, value] of Object.entries(obj)) {
-            // Check if key should be redacted (case-insensitive)
-            if (this.redactKeys.has(key.toLowerCase())) {
-                result[key] = '[REDACTED]';
+        // Mark object as visited
+        visited.add(obj);
+        try {
+            // Handle arrays recursively
+            if (Array.isArray(obj)) {
+                return obj.map(item => this.redact(item, visited));
             }
-            else {
-                // Recursively redact nested values
-                result[key] = this.redact(value);
+            // Handle objects recursively
+            const result = {};
+            for (const [key, value] of Object.entries(obj)) {
+                // Check if key should be redacted (case-insensitive)
+                if (this.redactKeys.has(key.toLowerCase())) {
+                    result[key] = '[REDACTED]';
+                }
+                else {
+                    // Recursively redact nested values
+                    result[key] = this.redact(value, visited);
+                }
             }
+            return result;
         }
-        return result;
+        finally {
+            // Clean up to prevent memory leaks
+            visited.delete(obj);
+        }
     }
     /**
      * Creates a child logger with inherited context and clock.
@@ -286,13 +300,15 @@ class StructuredLogger {
      *
      * Recursively processes objects and arrays to escape control characters in all
      * string values. Uses copy-on-write semantics to ensure the original object
-     * is never mutated. Control characters are escaped as follows:
+     * is never mutated. Handles circular references by tracking visited objects.
+     * Control characters are escaped as follows:
      * - \n (newline) → \\n
      * - \r (carriage return) → \\r
      * - \t (tab) → \\t
      * - \u0000-\u001F (control characters) → \\uXXXX format
      *
      * @param obj Object to sanitize string values in
+     * @param visited Set of visited objects to handle circular references
      * @returns New object with sanitized string values
      *
      * @example
@@ -317,7 +333,7 @@ class StructuredLogger {
      * // }
      * ```
      */
-    sanitize(obj) {
+    sanitize(obj, visited = new WeakSet()) {
         // Handle null, undefined, and primitive non-string types
         if (obj === null || obj === undefined) {
             return obj;
@@ -343,26 +359,39 @@ class StructuredLogger {
         if (typeof obj !== 'object') {
             return obj;
         }
-        // Handle arrays recursively
-        if (Array.isArray(obj)) {
-            return obj.map(item => this.sanitize(item));
+        // Handle circular references
+        if (visited.has(obj)) {
+            return '[CIRCULAR]';
         }
-        // Handle objects recursively
-        const result = {};
-        for (const [key, value] of Object.entries(obj)) {
-            // Sanitize both key and value
-            const sanitizedKey = typeof key === 'string' ? this.sanitize(key) : key;
-            result[sanitizedKey] = this.sanitize(value);
+        // Mark object as visited
+        visited.add(obj);
+        try {
+            // Handle arrays recursively
+            if (Array.isArray(obj)) {
+                return obj.map(item => this.sanitize(item, visited));
+            }
+            // Handle objects recursively
+            const result = {};
+            for (const [key, value] of Object.entries(obj)) {
+                // Sanitize both key and value
+                const sanitizedKey = typeof key === 'string' ? this.sanitize(key, visited) : key;
+                result[sanitizedKey] = this.sanitize(value, visited);
+            }
+            return result;
         }
-        return result;
+        finally {
+            // Clean up to prevent memory leaks
+            visited.delete(obj);
+        }
     }
     /**
      * Creates and writes a log entry to stderr as JSON.
      *
      * Implements copy-on-write semantics by creating a new log entry object
      * without mutating the input context. All log output goes to stderr to
-     * preserve stdout for MCP protocol communication. Applies sanitization
-     * to escape control characters in all string values before output.
+     * preserve stdout for MCP protocol communication. Applies both redaction
+     * to remove sensitive information and sanitization to escape control 
+     * characters in all string values before output.
      *
      * @private
      * @param level Log severity level
@@ -378,8 +407,10 @@ class StructuredLogger {
             // Spread context to avoid mutation of input object
             ...(context ? { ...context } : {})
         };
+        // Apply redaction first to remove sensitive information
+        const redactedLogEntry = this.redact(logEntry);
         // Apply sanitization to escape control characters in all string values
-        const sanitizedLogEntry = this.sanitize(logEntry);
+        const sanitizedLogEntry = this.sanitize(redactedLogEntry);
         // Output JSON to stderr only (stdout reserved for MCP protocol)
         const jsonOutput = JSON.stringify(sanitizedLogEntry);
         process.stderr.write(jsonOutput + '\n');

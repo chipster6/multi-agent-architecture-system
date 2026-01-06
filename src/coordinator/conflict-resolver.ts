@@ -11,15 +11,18 @@ import type {
   ConflictResolution,
   ArchitectureContext,
 } from '../shared/types/index.js';
+import { createComponentLogger } from '../shared/logger.js';
 
 export class ConflictResolver {
+  private readonly logger = createComponentLogger('ConflictResolver');
+
   /**
    * Detect conflicts between architectural decisions
    */
   detectConflicts(
     decisions: ArchitecturalDecision[]
   ): Promise<Conflict[]> {
-    console.error('Detecting conflicts in architectural decisions', {
+    this.logger.debug('Detecting conflicts in architectural decisions', {
       decisionsCount: decisions.length,
     });
 
@@ -37,7 +40,7 @@ export class ConflictResolver {
     const cycles = this.findDependencyCycles(decisions);
     conflicts.push(...cycles);
 
-    console.error('Conflict detection completed', {
+    this.logger.debug('Conflict detection completed', {
       conflictsFound: conflicts.length,
       contradictions: contradictions.length,
       violations: violations.length,
@@ -54,7 +57,7 @@ export class ConflictResolver {
     conflicts: Conflict[],
     context: ArchitectureContext
   ): Promise<ArchitecturalDecision[]> {
-    console.error('Resolving architectural conflicts', {
+    this.logger.info('Resolving architectural conflicts', {
       sessionId: context.sessionId,
       conflictsCount: conflicts.length,
     });
@@ -69,14 +72,14 @@ export class ConflictResolver {
           resolutions.push(...resolution.newDecisions);
         }
       } catch (error) {
-        console.error('Failed to resolve conflict', {
+        this.logger.error('Failed to resolve conflict', {
           conflictId: conflict.id,
           error,
         });
       }
     }
 
-    console.error('Conflict resolution completed', {
+    this.logger.info('Conflict resolution completed', {
       sessionId: context.sessionId,
       resolutionsCount: resolutions.length,
     });
@@ -96,7 +99,7 @@ export class ConflictResolver {
     issues: string[];
     recommendations: string[];
   } {
-    console.error('Validating architecture', {
+    this.logger.debug('Validating architecture', {
       sessionId: context.sessionId,
       constraintsCount: constraints.length,
     });
@@ -149,7 +152,7 @@ export class ConflictResolver {
 
     const isValid = issues.length === 0;
 
-    console.error('Architecture validation completed', {
+    this.logger.debug('Architecture validation completed', {
       sessionId: context.sessionId,
       isValid,
       issuesCount: issues.length,
@@ -273,7 +276,7 @@ export class ConflictResolver {
         return this.resolveDependencyCycle(conflict, context);
 
       default:
-        console.error('Unknown conflict type', { conflictType: conflict.type });
+        this.logger.warn('Unknown conflict type', { conflictType: conflict.type });
         return null;
     }
   }

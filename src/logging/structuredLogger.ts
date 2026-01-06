@@ -399,25 +399,54 @@ export class StructuredLogger {
     // Mark object as visited
     visited.add(obj);
     
-    // Handle arrays recursively
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.redact(item, visited));
-    }
-    
-    // Handle objects recursively
-    const result: Record<string, unknown> = {};
-    
-    for (const [key, value] of Object.entries(obj)) {
-      // Check if key should be redacted (case-insensitive)
-      if (this.redactKeys.has(key.toLowerCase())) {
-        result[key] = '[REDACTED]';
-      } else {
-        // Recursively redact nested values
-        result[key] = this.redact(value, visited);
+    try {
+      // Handle arrays recursively
+      if (Array.isArray(obj)) {
+        return obj.map(item => this.redact(item, visited));
       }
+      
+      // Handle objects recursively
+      const result: Record<string, unknown> = {};
+      
+      for (const [key, value] of Object.entries(obj)) {
+        // Check if key should be redacted (case-insensitive)
+        const lowerKey = key.toLowerCase();
+        let shouldRedact = this.redactKeys.has(lowerKey);
+        
+        // If not an exact match, check for compound keys with separators
+        // Only match if the sensitive word is a complete word component
+        if (!shouldRedact) {
+          for (const redactKey of this.redactKeys) {
+            // Split the key by common separators and check if any part matches
+            const keyParts = lowerKey.split(/[_\-\s]+/);
+            if (keyParts.includes(redactKey)) {
+              shouldRedact = true;
+              break;
+            }
+            
+            // Also check for camelCase boundaries (e.g., apiKey, userToken)
+            // Split on camelCase boundaries BEFORE converting to lowercase
+            const camelCaseParts = key.split(/(?=[A-Z])/).map(part => part.toLowerCase());
+            if (camelCaseParts.includes(redactKey)) {
+              shouldRedact = true;
+              break;
+            }
+          }
+        }
+        
+        if (shouldRedact) {
+          result[key] = '[REDACTED]';
+        } else {
+          // Recursively redact nested values
+          result[key] = this.redact(value, visited);
+        }
+      }
+      
+      return result;
+    } finally {
+      // Clean up to prevent memory leaks
+      visited.delete(obj);
     }
-    
-    return result;
   }
 
   /**
@@ -554,21 +583,26 @@ export class StructuredLogger {
     // Mark object as visited
     visited.add(obj);
     
-    // Handle arrays recursively
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitize(item, visited));
+    try {
+      // Handle arrays recursively
+      if (Array.isArray(obj)) {
+        return obj.map(item => this.sanitize(item, visited));
+      }
+      
+      // Handle objects recursively
+      const result: Record<string, unknown> = {};
+      
+      for (const [key, value] of Object.entries(obj)) {
+        // Sanitize both key and value
+        const sanitizedKey = typeof key === 'string' ? this.sanitize(key, visited) as string : key;
+        result[sanitizedKey] = this.sanitize(value, visited);
+      }
+      
+      return result;
+    } finally {
+      // Clean up to prevent memory leaks
+      visited.delete(obj);
     }
-    
-    // Handle objects recursively
-    const result: Record<string, unknown> = {};
-    
-    for (const [key, value] of Object.entries(obj)) {
-      // Sanitize both key and value
-      const sanitizedKey = typeof key === 'string' ? this.sanitize(key, visited) as string : key;
-      result[sanitizedKey] = this.sanitize(value, visited);
-    }
-    
-    return result;
   }
 
   /**

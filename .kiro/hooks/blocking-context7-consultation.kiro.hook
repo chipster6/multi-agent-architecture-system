@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Blocking Context7 Consultation",
+  "description": "BLOCKS all task execution until Context7 consultation is completed",
+  "version": "1",
+  "when": {
+    "type": "messageReceived",
+    "pattern": ".*"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🚫 BLOCKING REQUIREMENT: Before proceeding with ANY task, you MUST:\n\n1. Check if Context7 MCP server is available\n2. If available: Use resolve-library-id and get-library-docs for ALL technologies mentioned\n3. If unavailable: Explicitly state this limitation and proceed with best-known practices\n4. Document your consultation findings\n\nYou are FORBIDDEN from implementing code without this consultation step. This is not optional.\n\nConfirm completion of Context7 consultation before proceeding."
+  }
+}

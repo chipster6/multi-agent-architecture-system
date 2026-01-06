@@ -2398,7 +2398,7 @@ describe('Protocol Error Handlers', () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
       const details = 'Parameters must be an object';
-      const response = handleInvalidParams(session, details);
+      const response = handleInvalidParams(session, undefined, details);
 
       expect(response.error.message).toBe(`Invalid params: ${details}`);
     });
@@ -2415,7 +2415,7 @@ describe('Protocol Error Handlers', () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
       const details = 'Parameter "name" must be a string';
-      const response = handleInvalidParams(session, details);
+      const response = handleInvalidParams(session, undefined, details);
 
       expect(response.error.data.message).toBe(details);
     });
@@ -2431,7 +2431,7 @@ describe('Protocol Error Handlers', () => {
     it('should include connectionCorrelationId in error data', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters');
+      const response = handleInvalidParams(session, undefined, 'Invalid parameters');
 
       expect(response.error.data).toBeDefined();
       expect(response.error.data.correlationId).toBe(session.connectionCorrelationId);
@@ -2440,7 +2440,7 @@ describe('Protocol Error Handlers', () => {
     it('should include INVALID_PARAMS code in data', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters');
+      const response = handleInvalidParams(session, undefined, 'Invalid parameters');
 
       expect(response.error.data.code).toBe('INVALID_PARAMS');
     });
@@ -2449,7 +2449,7 @@ describe('Protocol Error Handlers', () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
       const requestId = 42;
-      const response = handleInvalidParams(session, 'Invalid parameters', requestId);
+      const response = handleInvalidParams(session, requestId, 'Invalid parameters');
 
       expect(response.id).toBe(requestId);
     });
@@ -2458,7 +2458,7 @@ describe('Protocol Error Handlers', () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
       const requestId = 'req-123';
-      const response = handleInvalidParams(session, 'Invalid parameters', requestId);
+      const response = handleInvalidParams(session, requestId, 'Invalid parameters');
 
       expect(response.id).toBe(requestId);
     });
@@ -2466,7 +2466,7 @@ describe('Protocol Error Handlers', () => {
     it('should return null id when request id is not provided', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters');
+      const response = handleInvalidParams(session, undefined, 'Invalid parameters');
 
       expect(response.id).toBeNull();
     });
@@ -2474,7 +2474,7 @@ describe('Protocol Error Handlers', () => {
     it('should return null id when request id is explicitly null', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters', null);
+      const response = handleInvalidParams(session, null, 'Invalid parameters');
 
       expect(response.id).toBeNull();
     });
@@ -2482,7 +2482,7 @@ describe('Protocol Error Handlers', () => {
     it('should return valid JSON-RPC error response', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters', 1);
+      const response = handleInvalidParams(session, 1, 'Invalid parameters');
 
       expect(response.jsonrpc).toBe('2.0');
       expect(response.error).toBeDefined();
@@ -2503,7 +2503,7 @@ describe('Protocol Error Handlers', () => {
       ];
 
       for (const details of testCases) {
-        const response = handleInvalidParams(session, details, 1);
+        const response = handleInvalidParams(session, 1, details);
 
         expect(response.error.message).toContain(details);
         expect(response.error.data.message).toBe(details);
@@ -2519,7 +2519,7 @@ describe('Protocol Error Handlers', () => {
         const testSession = createSession({ type: 'stdio' }, idGenerator, parentLogger);
         (testSession as any).state = state;
 
-        const response = handleInvalidParams(testSession, 'Invalid parameters', 1);
+        const response = handleInvalidParams(testSession, 1, 'Invalid parameters');
 
         expect(response.error.code).toBe(-32602);
         expect(response.error.data.correlationId).toBe(testSession.connectionCorrelationId);
@@ -2529,7 +2529,7 @@ describe('Protocol Error Handlers', () => {
     it('should be serializable to JSON', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, 'Invalid parameters', 'test-id');
+      const response = handleInvalidParams(session, 'test-id', 'Invalid parameters');
 
       // Should not throw
       expect(() => JSON.stringify(response)).not.toThrow();
@@ -2545,7 +2545,7 @@ describe('Protocol Error Handlers', () => {
     it('should handle empty details string', async () => {
       const { handleInvalidParams } = await import('../../../src/mcp/handlers.js');
 
-      const response = handleInvalidParams(session, '', 1);
+      const response = handleInvalidParams(session, 1, '');
 
       expect(response.error.message).toBe('Invalid params: ');
       expect(response.error.data.message).toBe('');
@@ -2557,8 +2557,8 @@ describe('Protocol Error Handlers', () => {
       const session1 = createSession({ type: 'stdio' }, idGenerator, parentLogger);
       const session2 = createSession({ type: 'stdio' }, idGenerator, parentLogger);
 
-      const response1 = handleInvalidParams(session1, 'Invalid params 1', 1);
-      const response2 = handleInvalidParams(session2, 'Invalid params 2', 2);
+      const response1 = handleInvalidParams(session1, 1, 'Invalid params 1');
+      const response2 = handleInvalidParams(session2, 2, 'Invalid params 2');
 
       expect(response1.error.data.correlationId).toBe(session1.connectionCorrelationId);
       expect(response2.error.data.correlationId).toBe(session2.connectionCorrelationId);

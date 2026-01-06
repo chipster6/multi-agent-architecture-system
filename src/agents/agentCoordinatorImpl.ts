@@ -8,7 +8,7 @@
  * persistence and the full Agent-to-Agent Communication Protocol (AACP).
  */
 
-import { StructuredLogger } from '../logging/structuredLogger.js';
+import type { StructuredLogger } from '../logging/structuredLogger.js';
 import type {
   AgentCoordinator,
   AgentHandler,
@@ -59,8 +59,8 @@ interface RegisteredAgent {
  * ```
  */
 export class AgentCoordinatorImpl implements AgentCoordinator {
-  private agents: Map<string, RegisteredAgent> = new Map();
-  private logger: StructuredLogger;
+  private readonly agents: Map<string, RegisteredAgent> = new Map();
+  private readonly logger: StructuredLogger;
 
   /**
    * Creates a new AgentCoordinator instance.
@@ -186,7 +186,7 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
       });
 
       // Process queue if not already processing
-      this.processAgentQueue(agent);
+      void this.processAgentQueue(agent);
     });
   }
 

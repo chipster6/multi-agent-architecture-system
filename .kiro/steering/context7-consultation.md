@@ -4,9 +4,13 @@ inclusion: always
 
 # Context7 MCP Server Consultation Protocol
 
-## Mandatory Technology Consultation
+## BLOCKING REQUIREMENT: Technology Consultation
 
-For this **Multi-Agent Software Architecture Design System**, staying current with technology evolution is critical. You MUST consult the Context7 MCP server before implementing any task.
+For this **Multi-Agent Software Architecture Design System**, staying current with technology evolution is critical. 
+
+**HARD STOP**: You are FORBIDDEN from implementing any task without first consulting the Context7 MCP server. This is a BLOCKING requirement, not a suggestion.
+
+**ENFORCEMENT**: If Context7 MCP server is unavailable, you MUST acknowledge this limitation and explain why you cannot proceed with current best practices consultation.
 
 ### Required Process
 
