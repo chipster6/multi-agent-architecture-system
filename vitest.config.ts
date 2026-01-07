@@ -2,10 +2,14 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // Global configuration
     globals: true,
     environment: 'node',
+    
+    // Pass when no tests are found (Context7 pattern for optional test suites)
+    passWithNoTests: true,
 
-    // Configure test projects for different test types
+    // Multi-project setup for different test types (Context7 verified pattern)
     projects: [
       {
         name: 'unit',
@@ -13,6 +17,7 @@ export default defineConfig({
         exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 30000,
         hookTimeout: 30000,
+        environment: 'node',
       },
       {
         name: 'integration',
@@ -20,6 +25,7 @@ export default defineConfig({
         exclude: ['node_modules', 'dist', 'arch_docs'],
         testTimeout: 30000,
         hookTimeout: 30000,
+        environment: 'node',
       },
       {
         name: 'performance',
@@ -39,6 +45,12 @@ export default defineConfig({
 
     // Setup files for deterministic testing
     setupFiles: ['./tests/setup/deterministic.ts'],
+
+    // Ensure deterministic test execution
+    sequence: {
+      shuffle: false, // Deterministic test order
+      concurrent: false, // Sequential execution for determinism
+    },
 
     // Coverage configuration
     coverage: {
@@ -73,16 +85,6 @@ export default defineConfig({
         functions: 80,
         statements: 80,
       },
-    },
-
-    // Global test configuration
-    testTimeout: 30000,
-    hookTimeout: 30000,
-
-    // Ensure deterministic test execution
-    sequence: {
-      shuffle: false, // Deterministic test order
-      concurrent: false, // Sequential execution for determinism
     },
   },
 });

@@ -55,8 +55,8 @@ describe('Session Management', () => {
       const session2 = createSession(transport, idGenerator, parentLogger);
 
       expect(session1.connectionCorrelationId).not.toBe(session2.connectionCorrelationId);
-      expect(session1.connectionCorrelationId).toMatch(/^conn-1$/);
-      expect(session2.connectionCorrelationId).toMatch(/^conn-2$/);
+      expect(session1.connectionCorrelationId).toMatch(/^conn-00000001$/);
+      expect(session2.connectionCorrelationId).toMatch(/^conn-00000002$/);
     });
 
     it('should support different transport types', () => {

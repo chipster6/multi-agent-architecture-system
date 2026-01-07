@@ -1,0 +1,13 @@
+{
+  "name": "Context7 Reference Document Update",
+  "description": "Remind to update Context7 reference document when tasks are completed with new learnings",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(task.*complete|implementation.*complete|finished.*implementing|successfully.*implemented|✅.*complete)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "📝 CONTEXT7 REFERENCE UPDATE CHECK\n\n**Task Completion Detected** - Please verify:\n\n🔍 **Did this implementation involve:**\n- New libraries or technologies?\n- Updated patterns or best practices?\n- Security considerations?\n- Performance optimizations?\n- Deprecated pattern replacements?\n\n📚 **IF YES - Update Reference Document:**\n1. Open `.kiro/steering/context7-consultation.md`\n2. Add new findings to appropriate sections\n3. Update \"Last Consulted\" dates\n4. Add any new patterns to avoid deprecated list\n5. Update quick reference checklist if needed\n\n✨ **Benefits of Keeping Reference Current:**\n- Faster future implementations\n- Consistent best practices across all tasks\n- Reduced Context7 MCP server calls\n- Better architectural decisions\n- Improved security and performance\n\n**Reference Document**: `.kiro/steering/context7-consultation.md`"
+  },
+  "enabled": false
+}

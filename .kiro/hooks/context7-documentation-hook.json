@@ -1,0 +1,9 @@
+{
+  "id": "context7-documentation-hook",
+  "name": "Context7 MCP Documentation",
+  "description": "Automatically documents all information retrieved from the Context7 MCP server (via resolve-library-id and get-library-docs) into a canonical reference document to avoid redundant MCP calls",
+  "eventType": "agentStop",
+  "hookAction": "askAgent",
+  "outputPrompt": "Check if the last agent execution involved using the Context7 MCP server tools (resolve-library-id or get-library-docs). Look through the execution log for any calls to these tools. If Context7 tools were used, extract all the information that was retrieved and append it to a canonical reference document at `docs/context7-reference.md`. Format the information with clear sections for each library consulted, including: library name, Context7 ID, version information, key features, best practices, security considerations, and any other relevant details. If the reference document doesn't exist, create it with a proper header explaining its purpose. Only update the document if Context7 tools were actually called - if no Context7 tools were used, do nothing.",
+  "why": "To automatically document all Context7 MCP server interactions in a canonical reference file for future reference, triggered whenever any agent execution completes"
+}

@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Context7 MCP Documentation",
+  "description": "Automatically documents all information retrieved from the Context7 MCP server (via resolve-library-id and get-library-docs) into a canonical reference document to avoid redundant MCP calls",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check if the last prompt submission involved using the Context7 MCP server tools (resolve-library-id or get-library-docs). If so, extract all the information that was retrieved from Context7 and append it to a canonical reference document at `docs/context7-reference.md`. Format the information with clear sections for each library consulted, including the library name, Context7 ID, version information, key features, best practices, security considerations, and any other relevant details. If the reference document doesn't exist, create it with a proper header explaining its purpose. Ensure all Context7 consultation data is preserved for future reference to avoid redundant MCP server calls."
+  }
+}

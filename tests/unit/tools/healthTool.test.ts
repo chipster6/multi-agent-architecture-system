@@ -29,6 +29,7 @@ describe('Health Tool', () => {
       },
       resources: {
         maxConcurrentExecutions: 10,
+        maxStateBytes: 524288,
       },
       security: {
         dynamicRegistrationEnabled: false,

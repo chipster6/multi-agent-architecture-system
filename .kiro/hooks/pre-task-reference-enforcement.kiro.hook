@@ -1,0 +1,13 @@
+{
+  "name": "Pre-Task Reference Enforcement",
+  "description": "Strict enforcement of reference document consultation before any work begins",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)^(?=.*(task|implement|code|create|edit|modify|update|build|setup|configure|install|add|write|develop|fix|debug|test|deploy|change|make|start|begin|work))(?!.*(reference.*consulted|documentation.*reviewed|checklist.*complete)).*"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "🛑 REFERENCE CONSULTATION ENFORCEMENT\n\n**WORK DETECTED WITHOUT REFERENCE CONSULTATION**\n\n⚠️ **MANDATORY STOP** - Before proceeding, you MUST:\n\n📋 **COMPLETE THIS CHECKLIST:**\n\n**□ REFERENCE DOCUMENT CONSULTATION**\n- Read `.kiro/steering/context7-consultation.md` completely\n- Identify all technologies relevant to this task\n- Review established patterns and best practices\n- Note security considerations for your tech stack\n- Confirm no deprecated patterns will be used\n\n**□ TECHNOLOGY VERIFICATION**\n- Verify ALL libraries/frameworks are documented\n- If missing: Context7 consultation required immediately\n- Update reference document with any new findings\n- Confirm version compatibility and security status\n\n**□ IMPLEMENTATION PLANNING**\n- Testing strategy defined (unit + property-based)\n- Error handling approach planned\n- Security measures identified\n- Performance considerations reviewed\n- Code patterns selected from reference\n\n**□ QUALITY GATES**\n- No deprecated patterns in implementation plan\n- Security best practices incorporated\n- Current library versions confirmed\n- Comprehensive testing approach defined\n\n🚨 **ENFORCEMENT RULES:**\n- **NO CODE WRITING** until checklist complete\n- **NO FILE MODIFICATIONS** without pattern verification\n- **NO LIBRARY INSTALLATION** without documentation\n- **NO SHORTCUTS** - this prevents future technical debt\n\n✅ **TO PROCEED:**\n1. Complete entire checklist above\n2. State: \"Reference consultation complete, checklist verified\"\n3. Begin implementation using documented best practices\n\n**This enforcement ensures consistent, secure, and maintainable code across all implementations.**"
+  },
+  "enabled": true
+}

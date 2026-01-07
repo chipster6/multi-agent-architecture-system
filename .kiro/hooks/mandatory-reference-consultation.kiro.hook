@@ -1,0 +1,13 @@
+{
+  "name": "Mandatory Reference Consultation",
+  "description": "Enforce consultation of reference document before ANY task, coding, file editing, or creation",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(task|implement|code|create|edit|modify|update|build|setup|configure|install|add|write|develop|fix|debug|test|deploy|change|make|start|begin|work on|file|function|class|component|module|script|program|application|system|feature|bug|issue|refactor|optimize|enhance)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "🚨 MANDATORY REFERENCE CONSULTATION PROTOCOL\n\n**BEFORE PROCEEDING WITH ANY WORK** - You MUST:\n\n📚 **STEP 1: CONSULT REFERENCE DOCUMENT**\n- **READ**: `.kiro/steering/context7-consultation.md`\n- **CHECK**: All technologies mentioned in your task\n- **VERIFY**: Current best practices are documented\n- **REVIEW**: Security considerations and patterns\n- **CONFIRM**: No deprecated patterns will be used\n\n🔍 **STEP 2: IDENTIFY TECHNOLOGY GAPS**\nIf ANY technology is NOT in reference document:\n- Use `resolve-library-id` to get Context7 ID\n- Use `get-library-docs` to fetch documentation\n- Document findings immediately (see documentation capture hook)\n- Update reference document before proceeding\n\n✅ **STEP 3: IMPLEMENTATION CHECKLIST**\n- [ ] Reference document consulted\n- [ ] All technologies documented\n- [ ] Security patterns identified\n- [ ] Testing strategy planned (unit + property-based)\n- [ ] Error handling approach defined\n- [ ] Performance considerations reviewed\n- [ ] Deprecated patterns avoided\n\n⚠️ **CRITICAL RULES:**\n- **NO CODING** without reference consultation\n- **NO FILE CHANGES** without pattern verification\n- **NO LIBRARY USAGE** without documentation\n- **NO SHORTCUTS** - this prevents technical debt\n\n🎯 **QUICK ACCESS:**\n- Main Reference: `.kiro/steering/context7-consultation.md`\n- Quick Reference: Use `#context7-quick-reference` in chat\n- Pattern Examples: See \"Critical Patterns\" sections\n\n**PROCEED ONLY AFTER COMPLETING ALL STEPS ABOVE**"
+  },
+  "enabled": true
+}

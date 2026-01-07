@@ -1,0 +1,13 @@
+{
+  "name": "New Technology Context7 Consultation",
+  "description": "Trigger Context7 consultation when new libraries or technologies are mentioned that aren't in our reference",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(library|framework|package|dependency|npm install|import.*from|require\\(|@[a-zA-Z0-9-]+/[a-zA-Z0-9-]+|new.*technology|unknown.*library)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "🆕 NEW TECHNOLOGY DETECTED - CONTEXT7 CONSULTATION REQUIRED\n\n**STEP 1**: Check if technology is already documented in `.kiro/steering/context7-consultation.md`\n\n**IF NOT DOCUMENTED:**\n\n1. **Identify Technology**: Extract library/framework name from context\n2. **Resolve Library ID**: Use `resolve-library-id` with library name\n3. **Fetch Documentation**: Use `get-library-docs` with Context7-compatible ID\n4. **Document Findings**: Add to reference document using this format:\n\n```markdown\n### [Technology Name] (v[version])\n\n**Context7 ID**: `[id]`\n**Trust Score**: [score]\n**Last Consulted**: [date]\n\n#### Key Features & Best Practices:\n- [Feature 1]: [Description and usage]\n- [Feature 2]: [Description and usage]\n\n#### Critical Patterns:\n```[language]\n// Code examples\n```\n\n#### Security Considerations:\n- [Security point 1]\n- [Security point 2]\n```\n\n5. **Update Quick Reference**: Add to checklist if widely used\n6. **Proceed with Implementation**: Using documented best practices\n\n**REMEMBER**: Our multi-agent system makes architectural decisions for real projects. Using current, secure patterns is critical."
+  },
+  "enabled": false
+}

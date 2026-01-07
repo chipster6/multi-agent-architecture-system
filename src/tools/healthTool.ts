@@ -108,7 +108,7 @@ export function healthToolHandler(
         toolTimeoutMs: config.tools.defaultTimeoutMs,
         maxConcurrentExecutions: config.resources.maxConcurrentExecutions,
         maxPayloadBytes: config.tools.maxPayloadBytes,
-        maxStateBytes: config.tools.maxStateBytes,
+        maxStateBytes: config.resources.maxStateBytes,
       },
       resources,
       status,

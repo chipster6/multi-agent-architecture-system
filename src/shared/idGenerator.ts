@@ -95,10 +95,11 @@ export class DeterministicIdGenerator implements IdGenerator {
 
   /**
    * Generate a deterministic connection correlation ID for testing.
-   * @returns Deterministic ID string
+   * @returns Deterministic ID string in format "conn-xxxxxxxx" (8 digits)
    */
   generateConnectionCorrelationId(): string {
-    return `${this.connectionCorrelationIdPrefix}-${++this.connectionCorrelationIdCounter}`;
+    const paddedCounter = String(++this.connectionCorrelationIdCounter).padStart(8, '0');
+    return `${this.connectionCorrelationIdPrefix}-${paddedCounter}`;
   }
 
   /**

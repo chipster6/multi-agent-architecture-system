@@ -1,0 +1,13 @@
+{
+  "name": "Context7 MCP Documentation Capture",
+  "description": "Automatically document all Context7 MCP server calls and findings to the reference document",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(resolve-library-id|get-library-docs|mcp_MCP_DOCKER_resolve_library_id|mcp_MCP_DOCKER_get_library_docs|Context7|library.*consulted|documentation.*retrieved)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "📝 CONTEXT7 MCP DOCUMENTATION CAPTURE REQUIRED\n\n**MCP Server Call Detected** - You MUST document findings:\n\n🔍 **IMMEDIATE ACTIONS:**\n1. **Extract Key Information** from the MCP response:\n   - Library name and Context7 ID\n   - Version information\n   - Trust score\n   - Key features and best practices\n   - Security considerations\n   - Code examples and patterns\n   - Deprecated patterns to avoid\n\n2. **Update Reference Document** (`.kiro/steering/context7-consultation.md`):\n   - Add new technology section if not exists\n   - Update existing section with new findings\n   - Add to \"Last Consulted\" date\n   - Include code examples in appropriate format\n   - Update quick reference checklist if needed\n\n3. **Document in This Format:**\n```markdown\n### [Technology Name] (v[version])\n\n**Context7 ID**: `[context7-id]`\n**Trust Score**: [score]\n**Last Consulted**: [current-date]\n\n#### Key Features & Best Practices:\n- [Feature]: [Description and usage]\n\n#### Critical Patterns:\n```[language]\n// Code examples from Context7\n```\n\n#### Security Considerations:\n- [Security points]\n\n#### Deprecated Patterns to Avoid:\n- [Old patterns] → Use [new patterns] instead\n```\n\n4. **Update Quick Reference** if widely applicable\n\n⚠️ **CRITICAL**: Never lose Context7 findings - they represent current best practices that prevent technical debt and security issues!"
+  },
+  "enabled": true
+}

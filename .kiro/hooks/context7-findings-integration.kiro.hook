@@ -1,0 +1,13 @@
+{
+  "name": "Context7 Findings Integration",
+  "description": "Ensure Context7 findings are immediately integrated into implementation decisions",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(Technology Consultation Summary|Libraries Consulted|Implementation Adjustments|Best Practices|Security Updates|context7.*findings|consultation.*complete)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "🔄 CONTEXT7 FINDINGS INTEGRATION PROTOCOL\n\n**Context7 Consultation Detected** - IMMEDIATE INTEGRATION REQUIRED:\n\n📝 **STEP 1: DOCUMENT FINDINGS**\n1. **Update Reference Document** (`.kiro/steering/context7-consultation.md`):\n   - Add/update technology sections with findings\n   - Include all code examples and patterns\n   - Document security considerations\n   - List deprecated patterns to avoid\n   - Update \"Last Consulted\" dates\n\n2. **Update Quick Reference** (`.kiro/steering/context7-quick-reference.md`):\n   - Add commonly used patterns to quick reference table\n   - Update security essentials if needed\n   - Add to deprecated patterns list\n   - Update error codes or common patterns\n\n🔧 **STEP 2: APPLY FINDINGS TO CURRENT TASK**\n- **Modify Implementation Plan** based on best practices discovered\n- **Update Security Approach** with new considerations\n- **Revise Testing Strategy** with recommended patterns\n- **Adjust Architecture** to use current patterns\n- **Avoid Deprecated Patterns** identified in consultation\n\n📊 **STEP 3: VALIDATE INTEGRATION**\n- [ ] Reference document updated with all findings\n- [ ] Quick reference updated if applicable\n- [ ] Implementation plan adjusted\n- [ ] Security considerations integrated\n- [ ] Testing approach updated\n- [ ] Deprecated patterns identified and avoided\n\n🎯 **STEP 4: PROCEED WITH INFORMED IMPLEMENTATION**\n- Use documented best practices\n- Follow security guidelines discovered\n- Implement recommended patterns\n- Include comprehensive testing\n- Monitor for any additional consultation needs\n\n**REMEMBER**: Context7 findings represent the latest industry standards - integrating them prevents technical debt and security vulnerabilities!"
+  },
+  "enabled": true
+}

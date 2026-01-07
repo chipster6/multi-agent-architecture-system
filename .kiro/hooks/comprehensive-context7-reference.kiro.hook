@@ -1,0 +1,13 @@
+{
+  "name": "Comprehensive Context7 Reference & Consultation",
+  "description": "Automatically reference comprehensive Context7 documentation and trigger consultation for new technologies",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(implement|start|begin|create|build|setup|configure|add|update|test|validate|fix|debug|optimize)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "📚 CONTEXT7 REFERENCE & CONSULTATION PROTOCOL\n\n**FIRST**: Check our comprehensive technology reference in `.kiro/steering/context7-consultation.md` for:\n\n✅ **Already Documented Technologies:**\n- Vitest (v3.2.4+) - Testing framework patterns\n- JSON-RPC 2.0 - Protocol compliance requirements\n- MCP TypeScript SDK - Server/client implementation\n- Node.js - Runtime best practices\n- Error handling standards\n- Logging & observability patterns\n- Security considerations\n- Performance optimization\n\n🔍 **IF NEW TECHNOLOGY DETECTED:**\n1. Use `resolve-library-id` to get Context7-compatible library ID\n2. Use `get-library-docs` to fetch latest documentation\n3. Document findings in Technology Consultation Summary format\n4. Update the comprehensive reference document\n\n⚠️ **CRITICAL REMINDERS:**\n- Follow established patterns from reference document\n- Avoid deprecated patterns listed in reference\n- Use security best practices documented\n- Implement proper error handling standards\n- Include comprehensive testing (unit + property-based)\n\n**Reference Document**: `.kiro/steering/context7-consultation.md`\n**Quick Checklist**: See \"Quick Reference Checklist\" section\n\nProceed with implementation using documented best practices."
+  },
+  "enabled": false
+}

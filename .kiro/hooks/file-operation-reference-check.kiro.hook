@@ -1,0 +1,13 @@
+{
+  "name": "File Operation Reference Check",
+  "description": "Enforce reference consultation before any file creation, editing, or modification",
+  "trigger": {
+    "type": "message_sent",
+    "pattern": "(?i)(fsWrite|fsAppend|strReplace|deleteFile|create.*file|edit.*file|modify.*file|update.*file|write.*to|append.*to|replace.*in|delete.*file|new.*file|\.ts|\.js|\.json|\.md|\.yml|\.yaml|\.config|package\\.json|tsconfig|vitest\\.config)"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "📁 FILE OPERATION REFERENCE CHECK\n\n**FILE OPERATION DETECTED** - Reference consultation required:\n\n🔍 **BEFORE ANY FILE CHANGES:**\n\n**□ REFERENCE DOCUMENT REVIEW**\n- Consult `.kiro/steering/context7-consultation.md`\n- Review patterns for file type being modified\n- Check security considerations for file operations\n- Verify current best practices for file structure\n\n**□ TECHNOLOGY-SPECIFIC PATTERNS**\n- **TypeScript files**: Follow TS best practices from reference\n- **Test files**: Use Vitest patterns and property-based testing\n- **Config files**: Follow security and structure guidelines\n- **Package files**: Verify dependency versions and security\n- **Documentation**: Follow established documentation patterns\n\n**□ FILE OPERATION CHECKLIST**\n- [ ] File type patterns reviewed in reference\n- [ ] Security considerations for file content verified\n- [ ] Naming conventions from reference followed\n- [ ] Content structure follows documented patterns\n- [ ] No deprecated patterns in file content\n- [ ] Proper imports/exports using current standards\n\n**□ SPECIFIC FILE TYPE GUIDANCE**\n\n**For `.ts/.js` files:**\n- Use documented import patterns\n- Follow error handling standards\n- Implement proper type definitions\n- Include comprehensive JSDoc comments\n\n**For test files:**\n- Use Vitest patterns from reference\n- Include property-based tests where applicable\n- Follow naming conventions: `*.test.ts`\n- Use documented mock and assertion patterns\n\n**For config files:**\n- Follow security best practices\n- Use documented configuration patterns\n- Avoid hardcoded secrets or sensitive data\n- Include proper validation\n\n**For package.json:**\n- Verify all dependencies are documented in reference\n- Use current versions from Context7 consultations\n- Include proper scripts following documented patterns\n\n🚨 **CRITICAL**: No file operations without reference verification!\n\n**State when ready**: \"File operation reference check complete - proceeding with documented patterns\""
+  },
+  "enabled": true
+}

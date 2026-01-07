@@ -351,7 +351,16 @@ class FoundationMCPServer implements MCPServer {
         );
       }
       
-      // Validate arguments - MCP allows null/undefined arguments
+      // Validate arguments shape - must be object or undefined/null (which becomes {})
+      // Arrays, primitives, etc. are invalid per MCP specification
+      if (args !== undefined && args !== null && (typeof args !== 'object' || Array.isArray(args))) {
+        throw createError(
+          ErrorCode.InvalidArgument,
+          'Tool arguments must be an object or null/undefined'
+        );
+      }
+      
+      // Convert null/undefined to empty object
       const toolArgs = args ?? {};
 
       // Step 3: Assign IDs
@@ -398,6 +407,9 @@ class FoundationMCPServer implements MCPServer {
         contextLogger.warn('Payload size validation failed', {
           reason: payloadValidation.errors?.[0]?.message ?? 'Unknown error',
         });
+
+        // Increment ResourceExhausted counter on rejection
+        this.options.resourceManager.incrementResourceExhaustedCounter();
         
         return {
           content: [
@@ -441,6 +453,9 @@ class FoundationMCPServer implements MCPServer {
       const releaseSlot = this.options.resourceManager.tryAcquireSlot();
       if (!releaseSlot) {
         contextLogger.warn('Concurrency limit reached');
+        
+        // Increment ResourceExhausted counter on rejection
+        this.options.resourceManager.incrementResourceExhaustedCounter();
         
         return {
           content: [
@@ -512,6 +527,9 @@ class FoundationMCPServer implements MCPServer {
             durationMs,
             outcome: 'success',
           });
+
+          // Reset ResourceExhausted counter on successful completion
+          this.options.resourceManager.resetResourceExhaustedCounter();
 
           // Step 10: Wrap result into MCP tools/call format
           return {
