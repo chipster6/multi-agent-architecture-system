@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 import type { ArchitecturalDecision, Artifact } from '../shared/types/index.js';
+import { createAgentLogger } from '../shared/logger.js';
 
 // Base schemas for agent inputs and outputs
 export const BaseAgentInputSchema = z.object({
@@ -34,6 +35,7 @@ export abstract class BaseAgent {
   protected readonly phase: string;
   protected readonly capabilities: string[];
   protected readonly dependencies: string[];
+  private readonly logger: ReturnType<typeof createAgentLogger>;
 
   constructor(
     agentId: string,
@@ -45,6 +47,7 @@ export abstract class BaseAgent {
     this.phase = phase;
     this.capabilities = capabilities;
     this.dependencies = dependencies;
+    this.logger = createAgentLogger(agentId, phase);
   }
 
   /**
@@ -53,9 +56,7 @@ export abstract class BaseAgent {
   async execute(input: BaseAgentInput): Promise<BaseAgentOutput> {
     const startTime = Date.now();
 
-    console.error(`Agent ${this.agentId} starting execution`, {
-      agentId: this.agentId,
-      phase: this.phase,
+    this.logger.info('Agent starting execution', {
       capabilities: this.capabilities,
     });
 
@@ -80,8 +81,7 @@ export abstract class BaseAgent {
 
       const executionTime = Date.now() - startTime;
 
-      console.error(`Agent ${this.agentId} completed execution`, {
-        agentId: this.agentId,
+      this.logger.info('Agent completed execution', {
         executionTime,
         decisionsCount: output.decisions.length,
         artifactsCount: output.artifacts.length,
@@ -92,8 +92,7 @@ export abstract class BaseAgent {
     } catch (error) {
       const executionTime = Date.now() - startTime;
 
-      console.error(`Agent ${this.agentId} execution failed`, {
-        agentId: this.agentId,
+      this.logger.error('Agent execution failed', {
         executionTime,
         error,
       });
@@ -109,7 +108,7 @@ export abstract class BaseAgent {
     try {
       return BaseAgentInputSchema.parse(input);
     } catch (error) {
-      console.error(`Input validation failed for agent ${this.agentId}`, {
+      this.logger.error('Input validation failed', {
         error,
       });
       throw new Error(`Invalid input for agent ${this.agentId}: ${error}`);
@@ -214,7 +213,7 @@ export abstract class BaseAgent {
     try {
       return BaseAgentOutputSchema.parse(output);
     } catch (error) {
-      console.error(`Output validation failed for agent ${this.agentId}`, {
+      this.logger.error('Output validation failed', {
         error,
       });
       throw new Error(`Invalid output from agent ${this.agentId}: ${error}`);

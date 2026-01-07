@@ -371,6 +371,83 @@ describe('AgentCoordinatorImpl', () => {
     });
   });
 
+  describe('listAgents', () => {
+    it('should return empty array when no agents registered', () => {
+      const agentIds = coordinator.listAgents();
+
+      expect(agentIds).toEqual([]);
+    });
+
+    it('should return single agent ID when one agent registered', () => {
+      const handler: AgentHandler = async () => ({ status: 'ok' });
+
+      coordinator.registerAgent('test-agent', handler);
+
+      const agentIds = coordinator.listAgents();
+
+      expect(agentIds).toEqual(['test-agent']);
+    });
+
+    it('should return multiple agent IDs sorted lexicographically', () => {
+      const handler: AgentHandler = async () => ({ status: 'ok' });
+
+      // Register in non-alphabetical order
+      coordinator.registerAgent('zebra-agent', handler);
+      coordinator.registerAgent('alpha-agent', handler);
+      coordinator.registerAgent('beta-agent', handler);
+
+      const agentIds = coordinator.listAgents();
+
+      expect(agentIds).toEqual(['alpha-agent', 'beta-agent', 'zebra-agent']);
+    });
+
+    it('should update list when agents are unregistered', () => {
+      const handler: AgentHandler = async () => ({ status: 'ok' });
+
+      coordinator.registerAgent('agent-1', handler);
+      coordinator.registerAgent('agent-2', handler);
+      coordinator.registerAgent('agent-3', handler);
+
+      expect(coordinator.listAgents()).toEqual(['agent-1', 'agent-2', 'agent-3']);
+
+      coordinator.unregisterAgent('agent-2');
+
+      expect(coordinator.listAgents()).toEqual(['agent-1', 'agent-3']);
+    });
+
+    it('should handle special characters in agent IDs correctly', () => {
+      const handler: AgentHandler = async () => ({ status: 'ok' });
+
+      coordinator.registerAgent('agent-with-dashes', handler);
+      coordinator.registerAgent('agent_with_underscores', handler);
+      coordinator.registerAgent('agent.with.dots', handler);
+
+      const agentIds = coordinator.listAgents();
+
+      expect(agentIds).toEqual([
+        'agent-with-dashes',
+        'agent.with.dots',
+        'agent_with_underscores'
+      ]);
+    });
+
+    it('should return deterministic ordering across multiple calls', () => {
+      const handler: AgentHandler = async () => ({ status: 'ok' });
+
+      coordinator.registerAgent('c-agent', handler);
+      coordinator.registerAgent('a-agent', handler);
+      coordinator.registerAgent('b-agent', handler);
+
+      const firstCall = coordinator.listAgents();
+      const secondCall = coordinator.listAgents();
+      const thirdCall = coordinator.listAgents();
+
+      expect(firstCall).toEqual(secondCall);
+      expect(secondCall).toEqual(thirdCall);
+      expect(firstCall).toEqual(['a-agent', 'b-agent', 'c-agent']);
+    });
+  });
+
   describe('onStateChange callback', () => {
     it('should invoke callback when agent state changes', async () => {
       const stateChangeCallback = vi.fn();

@@ -8,6 +8,14 @@ inclusion: always
 
 This document defines the **process and workflow** for consulting the Context7 MCP server to maintain current technology knowledge. For the actual technology information and patterns, see `context7-quick-reference.md` (the canonical knowledge base).
 
+## BLOCKING REQUIREMENT: Technology Consultation
+
+For this **Multi-Agent Software Architecture Design System**, staying current with technology evolution is critical.
+
+**HARD STOP**: You are FORBIDDEN from implementing any task without first consulting the Context7 MCP server. This is a BLOCKING requirement, not a suggestion.
+
+**ENFORCEMENT**: If Context7 MCP server is unavailable, you MUST acknowledge this limitation and explain why you cannot proceed with current best practices consultation.
+
 ## Mandatory Consultation Workflow
 
 For this **Multi-Agent Software Architecture Design System**, staying current with technology evolution is critical. All agents MUST follow this consultation protocol:
@@ -176,5 +184,4 @@ Every agent must execute this workflow before any code implementation:
 - **Security Guidelines**: Security requirements documented in canonical reference
 
 **Last Updated**: January 2026
-
 

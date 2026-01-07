@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { WorkflowEngine } from './workflow-engine.js';
 import { ConflictResolver } from './conflict-resolver.js';
+import { createComponentLogger } from '../shared/logger.js';
 import type {
   ArchitectureContext,
   RequirementsAnalysis,
@@ -55,6 +56,7 @@ export class MetaCoordinator {
   private readonly workflowEngine: WorkflowEngine;
   private readonly conflictResolver: ConflictResolver;
   private readonly context: ArchitectureContext;
+  private readonly logger = createComponentLogger('MetaCoordinator');
 
   constructor() {
     this.workflowEngine = new WorkflowEngine();
@@ -81,7 +83,7 @@ export class MetaCoordinator {
   ): Promise<{ content: RequirementsAnalysis[] }> {
     const validatedInput = RequirementsInputSchema.parse(input);
 
-    console.error('Starting requirements analysis', {
+    this.logger.info('Starting requirements analysis', {
       sessionId: this.context.sessionId,
       input: validatedInput,
     });
@@ -101,7 +103,7 @@ export class MetaCoordinator {
       this.context.decisions.push(...analysisResult.decisions);
       this.context.artifacts.push(...analysisResult.artifacts);
 
-      console.error('Requirements analysis completed', {
+      this.logger.info('Requirements analysis completed', {
         sessionId: this.context.sessionId,
         decisionsCount: analysisResult.decisions.length,
         artifactsCount: analysisResult.artifacts.length,
@@ -119,7 +121,7 @@ export class MetaCoordinator {
         ],
       };
     } catch (error) {
-      console.error('Requirements analysis failed', {
+      this.logger.error('Requirements analysis failed', {
         sessionId: this.context.sessionId,
         error,
       });
@@ -135,7 +137,7 @@ export class MetaCoordinator {
   ): Promise<{ content: ArchitectureBlueprint[] }> {
     const validatedInput = ArchitectureInputSchema.parse(input);
 
-    console.error('Starting architecture generation', {
+    this.logger.info('Starting architecture generation', {
       sessionId: this.context.sessionId,
       input: validatedInput,
     });
@@ -156,7 +158,7 @@ export class MetaCoordinator {
       );
 
       if (conflicts.length > 0) {
-        console.error('Conflicts detected during architecture generation', {
+        this.logger.warn('Conflicts detected during architecture generation', {
           sessionId: this.context.sessionId,
           conflictsCount: conflicts.length,
         });
@@ -171,7 +173,7 @@ export class MetaCoordinator {
         this.context.decisions.push(...resolutions);
       }
 
-      console.error('Architecture generation completed', {
+      this.logger.info('Architecture generation completed', {
         sessionId: this.context.sessionId,
         blueprint: {
           componentsCount: blueprint.components?.length ?? 0,
@@ -184,7 +186,7 @@ export class MetaCoordinator {
         content: [blueprint],
       };
     } catch (error) {
-      console.error('Architecture generation failed', {
+      this.logger.error('Architecture generation failed', {
         sessionId: this.context.sessionId,
         error,
       });
@@ -204,7 +206,7 @@ export class MetaCoordinator {
   }> {
     const validatedInput = ValidationInputSchema.parse(input);
 
-    console.error('Starting decision validation', {
+    this.logger.debug('Starting decision validation', {
       sessionId: this.context.sessionId,
       input: validatedInput,
     });
@@ -220,7 +222,7 @@ export class MetaCoordinator {
         this.context
       );
 
-      console.error('Decision validation completed', {
+      this.logger.debug('Decision validation completed', {
         sessionId: this.context.sessionId,
         validation: {
           isValid: validation.isValid,
@@ -233,7 +235,7 @@ export class MetaCoordinator {
         content: [validation],
       });
     } catch (error) {
-      console.error('Decision validation failed', {
+      this.logger.error('Decision validation failed', {
         sessionId: this.context.sessionId,
         error,
       });
@@ -249,7 +251,7 @@ export class MetaCoordinator {
   ): Promise<{ content: ImplementationPlan[] }> {
     const validatedInput = ImplementationInputSchema.parse(input);
 
-    console.error('Starting implementation planning', {
+    this.logger.info('Starting implementation planning', {
       sessionId: this.context.sessionId,
       input: validatedInput,
     });
@@ -264,7 +266,7 @@ export class MetaCoordinator {
         this.context
       );
 
-      console.error('Implementation planning completed', {
+      this.logger.info('Implementation planning completed', {
         sessionId: this.context.sessionId,
         plan: {
           phasesCount: plan.phases?.length ?? 0,
@@ -277,7 +279,7 @@ export class MetaCoordinator {
         content: [plan],
       };
     } catch (error) {
-      console.error('Implementation planning failed', {
+      this.logger.error('Implementation planning failed', {
         sessionId: this.context.sessionId,
         error,
       });

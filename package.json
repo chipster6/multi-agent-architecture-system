@@ -14,6 +14,7 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:perf": "vitest run tests/performance",
+    "bench": "vitest bench tests/performance",
     "test:property": "vitest run tests/property",
     "type-check": "tsc --noEmit",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --cache",
@@ -41,10 +42,12 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "ajv": "^8.12.0",
-    "json-schema": "^0.4.0"
+    "json-schema": "^0.4.0",
+    "tslog": "^4.10.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@fast-check/vitest": "^0.2.4",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^8.51.0",

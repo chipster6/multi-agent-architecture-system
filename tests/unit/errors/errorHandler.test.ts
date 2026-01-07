@@ -97,6 +97,50 @@ describe('createError()', () => {
     expect(error).not.toHaveProperty('runId');
     expect(error).not.toHaveProperty('correlationId');
   });
+
+  it('should produce a valid StructuredError object', () => {
+    const error = createError(ErrorCode.InvalidArgument, 'Test message', { field: 'test' });
+    
+    // Verify required properties
+    expect(error).toHaveProperty('code');
+    expect(error).toHaveProperty('message');
+    expect(typeof error.code).toBe('string');
+    expect(typeof error.message).toBe('string');
+    
+    // Verify the error conforms to StructuredError interface
+    expect(error.code).toBe(ErrorCode.InvalidArgument);
+    expect(error.message).toBe('Test message');
+    expect(error.details).toEqual({ field: 'test' });
+    
+    // Verify optional properties are not present when not set
+    expect(error).not.toHaveProperty('runId');
+    expect(error).not.toHaveProperty('correlationId');
+    
+    // Verify the object has exactly the expected properties
+    const expectedKeys = ['code', 'message', 'details'];
+    const actualKeys = Object.keys(error);
+    expect(actualKeys.sort()).toEqual(expectedKeys.sort());
+  });
+
+  it('should produce a minimal valid StructuredError without details', () => {
+    const error = createError(ErrorCode.NotFound, 'Not found');
+    
+    // Verify required properties only
+    expect(error).toHaveProperty('code');
+    expect(error).toHaveProperty('message');
+    expect(error.code).toBe(ErrorCode.NotFound);
+    expect(error.message).toBe('Not found');
+    
+    // Verify optional properties are not present
+    expect(error).not.toHaveProperty('details');
+    expect(error).not.toHaveProperty('runId');
+    expect(error).not.toHaveProperty('correlationId');
+    
+    // Verify the object has exactly the expected properties
+    const expectedKeys = ['code', 'message'];
+    const actualKeys = Object.keys(error);
+    expect(actualKeys.sort()).toEqual(expectedKeys.sort());
+  });
 });
 
 describe('toJsonRpcError()', () => {
@@ -266,6 +310,210 @@ describe('toToolError()', () => {
     });
 
     expect(response.content[0].type).toBe('text');
+  });
+
+  it('should produce correct MCP ToolsCallResult format', () => {
+    const error = createError(ErrorCode.InvalidArgument, 'Test error', { field: 'test' });
+    const response = toToolError(error, {
+      correlationId: 'corr-format',
+      runId: 'run-format',
+    });
+
+    // Verify the response conforms to ToolsCallResult interface
+    expect(response).toHaveProperty('content');
+    expect(response).toHaveProperty('isError');
+    expect(typeof response.isError).toBe('boolean');
+    expect(response.isError).toBe(true);
+    
+    // Verify content is an array
+    expect(Array.isArray(response.content)).toBe(true);
+    expect(response.content).toHaveLength(1);
+    
+    // Verify content item structure
+    const contentItem = response.content[0];
+    expect(contentItem).toHaveProperty('type');
+    expect(contentItem).toHaveProperty('text');
+    expect(contentItem.type).toBe('text');
+    expect(typeof contentItem.text).toBe('string');
+    
+    // Verify the text contains valid JSON
+    expect(() => JSON.parse(contentItem.text)).not.toThrow();
+    
+    // Verify the JSON contains the enriched StructuredError
+    const parsedError = JSON.parse(contentItem.text);
+    expect(parsedError).toHaveProperty('code');
+    expect(parsedError).toHaveProperty('message');
+    expect(parsedError).toHaveProperty('correlationId');
+    expect(parsedError).toHaveProperty('runId');
+    expect(parsedError).toHaveProperty('details');
+    
+    expect(parsedError.code).toBe(ErrorCode.InvalidArgument);
+    expect(parsedError.message).toBe('Test error');
+    expect(parsedError.correlationId).toBe('corr-format');
+    expect(parsedError.runId).toBe('run-format');
+    expect(parsedError.details).toEqual({ field: 'test' });
+  });
+
+  it('should handle errors without details in MCP format', () => {
+    const error = createError(ErrorCode.NotFound, 'Simple error');
+    const response = toToolError(error, {
+      correlationId: 'corr-simple',
+    });
+
+    // Verify MCP format compliance
+    expect(response.isError).toBe(true);
+    expect(response.content).toHaveLength(1);
+    expect(response.content[0].type).toBe('text');
+    
+    const parsedError = JSON.parse(response.content[0].text);
+    expect(parsedError.code).toBe(ErrorCode.NotFound);
+    expect(parsedError.message).toBe('Simple error');
+    expect(parsedError.correlationId).toBe('corr-simple');
+    expect(parsedError).not.toHaveProperty('runId');
+    expect(parsedError).not.toHaveProperty('details');
+  });
+
+  it('should ensure response has no extra properties beyond MCP format', () => {
+    const error = createError(ErrorCode.Timeout, 'Timeout error');
+    const response = toToolError(error, {
+      correlationId: 'corr-clean',
+      runId: 'run-clean',
+    });
+
+    // Verify the response only has the expected MCP properties
+    const responseKeys = Object.keys(response).sort();
+    expect(responseKeys).toEqual(['content', 'isError']);
+    
+    // Verify content item only has expected properties
+    const contentKeys = Object.keys(response.content[0]).sort();
+    expect(contentKeys).toEqual(['text', 'type']);
+  });
+
+  it('should handle all error codes in correct MCP format', () => {
+    const codes = Object.values(ErrorCode);
+    codes.forEach((code) => {
+      const error = createError(code, `Error: ${code}`);
+      const response = toToolError(error, {
+        correlationId: `corr-${code}`,
+        runId: `run-${code}`,
+      });
+
+      // Verify MCP format for each error code
+      expect(response.isError).toBe(true);
+      expect(response.content).toHaveLength(1);
+      expect(response.content[0].type).toBe('text');
+      
+      const parsedError = JSON.parse(response.content[0].text);
+      expect(parsedError.code).toBe(code);
+      expect(parsedError.correlationId).toBe(`corr-${code}`);
+      expect(parsedError.runId).toBe(`run-${code}`);
+    });
+  });
+});
+
+describe('JSON-RPC error code mapping', () => {
+  it('should map error types to correct JSON-RPC codes per design specification', () => {
+    // Test the mapping table from the design document
+    const expectedMappings = [
+      { type: 'Parse error', code: -32700, description: 'Invalid JSON' },
+      { type: 'Invalid Request', code: -32600, description: 'Invalid JSON-RPC structure' },
+      { type: 'Method not found', code: -32601, description: 'Unknown method name' },
+      { type: 'Invalid params', code: -32602, description: 'Invalid method parameters' },
+      { type: 'Internal error', code: -32603, description: 'Internal JSON-RPC error' },
+      { type: 'Not initialized', code: -32002, description: 'Method called before initialization' },
+    ];
+
+    // Verify each mapping exists in our constants
+    expect(JSON_RPC_ERROR_CODES.PARSE_ERROR).toBe(-32700);
+    expect(JSON_RPC_ERROR_CODES.INVALID_REQUEST).toBe(-32600);
+    expect(JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND).toBe(-32601);
+    expect(JSON_RPC_ERROR_CODES.INVALID_PARAMS).toBe(-32602);
+    expect(JSON_RPC_ERROR_CODES.INTERNAL_ERROR).toBe(-32603);
+    expect(JSON_RPC_ERROR_CODES.NOT_INITIALIZED).toBe(-32002);
+
+    // Verify all expected codes are present
+    expectedMappings.forEach(({ code }) => {
+      const constantValues = Object.values(JSON_RPC_ERROR_CODES);
+      expect(constantValues).toContain(code);
+    });
+  });
+
+  it('should use correct JSON-RPC codes in toJsonRpcError responses', () => {
+    // Test parse error with null id
+    const parseErrorResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.PARSE_ERROR,
+      'Parse error',
+      undefined,
+      null
+    );
+    expect(parseErrorResponse.error.code).toBe(-32700);
+    expect(parseErrorResponse.id).toBeNull();
+
+    // Test invalid request
+    const invalidRequestResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+      'Invalid request',
+      undefined,
+      null
+    );
+    expect(invalidRequestResponse.error.code).toBe(-32600);
+
+    // Test method not found
+    const methodNotFoundResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
+      'Method not found',
+      undefined,
+      '123'
+    );
+    expect(methodNotFoundResponse.error.code).toBe(-32601);
+    expect(methodNotFoundResponse.id).toBe('123');
+
+    // Test invalid params
+    const invalidParamsResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+      'Invalid params',
+      undefined,
+      '456'
+    );
+    expect(invalidParamsResponse.error.code).toBe(-32602);
+
+    // Test internal error
+    const internalErrorResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+      'Internal error',
+      undefined,
+      '789'
+    );
+    expect(internalErrorResponse.error.code).toBe(-32603);
+
+    // Test not initialized
+    const notInitializedResponse = toJsonRpcError(
+      JSON_RPC_ERROR_CODES.NOT_INITIALIZED,
+      'Not initialized',
+      { code: 'NOT_INITIALIZED', message: 'Server not initialized', correlationId: 'conn-123' },
+      '999'
+    );
+    expect(notInitializedResponse.error.code).toBe(-32002);
+    expect(notInitializedResponse.error.data).toEqual({
+      code: 'NOT_INITIALIZED',
+      message: 'Server not initialized',
+      correlationId: 'conn-123'
+    });
+  });
+
+  it('should ensure JSON-RPC error codes are negative integers per specification', () => {
+    const codes = Object.values(JSON_RPC_ERROR_CODES);
+    codes.forEach((code) => {
+      expect(typeof code).toBe('number');
+      expect(Number.isInteger(code)).toBe(true);
+      expect(code).toBeLessThan(0);
+    });
+  });
+
+  it('should have unique JSON-RPC error codes', () => {
+    const codes = Object.values(JSON_RPC_ERROR_CODES);
+    const uniqueCodes = new Set(codes);
+    expect(uniqueCodes.size).toBe(codes.length);
   });
 });
 

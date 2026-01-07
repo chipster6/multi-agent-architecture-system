@@ -4,6 +4,8 @@
  * with environment variable precedence over config files over defaults.
  */
 
+import * as fs from 'fs';
+
 /**
  * Admin policy configuration for controlling administrative operations.
  */
@@ -130,8 +132,8 @@ export class ConfigManagerImpl implements ConfigManager {
     // Start with defaults
     let config: ServerConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 
-    // TODO: Load from config file (optional)
-    // This will be implemented when file loading is needed
+    // Load from config file (optional)
+    config = this.loadFromConfigFile(config);
 
     // Override with environment variables
     config = this.loadFromEnvironment(config);
@@ -262,10 +264,10 @@ export class ConfigManagerImpl implements ConfigManager {
     const result = { ...config };
 
     // Server configuration
-    if (process.env['MCP_SERVER_NAME']) {
+    if (process.env['MCP_SERVER_NAME'] !== undefined) {
       result.server.name = process.env['MCP_SERVER_NAME'];
     }
-    if (process.env['MCP_SERVER_VERSION']) {
+    if (process.env['MCP_SERVER_VERSION'] !== undefined) {
       result.server.version = process.env['MCP_SERVER_VERSION'];
     }
     if (process.env['MCP_SERVER_SHUTDOWN_TIMEOUT_MS']) {
@@ -316,7 +318,7 @@ export class ConfigManagerImpl implements ConfigManager {
     }
 
     // Logging configuration
-    if (process.env['MCP_LOGGING_LEVEL']) {
+    if (process.env['MCP_LOGGING_LEVEL'] !== undefined) {
       const level = process.env['MCP_LOGGING_LEVEL'] as ServerConfig['logging']['level'];
       if (['debug', 'info', 'warn', 'error'].includes(level)) {
         result.logging.level = level;
@@ -344,6 +346,71 @@ export class ConfigManagerImpl implements ConfigManager {
           result.aacp.defaultTtlMs = ttl;
         }
       }
+    }
+
+    return result;
+  }
+
+  /**
+   * Load configuration values from a JSON config file.
+   * @param config - Base configuration to override
+   * @returns Configuration with config file overrides
+   */
+  private loadFromConfigFile(config: ServerConfig): ServerConfig {
+    const configPath = process.env['MCP_CONFIG_FILE'] ?? './mcp-config.json';
+    
+    try {
+      // Check if config file exists
+      if (!fs.existsSync(configPath)) {
+        // Config file is optional, return unchanged config
+        return config;
+      }
+
+      // Read and parse config file
+      const configFileContent = fs.readFileSync(configPath, 'utf8');
+      const fileConfig = JSON.parse(configFileContent) as Partial<ServerConfig>;
+
+      // Deep merge config file values into base config
+      return this.deepMerge(config, fileConfig);
+    } catch (error) {
+      // If config file exists but can't be read/parsed, that's an error
+      if (error instanceof Error) {
+        throw new Error(`Failed to load config file '${configPath}': ${error.message}`);
+      }
+      throw new Error(`Failed to load config file '${configPath}': Unknown error`);
+    }
+  }
+
+  /**
+   * Deep merge two configuration objects.
+   * @param target - Target configuration object
+   * @param source - Source configuration object to merge
+   * @returns Merged configuration
+   */
+  private deepMerge(target: ServerConfig, source: Partial<ServerConfig>): ServerConfig {
+    const result = { ...target };
+
+    if (source.server) {
+      result.server = { ...result.server, ...source.server };
+    }
+    if (source.tools) {
+      result.tools = { ...result.tools, ...source.tools };
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (source.tools.adminPolicy) {
+        result.tools.adminPolicy = { ...result.tools.adminPolicy, ...source.tools.adminPolicy };
+      }
+    }
+    if (source.resources) {
+      result.resources = { ...result.resources, ...source.resources };
+    }
+    if (source.logging) {
+      result.logging = { ...result.logging, ...source.logging };
+    }
+    if (source.security) {
+      result.security = { ...result.security, ...source.security };
+    }
+    if (source.aacp) {
+      result.aacp = { ...result.aacp, ...source.aacp };
     }
 
     return result;

@@ -11,12 +11,11 @@ import type {
   ArchitectureBlueprint,
   ImplementationPlan,
 } from '../shared/types/index.js';
+import { createComponentLogger } from '../shared/logger.js';
 
 export class WorkflowEngine {
-  /**
-   * Execute Phase 1: Strategic Design
-   * Requirements → Domain Design → System Topology
-   */
+  private readonly logger = createComponentLogger('WorkflowEngine');
+
   /**
    * Execute Phase 1: Strategic Design
    * Requirements → Domain Design → System Topology
@@ -25,7 +24,7 @@ export class WorkflowEngine {
     input: unknown,
     context: ArchitectureContext
   ): Promise<RequirementsAnalysis & { decisions: unknown[]; artifacts: unknown[] }> {
-    console.error('Executing Phase 1: Strategic Design', {
+    this.logger.info('Executing Phase 1: Strategic Design', {
       sessionId: context.sessionId,
     });
 
@@ -114,7 +113,7 @@ export class WorkflowEngine {
     _input: unknown,
     context: ArchitectureContext
   ): Promise<ArchitectureBlueprint> {
-    console.error('Executing Architecture Phases 2-10', {
+    this.logger.info('Executing Architecture Phases 2-10', {
       sessionId: context.sessionId,
     });
 
@@ -223,7 +222,7 @@ export class WorkflowEngine {
     input: unknown,
     context: ArchitectureContext
   ): Promise<ImplementationPlan> {
-    console.error('Executing Phase 11: Implementation Planning', {
+    this.logger.info('Executing Phase 11: Implementation Planning', {
       sessionId: context.sessionId,
     });
 
