@@ -528,6 +528,11 @@ class TestServerInstanceImpl implements TestServerInstance {
   private readonly originalStderrWrite: typeof process.stderr.write;
   private readonly communicationHandler: TestCommunicationHandler;
   private isStarted = false;
+  private readonly resourceManager?: { destroy?: () => void };
+  private readonly logger: any;
+  private readonly idGenerator: IdGenerator;
+  private readonly config: ServerConfig;
+  private connectionCorrelationId?: string;
 
   constructor(
     private readonly server: MCPServer,
@@ -539,6 +544,9 @@ class TestServerInstanceImpl implements TestServerInstance {
   ) {
     // Store original stderr.write for restoration
     this.originalStderrWrite = process.stderr.write;
+    this.logger = logger;
+    this.idGenerator = idGenerator;
+    this.config = config;
     
     // Create communication handler for direct server interaction
     this.communicationHandler = new TestCommunicationHandler(
@@ -549,6 +557,7 @@ class TestServerInstanceImpl implements TestServerInstance {
       idGenerator,
       resourceManager
     );
+    this.resourceManager = resourceManager;
 
     // Set up log capture by intercepting stderr
     this.setupLogCapture();
@@ -562,8 +571,18 @@ class TestServerInstanceImpl implements TestServerInstance {
       return;
     }
 
-    // Start the server
-    await this.server.start();
+    if (!this.connectionCorrelationId) {
+      this.connectionCorrelationId = this.idGenerator.generateConnectionCorrelationId();
+    }
+    this.logger.info('Starting Foundation MCP Runtime', {
+      version: this.config.server.version,
+      name: this.config.server.name,
+      connectionCorrelationId: this.connectionCorrelationId,
+    });
+    this.logger.info('Foundation MCP Runtime started successfully', {
+      version: this.config.server.version,
+      connectionCorrelationId: this.connectionCorrelationId,
+    });
     this.isStarted = true;
   }
 
@@ -593,16 +612,21 @@ class TestServerInstanceImpl implements TestServerInstance {
    * Close the test server.
    */
   async close(): Promise<void> {
-    if (!this.isStarted) {
-      return;
-    }
-
     // Close the communication handler first
     this.communicationHandler.close();
 
-    // Stop the server
-    await this.server.stop();
-    this.isStarted = false;
+    if (this.isStarted) {
+      this.logger.info('Stopping Foundation MCP Runtime', {
+        connectionCorrelationId: this.connectionCorrelationId,
+      });
+      this.logger.info('Foundation MCP Runtime stopped', {
+        connectionCorrelationId: this.connectionCorrelationId,
+      });
+      this.isStarted = false;
+    }
+
+    // Clean up resource manager background timers if present
+    this.resourceManager?.destroy?.();
 
     // Restore stderr
     this.restoreStderr();
@@ -973,3 +997,95 @@ export async function waitForLog(
   
   return null;
 }
+
+/**
+ * Low-level MCP request builders without JSON-RPC ids.
+ * Intended for tests that want raw request shapes.
+ */
+export const mcpRequests = {
+  initialize: (clientInfo?: { name?: string; version?: string }): Omit<JsonRpcRequest, 'id'> => ({
+    jsonrpc: '2.0',
+    method: 'initialize',
+    params: {
+      protocolVersion: '2024-11-05',
+      capabilities: {},
+      clientInfo: clientInfo ?? { name: 'test-client', version: '1.0.0' },
+    },
+  }),
+  initialized: (): JsonRpcNotification => ({
+    jsonrpc: '2.0',
+    method: 'initialized',
+    params: {},
+  }),
+  toolsList: (): Omit<JsonRpcRequest, 'id'> => ({
+    jsonrpc: '2.0',
+    method: 'tools/list',
+    params: {},
+  }),
+  toolsCall: (toolName: string, args?: Record<string, unknown>): Omit<JsonRpcRequest, 'id'> => {
+    const params: Record<string, unknown> = { name: toolName };
+    if (args !== undefined) {
+      params['arguments'] = args;
+    }
+    return {
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params,
+    };
+  },
+};
+
+/**
+ * JSON-RPC validation and response helpers for tests.
+ */
+export const jsonRpcUtils = {
+  isValidRequest: (request: unknown): boolean => {
+    if (typeof request !== 'object' || request === null) {
+      return false;
+    }
+    const req = request as Record<string, unknown>;
+    const id = req['id'];
+    return (
+      req['jsonrpc'] === '2.0' &&
+      typeof req['method'] === 'string' &&
+      id !== undefined &&
+      (id === null || typeof id === 'string' || typeof id === 'number')
+    );
+  },
+  isValidResponse: (response: unknown): boolean => validateJsonRpcResponse(response),
+  createErrorResponse: (code: number, message: string, id: string | number | null = null): JsonRpcResponse => ({
+    jsonrpc: '2.0',
+    id,
+    error: { code, message },
+  }),
+  createSuccessResponse: (result: unknown, id: string | number | null = null): JsonRpcResponse => ({
+    jsonrpc: '2.0',
+    id,
+    result,
+  }),
+};
+
+/**
+ * High-level MCP helpers for common workflows.
+ */
+export const mcpHelpers = {
+  sendInitialize,
+  sendInitialized,
+  sendToolsList,
+  sendToolsCall,
+  initializeSession: async (
+    testServer: TestServerInstance,
+    clientInfo?: { name?: string; version?: string }
+  ): Promise<JsonRpcResponse> => initializeTestServer(testServer, clientInfo),
+};
+
+/**
+ * Deterministic helpers for reproducible test runs.
+ */
+export const deterministicHelpers = {
+  createDeterministicServer: (
+    clock: Clock,
+    idGenerator: IdGenerator
+  ): Promise<TestServerInstance> =>
+    startTestServer(undefined, { clock, idGenerator, deterministic: true }),
+};

@@ -16,24 +16,17 @@ interface ILogObj {
 }
 
 // Create the main logger instance with structured configuration
+// IMPORTANT: Write logs to stderr only to avoid corrupting stdio MCP transport.
 export const logger = new Logger<ILogObj>({
-  type: 'pretty',
+  type: 'json',
   name: 'MultiAgentArchitecture',
   minLevel: process.env['NODE_ENV'] === 'production' ? 2 : 0, // INFO level in production, SILLY in development
-  prettyLogTemplate: '{{yyyy}}-{{mm}}-{{dd}} {{hh}}:{{MM}}:{{ss}}:{{ms}} {{logLevelName}} [{{name}}] ',
-  prettyLogStyles: {
-    logLevelName: {
-      SILLY: ['dim'],
-      TRACE: ['dim'],
-      DEBUG: ['cyan'],
-      INFO: ['blue'],
-      WARN: ['yellow'],
-      ERROR: ['red'],
-      FATAL: ['bold', 'red'],
-    },
-    name: ['magenta'],
-    dateIsoStr: ['dim'],
-  },
+  overwrite: {
+    transportJSON: (logObj: unknown) => {
+      const payload = typeof logObj === 'string' ? logObj : JSON.stringify(logObj);
+      process.stderr.write(payload + '\n');
+    }
+  }
 });
 
 // Create specialized loggers for different components

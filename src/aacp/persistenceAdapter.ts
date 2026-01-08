@@ -60,37 +60,39 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
   /**
    * Store a request record in the ledger
    */
-  async putRequestRecord(requestId: string, record: AACPRequestRecord): Promise<void> {
+  putRequestRecord(requestId: string, record: AACPRequestRecord): Promise<void> {
     this.requestLedger.set(requestId, { ...record });
+    return Promise.resolve();
   }
 
   /**
    * Store a message record in the ledger
    */
-  async putMessageRecord(messageId: string, record: AACPMessageRecord): Promise<void> {
+  putMessageRecord(messageId: string, record: AACPMessageRecord): Promise<void> {
     this.messageLedger.set(messageId, { ...record });
+    return Promise.resolve();
   }
 
   /**
    * Retrieve a request record by requestId
    */
-  async getRequestRecord(requestId: string): Promise<AACPRequestRecord | null> {
+  getRequestRecord(requestId: string): Promise<AACPRequestRecord | null> {
     const record = this.requestLedger.get(requestId);
-    return record ? { ...record } : null;
+    return Promise.resolve(record ? { ...record } : null);
   }
 
   /**
    * Retrieve a message record by messageId
    */
-  async getMessageRecord(messageId: string): Promise<AACPMessageRecord | null> {
+  getMessageRecord(messageId: string): Promise<AACPMessageRecord | null> {
     const record = this.messageLedger.get(messageId);
-    return record ? { ...record } : null;
+    return Promise.resolve(record ? { ...record } : null);
   }
 
   /**
    * Mark a request as completed with the given outcome
    */
-  async markCompleted(requestId: string, outcome: AACPOutcome, completionRef?: string): Promise<void> {
+  markCompleted(requestId: string, outcome: AACPOutcome, completionRef?: string): Promise<void> {
     const record = this.requestLedger.get(requestId);
     if (record) {
       record.status = outcome;
@@ -99,32 +101,34 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
       }
       record.timestamp = new Date().toISOString();
     }
+    return Promise.resolve();
   }
 
   /**
    * Mark a request as failed with the given error
    */
-  async markFailed(requestId: string, error: StructuredError): Promise<void> {
+  markFailed(requestId: string, error: StructuredError): Promise<void> {
     const record = this.requestLedger.get(requestId);
     if (record) {
       record.status = AACPOutcome.FAILED;
       record.error = error;
       record.timestamp = new Date().toISOString();
     }
+    return Promise.resolve();
   }
 
   /**
    * Get the last sequence number for a source-target pair
    */
-  async getLastSequence(sourceAgentId: string, targetAgentId: string): Promise<number> {
+  getLastSequence(sourceAgentId: string, targetAgentId: string): Promise<number> {
     const key = `${sourceAgentId}:${targetAgentId}`;
-    return this.sequenceTracker.get(key) ?? 0;
+    return Promise.resolve(this.sequenceTracker.get(key) ?? 0);
   }
 
   /**
    * Update the last sequence number for a source-target pair
    */
-  async updateLastSequence(sourceAgentId: string, targetAgentId: string, seq: number): Promise<void> {
+  updateLastSequence(sourceAgentId: string, targetAgentId: string, seq: number): Promise<void> {
     const key = `${sourceAgentId}:${targetAgentId}`;
     const currentSeq = this.sequenceTracker.get(key) ?? 0;
     
@@ -132,20 +136,27 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
     if (seq > currentSeq) {
       this.sequenceTracker.set(key, seq);
     }
+    return Promise.resolve();
   }
 
   /**
    * Get unacknowledged messages for a source-target pair
    * Used for gap detection and retransmission
    */
-  async getUnacknowledgedMessages(sourceAgentId: string, targetAgentId: string): Promise<AACPEnvelope[]> {
+  getUnacknowledgedMessages(sourceAgentId: string, targetAgentId: string): Promise<AACPEnvelope[]> {
     const unacknowledged: AACPEnvelope[] = [];
     
     for (const record of this.messageLedger.values()) {
       const envelope = record.envelope;
+      const destinationId =
+        envelope.destination.type === 'direct'
+          ? envelope.destination.agentId
+          : envelope.destination.type === 'reply'
+          ? envelope.source.id
+          : null;
       if (
-        envelope.sourceAgentId === sourceAgentId &&
-        envelope.targetAgentId === targetAgentId &&
+        envelope.source.id === sourceAgentId &&
+        destinationId === targetAgentId &&
         record.status !== AACPOutcome.COMPLETED
       ) {
         unacknowledged.push({ ...envelope });
@@ -153,14 +164,16 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
     }
     
     // Sort by sequence number for ordered processing
-    return unacknowledged.sort((a, b) => a.seq - b.seq);
+    return Promise.resolve(
+      unacknowledged.sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
+    );
   }
 
   /**
    * List pending requests (not completed or failed)
    * Optionally filter by age
    */
-  async listPendingRequests(olderThan?: Date): Promise<AACPRequestRecord[]> {
+  listPendingRequests(olderThan?: Date): Promise<AACPRequestRecord[]> {
     const pending: AACPRequestRecord[] = [];
     const cutoffTime = olderThan?.toISOString();
     
@@ -172,14 +185,14 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
       }
     }
     
-    return pending;
+    return Promise.resolve(pending);
   }
 
   /**
    * List messages in a specific state
    * Optionally filter by age
    */
-  async listMessagesInState(outcome: AACPOutcome, olderThan?: Date): Promise<AACPMessageRecord[]> {
+  listMessagesInState(outcome: AACPOutcome, olderThan?: Date): Promise<AACPMessageRecord[]> {
     const messages: AACPMessageRecord[] = [];
     const cutoffTime = olderThan?.toISOString();
     
@@ -191,7 +204,7 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
       }
     }
     
-    return messages;
+    return Promise.resolve(messages);
   }
 
   /**
@@ -200,7 +213,7 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
    * MUST delete all records with expiresAt <= now and return deterministic count.
    * This implements the retention policy for AACP records.
    */
-  async purgeExpired(now: Date): Promise<number> {
+  purgeExpired(now: Date): Promise<number> {
     const nowIso = now.toISOString();
     let purgedCount = 0;
     
@@ -220,7 +233,7 @@ export class InMemoryAACPPersistenceAdapter implements AACPPersistenceAdapter {
       }
     }
     
-    return purgedCount;
+    return Promise.resolve(purgedCount);
   }
 
   /**

@@ -56,7 +56,7 @@ The system follows a multi-agent orchestration pattern with 11 sequential phases
 - **MCP SDK**: `@modelcontextprotocol/sdk`
 - **LLM Provider**: `@anthropic-ai/sdk` (configurable)
 - **Validation**: `zod` for schema validation
-- **Storage**: File-based (markdown docs) + SQLite for state management
+- **Storage**: Postgres + pgvector (coordinator memory) + filesystem for large artifacts
 - **Testing**: Vitest for unit/integration tests
 - **Code Quality**: ESLint + Prettier
 
@@ -66,6 +66,7 @@ The system follows a multi-agent orchestration pattern with 11 sequential phases
 - npm (comes with Node.js)
 - Git
 - An Anthropic API key (for Claude integration)
+- Docker (for local Postgres + pgvector)
 
 ## Quick Start
 
@@ -82,6 +83,13 @@ npm install
 # Set up environment variables
 cp .env.example .env
 # Edit .env and add your ANTHROPIC_API_KEY
+```
+
+### Database (Postgres + pgvector)
+
+```bash
+# Start local Postgres with pgvector
+docker compose up -d postgres
 ```
 
 ### Development
@@ -149,7 +157,7 @@ LOG_LEVEL=info                    # Logging verbosity (debug, info, warn, error)
 MCP_SERVER_PORT=3000             # Server port (if applicable)
 NODE_ENV=development             # Environment mode
 
-# Optional - Tool Configuration  
+# Optional - Tool Configuration
 TOOL_TIMEOUT_MS=30000           # Default timeout for tool execution (30 seconds)
 MAX_CONCURRENT_EXECUTIONS=10    # Maximum concurrent tool executions
 MAX_PAYLOAD_BYTES=1048576       # Maximum payload size (1MB)
@@ -159,6 +167,18 @@ MAX_STATE_BYTES=1048576         # Maximum agent state size (1MB)
 ADMIN_REGISTRATION_ENABLED=false    # Enable admin tool registration
 DYNAMIC_REGISTRATION_ENABLED=false  # Enable dynamic tool registration
 ADMIN_POLICY=deny_all               # Admin policy: deny_all | local_stdio_only | token
+
+# Optional - Postgres (coordinator memory + logs)
+MCP_DB_HOST=localhost
+MCP_DB_PORT=5432
+MCP_DB_NAME=mcp
+MCP_DB_USER=mcp
+MCP_DB_PASSWORD=mcp
+
+# Optional - Embeddings (Gemini)
+GEMINI_API_KEY=your_gemini_api_key_here
+MCP_EMBEDDINGS_MODEL=gemini-embedding-001
+MCP_EMBEDDINGS_DIMENSIONS=1536
 ```
 
 ### Configuration File

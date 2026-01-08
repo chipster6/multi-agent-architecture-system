@@ -18,38 +18,131 @@ import type { StructuredError } from '../errors/index.js';
 export type AACPMessageType = 'REQUEST' | 'RESPONSE' | 'EVENT';
 
 /**
+ * Agent identifier for routing and context propagation.
+ */
+export interface AgentIdentifier {
+  id: string;
+  type: string;
+  phase: number;
+  instance?: string;
+}
+
+/**
+ * Destination routing for AACP messages.
+ */
+export type Destination =
+  | { type: 'direct'; agentId: string }
+  | { type: 'broadcast'; channel: string }
+  | { type: 'multicast'; agentIds: string[] }
+  | { type: 'coordinator' }
+  | { type: 'reply' };
+
+/**
+ * Priority levels for message routing.
+ */
+export type Priority = 'critical' | 'high' | 'normal' | 'low' | 'background';
+
+/**
+ * Propagated context shared across agents.
+ * Defined as a flexible object to avoid constraining future context models.
+ */
+export type PropagatedContext = Record<string, unknown>;
+
+/**
+ * Tracing context for distributed observability.
+ */
+export interface TracingContext {
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string;
+  sampled?: boolean;
+  baggage?: Record<string, string>;
+  tracestate?: Record<string, string>;
+}
+
+/**
+ * Authentication and authorization context.
+ */
+export interface AuthContext {
+  subject?: string;
+  roles?: string[];
+  scopes?: string[];
+  method?: string;
+  issuedAt?: string;
+  expiresAt?: string;
+  claims?: Record<string, unknown>;
+}
+
+/**
+ * Signature metadata for message integrity.
+ */
+export interface SignatureContext {
+  value: string;
+  keyId?: string;
+  algorithm?: string;
+  signedFields?: string[];
+}
+
+/**
  * AACP Envelope Interface
  * 
  * The core message envelope for all AACP communications.
  * Supports the 6 AACP invariants: uniqueness, stability, ordering, pairing, acknowledgment, deduplication.
  */
 export interface AACPEnvelope {
-  /** UUID v4, unique per transmission attempt */
-  messageId: string;
-  
-  /** UUID v4, stable across retries for same logical request (present for REQUEST/RESPONSE) */
-  requestId?: string;
-  
+  /** UUID v7 (time-ordered) */
+  id: string;
+
+  /** Correlation identifier for related message chains */
+  correlationId: string;
+
+  /** Causation identifier for parent message */
+  causationId?: string;
+
   /** Sending agent identifier */
-  sourceAgentId: string;
-  
-  /** Receiving agent identifier */
-  targetAgentId: string;
-  
-  /** Sequence number per source-target pair (monotonically increasing) */
-  seq: number;
-  
-  /** Acknowledgment of highest received seq (cumulative, contiguous prefix only) */
-  ack?: number;
-  
-  /** Message type */
-  messageType: AACPMessageType;
-  
+  source: AgentIdentifier;
+
+  /** Routing destination */
+  destination: Destination;
+
+  /** Payload discriminator */
+  type: string;
+
+  /** Protocol version (semver) */
+  version: string;
+
   /** ISO 8601 timestamp */
   timestamp: string;
-  
+
+  /** Optional time-to-live in milliseconds */
+  ttl?: number;
+
+  /** Message priority */
+  priority: Priority;
+
+  /** Shared context propagated across agents */
+  context: PropagatedContext;
+
+  /** Tracing metadata */
+  tracing: TracingContext;
+
   /** Application-specific message content */
   payload: unknown;
+
+  /** Optional authentication context */
+  auth?: AuthContext;
+
+  /** Optional signature context */
+  signature?: SignatureContext;
+
+  /**
+   * Transport/reliability fields (AACP v0.1 extension).
+   * Retained for ordered delivery and acknowledgment tracking.
+   */
+  messageType?: AACPMessageType;
+  requestId?: string;
+  seq?: number;
+  ack?: number;
 }
 
 /**
@@ -72,7 +165,7 @@ export enum AACPOutcome {
  * Tracks the status and outcome of individual messages for resumability.
  */
 export interface AACPMessageStatus {
-  /** Message identifier */
+  /** Message identifier (UUID v7) */
   messageId: string;
   
   /** Request identifier (present for REQUEST/RESPONSE messages) */
@@ -100,6 +193,12 @@ export interface AACPMessageStatus {
 export interface AACPRequestRecord {
   /** Request identifier (deduplication key) */
   requestId: string;
+
+  /** Correlation identifier for request chain */
+  correlationId?: string;
+
+  /** Causation identifier for request chain */
+  causationId?: string;
   
   /** Sending agent identifier */
   sourceAgentId: string;

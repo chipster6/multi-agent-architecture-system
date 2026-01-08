@@ -41,21 +41,21 @@ export class PerformanceOptimizationAgent extends BaseAgent {
     );
   }
 
-  protected async analyze(input: BaseAgentInput): Promise<PerformanceAnalysis> {
+  protected analyze(input: BaseAgentInput): Promise<PerformanceAnalysis> {
     const context = input.context as Record<string, unknown>;
     const architecture = context['architecture'] as Record<string, unknown>;
     const dataLayer = context['dataLayer'] as Record<string, unknown>;
 
-    return {
+    return Promise.resolve({
       bottlenecks: this.identifyBottlenecks(architecture),
       cachingOpportunities: this.identifyCachingOpportunities(dataLayer),
       scalingRecommendations: this.recommendScaling(architecture),
       resourceOptimizations: this.optimizeResources(architecture),
       monitoringMetrics: this.defineMonitoringMetrics(architecture),
-    };
+    });
   }
 
-  protected async decide(
+  protected decide(
     _analysis: PerformanceAnalysis,
     _input: BaseAgentInput
   ): Promise<ArchitecturalDecision[]> {
@@ -136,7 +136,7 @@ export class PerformanceOptimizationAgent extends BaseAgent {
       dependencies: [],
     });
 
-    return decisions;
+    return Promise.resolve(decisions);
   }
 
   private identifyBottlenecks(_architecture: Record<string, unknown>): string[] {

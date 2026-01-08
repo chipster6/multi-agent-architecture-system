@@ -8,7 +8,14 @@
  * persistence and the full Agent-to-Agent Communication Protocol (AACP).
  */
 
+import { randomUUID } from 'node:crypto';
+
+import type { CoordinatorMemory } from '../coordinator/memory/coordinatorMemory.js';
+import { ErrorCode, type StructuredError } from '../errors/index.js';
 import type { StructuredLogger } from '../logging/structuredLogger.js';
+import type { AACPLedger, AACPSessionManager } from '../aacp/interfaces.js';
+import type { AACPEnvelope } from '../aacp/types.js';
+import { AACPOutcome } from '../aacp/types.js';
 import type {
   AgentCoordinator,
   AgentHandler,
@@ -27,10 +34,23 @@ interface RegisteredAgent {
   state: Map<string, unknown>;
   messageQueue: Array<{
     message: AgentMessage;
+    messageId: string;
+    requestId?: string;
+    aacpEnvelope?: AACPEnvelope | null;
+    enqueuedAt: number;
     resolve: (response: AgentResponse) => void;
     reject: (error: Error) => void;
   }>;
   isProcessing: boolean;
+}
+
+interface AgentCoordinatorOptions {
+  memory?: CoordinatorMemory;
+  aacp?: {
+    ledger: AACPLedger;
+    sessionManager: AACPSessionManager;
+  };
+  idFactory?: () => string;
 }
 
 /**
@@ -61,14 +81,23 @@ interface RegisteredAgent {
 export class AgentCoordinatorImpl implements AgentCoordinator {
   private readonly agents: Map<string, RegisteredAgent> = new Map();
   private readonly logger: StructuredLogger;
+  private readonly memory: CoordinatorMemory | undefined;
+  private readonly aacp: {
+    ledger: AACPLedger;
+    sessionManager: AACPSessionManager;
+  } | undefined;
+  private readonly idFactory: () => string;
 
   /**
    * Creates a new AgentCoordinator instance.
    * 
    * @param logger Structured logger for logging coordinator operations
    */
-  constructor(logger: StructuredLogger) {
+  constructor(logger: StructuredLogger, options: AgentCoordinatorOptions = {}) {
     this.logger = logger;
+    this.memory = options.memory;
+    this.aacp = options.aacp;
+    this.idFactory = options.idFactory ?? randomUUID;
   }
 
   /**
@@ -169,14 +198,35 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
       throw error;
     }
 
+    const sourceAgentId = message.sourceAgentId ?? 'system';
+    let messageId = this.idFactory();
+    let requestId: string | undefined;
+    let aacpEnvelope: AACPEnvelope | null = null;
+    if (this.aacp) {
+      const init = await this.initializeAacpMessage(sourceAgentId, targetAgentId, message);
+      if (init) {
+        messageId = init.messageId;
+        requestId = init.requestId;
+        aacpEnvelope = init.envelope;
+      }
+    }
+    const enqueuedAt = Date.now();
+
     // Create a promise for this message
     return new Promise<AgentResponse>((resolve, reject) => {
       // Add message to queue
-      agent.messageQueue.push({
+      const queueEntry: RegisteredAgent['messageQueue'][number] = {
         message,
+        messageId,
+        aacpEnvelope,
+        enqueuedAt,
         resolve,
         reject,
-      });
+      };
+      if (requestId !== undefined) {
+        queueEntry.requestId = requestId;
+      }
+      agent.messageQueue.push(queueEntry);
 
       this.logger.debug('Message queued for agent', {
         targetAgentId,
@@ -224,6 +274,21 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
    * Useful for implementing state change listeners, persistence, or monitoring.
    */
   onStateChange?: (agentId: string, state: Map<string, unknown>) => void;
+  onMessageReceived?: (targetAgentId: string, message: AgentMessage, messageId: string) => void;
+  onMessageCompleted?: (
+    targetAgentId: string,
+    message: AgentMessage,
+    messageId: string,
+    response: AgentResponse,
+    durationMs: number
+  ) => void;
+  onMessageFailed?: (
+    targetAgentId: string,
+    message: AgentMessage,
+    messageId: string,
+    error: Error,
+    durationMs: number
+  ) => void;
 
   /**
    * Processes the message queue for an agent sequentially.
@@ -248,7 +313,9 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
           break;
         }
 
-        const { message, resolve, reject } = item;
+        const { message, resolve, reject, messageId, requestId, enqueuedAt, aacpEnvelope } = item;
+        const startedAt = Date.now();
+        const sourceAgentId = message.sourceAgentId ?? 'system';
 
         try {
           // Create agent context
@@ -268,6 +335,12 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
             sourceAgentId: message.sourceAgentId,
           });
 
+          if (this.onMessageReceived) {
+            this.onMessageReceived(agent.id, message, messageId);
+          }
+
+          await this.safeAacpAcknowledge(sourceAgentId, agent.id, aacpEnvelope?.seq);
+
           // Execute handler
           const response = await agent.handler(message, context);
 
@@ -275,6 +348,28 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
           if (this.onStateChange) {
             this.onStateChange(agent.id, agent.state);
           }
+
+          if (requestId && this.aacp) {
+            await this.safeMarkAacpCompleted(requestId);
+          }
+
+          const durationMs = Date.now() - startedAt;
+          if (this.onMessageCompleted) {
+            this.onMessageCompleted(agent.id, message, messageId, response, durationMs);
+          }
+
+          await this.safeRecordMessageSummary({
+            messageId,
+            sourceAgentId,
+            targetAgentId: agent.id,
+            messageType: message.type,
+            durationMs,
+            enqueuedAt,
+            startedAt,
+            response,
+            payload: message.payload,
+            aacpEnvelope: aacpEnvelope ?? null,
+          });
 
           this.logger.debug('Message processed successfully', {
             agentId: agent.id,
@@ -286,6 +381,8 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
 
+          const durationMs = Date.now() - startedAt;
+
           this.logger.error('Error processing message for agent', {
             agentId: agent.id,
             messageType: message.type,
@@ -296,11 +393,246 @@ export class AgentCoordinatorImpl implements AgentCoordinator {
             },
           });
 
-          reject(error instanceof Error ? error : new Error(errorMessage));
+          const errorObject = error instanceof Error ? error : new Error(errorMessage);
+          if (this.onMessageFailed) {
+            this.onMessageFailed(agent.id, message, messageId, errorObject, durationMs);
+          }
+
+          if (requestId && this.aacp) {
+            await this.safeMarkAacpFailed(requestId, errorObject);
+          }
+
+          await this.safeRecordMessageFailure({
+            messageId,
+            sourceAgentId,
+            targetAgentId: agent.id,
+            messageType: message.type,
+            durationMs,
+            enqueuedAt,
+            startedAt,
+            error: errorObject,
+            payload: message.payload,
+          });
+
+          reject(errorObject);
         }
       }
     } finally {
       agent.isProcessing = false;
+    }
+  }
+
+  private async initializeAacpMessage(
+    sourceAgentId: string,
+    targetAgentId: string,
+    message: AgentMessage
+  ): Promise<{ messageId: string; requestId?: string; envelope: AACPEnvelope | null } | null> {
+    if (!this.aacp) {
+      return null;
+    }
+
+    try {
+      const session = await this.aacp.sessionManager.createSession(sourceAgentId, targetAgentId);
+      const messageId = await session.sendMessage(
+        {
+          messageType: message.type,
+          payload: message.payload,
+        },
+        'REQUEST'
+      );
+
+      const record = await this.aacp.ledger.getByMessageId(messageId);
+      const result: { messageId: string; requestId?: string; envelope: AACPEnvelope | null } = {
+        messageId,
+        envelope: record?.envelope ?? null,
+      };
+      if (record?.requestId !== undefined) {
+        result.requestId = record.requestId;
+      }
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to initialize AACP message', {
+        sourceAgentId,
+        targetAgentId,
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
+      return null;
+    }
+  }
+
+  private async safeAacpAcknowledge(
+    sourceAgentId: string,
+    targetAgentId: string,
+    seq?: number
+  ): Promise<void> {
+    if (!this.aacp || seq === undefined) {
+      return;
+    }
+    try {
+      const session = await this.aacp.sessionManager.createSession(sourceAgentId, targetAgentId);
+      await session.acknowledgeMessage(seq);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to acknowledge AACP message', {
+        sourceAgentId,
+        targetAgentId,
+        seq,
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
+    }
+  }
+
+  private async safeMarkAacpCompleted(requestId: string): Promise<void> {
+    if (!this.aacp) {
+      return;
+    }
+    try {
+      await this.aacp.ledger.markCompleted(requestId, AACPOutcome.COMPLETED);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to mark AACP request completed', {
+        requestId,
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
+    }
+  }
+
+  private async safeMarkAacpFailed(requestId: string, error: Error): Promise<void> {
+    if (!this.aacp) {
+      return;
+    }
+    const structuredError: StructuredError = {
+      code: ErrorCode.Internal,
+      message: error.message,
+      details: {
+        name: error.name,
+      },
+    };
+    try {
+      await this.aacp.ledger.markFailed(requestId, structuredError);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.warn('Failed to mark AACP request failed', {
+        requestId,
+        error: {
+          name: err instanceof Error ? err.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
+    }
+  }
+
+  private async safeRecordMessageSummary(input: {
+    messageId: string;
+    sourceAgentId: string;
+    targetAgentId: string;
+    messageType: string;
+    durationMs: number;
+    enqueuedAt: number;
+    startedAt: number;
+    response: AgentResponse;
+    payload: unknown;
+    aacpEnvelope: AACPEnvelope | null;
+  }): Promise<void> {
+    if (!this.memory) {
+      return;
+    }
+    const summaryText = [
+      `Message ${input.messageId} (${input.messageType})`,
+      `from ${input.sourceAgentId} to ${input.targetAgentId}`,
+      `completed in ${input.durationMs}ms`,
+    ].join(' ');
+    const payload = {
+      request: input.payload,
+      response: input.response,
+      timings: {
+        enqueuedAt: new Date(input.enqueuedAt).toISOString(),
+        startedAt: new Date(input.startedAt).toISOString(),
+        durationMs: input.durationMs,
+      },
+      aacpEnvelope: input.aacpEnvelope,
+    };
+    try {
+      await this.memory.recordMessageSummary({
+        id: input.messageId,
+        sourceAgentId: input.sourceAgentId,
+        targetAgentId: input.targetAgentId,
+        messageType: input.messageType,
+        summaryText,
+        payload,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to record message summary', {
+        messageId: input.messageId,
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
+    }
+  }
+
+  private async safeRecordMessageFailure(input: {
+    messageId: string;
+    sourceAgentId: string;
+    targetAgentId: string;
+    messageType: string;
+    durationMs: number;
+    enqueuedAt: number;
+    startedAt: number;
+    error: Error;
+    payload: unknown;
+  }): Promise<void> {
+    if (!this.memory) {
+      return;
+    }
+    const summaryText = [
+      `Message ${input.messageId} (${input.messageType})`,
+      `from ${input.sourceAgentId} to ${input.targetAgentId}`,
+      `failed in ${input.durationMs}ms`,
+      `error=${input.error.message}`,
+    ].join(' ');
+    const payload = {
+      request: input.payload,
+      error: {
+        name: input.error.name,
+        message: input.error.message,
+      },
+      timings: {
+        enqueuedAt: new Date(input.enqueuedAt).toISOString(),
+        startedAt: new Date(input.startedAt).toISOString(),
+        durationMs: input.durationMs,
+      },
+    };
+    try {
+      await this.memory.recordMessageSummary({
+        id: input.messageId,
+        sourceAgentId: input.sourceAgentId,
+        targetAgentId: input.targetAgentId,
+        messageType: `${input.messageType}.failed`,
+        summaryText,
+        payload,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to record message failure summary', {
+        messageId: input.messageId,
+        error: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: errorMessage,
+        },
+      });
     }
   }
 }

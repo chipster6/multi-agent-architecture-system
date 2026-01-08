@@ -60,6 +60,9 @@ export interface ResourceManager {
   
   /** Increment the ResourceExhausted counter (called when rejecting with RESOURCE_EXHAUSTED) */
   incrementResourceExhaustedCounter(): void;
+
+  /** Clean up background timers/resources (optional for non-interval implementations) */
+  destroy?(): void;
 }
 
 /**
@@ -222,19 +225,10 @@ export class ResourceManagerImpl implements ResourceManager {
   getHealthStatus(): HealthStatus {
     const telemetry = this.getTelemetry();
     
-    // Enhanced test environment detection (Context7 pattern)
-    const isTestEnvironment = process.env.NODE_ENV === 'test' || 
-                              process.env.VITEST === 'true' ||
-                              typeof globalThis.describe !== 'undefined' ||
-                              typeof globalThis.it !== 'undefined' ||
-                              typeof globalThis.expect !== 'undefined' ||
-                              process.argv.some(arg => arg.includes('vitest')) ||
-                              process.argv.some(arg => arg.includes('test'));
-    
     // Check unhealthy conditions first
     if (
       this.concurrentExecutions >= this.config.resources.maxConcurrentExecutions ||
-      (!isTestEnvironment && telemetry.eventLoopDelayMs > 500) ||
+      telemetry.eventLoopDelayMs > 500 ||
       this.resourceExhaustedCounter >= 3
     ) {
       return 'unhealthy';
@@ -243,7 +237,7 @@ export class ResourceManagerImpl implements ResourceManager {
     // Check degraded conditions
     if (
       this.concurrentExecutions > 0.8 * this.config.resources.maxConcurrentExecutions ||
-      (!isTestEnvironment && telemetry.eventLoopDelayMs > 100)
+      telemetry.eventLoopDelayMs > 100
     ) {
       return 'degraded';
     }

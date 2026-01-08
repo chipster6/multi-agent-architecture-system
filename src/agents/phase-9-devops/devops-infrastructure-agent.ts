@@ -44,22 +44,22 @@ export class DevOpsInfrastructureAgent extends BaseAgent {
     );
   }
 
-  protected async analyze(input: BaseAgentInput): Promise<DevOpsAnalysis> {
+  protected analyze(input: BaseAgentInput): Promise<DevOpsAnalysis> {
     const context = input.context as Record<string, unknown>;
     const infrastructure = context['infrastructure'] as Record<string, unknown>;
     const deployment = context['deployment'] as Record<string, unknown>;
 
-    return {
+    return Promise.resolve({
       cicdStrategy: this.analyzeCICDStrategy(infrastructure),
       containerStrategy: this.analyzeContainerStrategy(infrastructure),
       orchestrationPlatform: this.selectOrchestrationPlatform(infrastructure),
       infrastructureAsCode: this.selectIaCTool(infrastructure),
       monitoringStack: this.selectMonitoringStack(infrastructure),
       deploymentStrategy: this.selectDeploymentStrategy(deployment),
-    };
+    });
   }
 
-  protected async decide(
+  protected decide(
     _analysis: DevOpsAnalysis,
     _input: BaseAgentInput
   ): Promise<ArchitecturalDecision[]> {
@@ -195,7 +195,7 @@ export class DevOpsInfrastructureAgent extends BaseAgent {
       timestamp: new Date().toISOString(),
     });
 
-    return decisions;
+    return Promise.resolve(decisions);
   }
 
   private analyzeCICDStrategy(_infrastructure: Record<string, unknown>): string {

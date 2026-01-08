@@ -50,6 +50,22 @@ export interface ServerConfig {
   aacp?: {
     defaultTtlMs: number; // default 86400000 (24 hours)
   };
+
+  database?: {
+    enabled: boolean;
+    host: string;
+    port: number;
+    name: string;
+    user: string;
+    password: string;
+  };
+
+  embeddings?: {
+    enabled: boolean;
+    provider: string;
+    model: string;
+    dimensions: number;
+  };
 }
 
 /**
@@ -109,6 +125,20 @@ const DEFAULT_CONFIG: ServerConfig = {
   },
   aacp: {
     defaultTtlMs: 86400000, // 24 hours
+  },
+  database: {
+    enabled: false,
+    host: 'localhost',
+    port: 5432,
+    name: 'mcp',
+    user: 'mcp',
+    password: 'mcp',
+  },
+  embeddings: {
+    enabled: false,
+    provider: 'gemini',
+    model: 'gemini-embedding-001',
+    dimensions: 3072,
   },
 };
 
@@ -230,6 +260,44 @@ export class ConfigManagerImpl implements ConfigManager {
       }
     }
 
+    // Validate database config
+    if (config.database) {
+      if (typeof config.database.enabled !== 'boolean') {
+        errors.push({ path: 'database.enabled', message: 'Must be a boolean' });
+      }
+      if (typeof config.database.host !== 'string' || config.database.host.length === 0) {
+        errors.push({ path: 'database.host', message: 'Must be a non-empty string' });
+      }
+      if (typeof config.database.port !== 'number' || config.database.port <= 0) {
+        errors.push({ path: 'database.port', message: 'Must be a positive number' });
+      }
+      if (typeof config.database.name !== 'string' || config.database.name.length === 0) {
+        errors.push({ path: 'database.name', message: 'Must be a non-empty string' });
+      }
+      if (typeof config.database.user !== 'string' || config.database.user.length === 0) {
+        errors.push({ path: 'database.user', message: 'Must be a non-empty string' });
+      }
+      if (typeof config.database.password !== 'string') {
+        errors.push({ path: 'database.password', message: 'Must be a string' });
+      }
+    }
+
+    // Validate embeddings config
+    if (config.embeddings) {
+      if (typeof config.embeddings.enabled !== 'boolean') {
+        errors.push({ path: 'embeddings.enabled', message: 'Must be a boolean' });
+      }
+      if (config.embeddings.provider !== 'gemini') {
+        errors.push({ path: 'embeddings.provider', message: 'Must be "gemini"' });
+      }
+      if (typeof config.embeddings.model !== 'string' || config.embeddings.model.length === 0) {
+        errors.push({ path: 'embeddings.model', message: 'Must be a non-empty string' });
+      }
+      if (typeof config.embeddings.dimensions !== 'number' || config.embeddings.dimensions <= 0) {
+        errors.push({ path: 'embeddings.dimensions', message: 'Must be a positive number' });
+      }
+    }
+
     if (errors.length === 0) {
       return { valid: true };
     } else {
@@ -348,6 +416,53 @@ export class ConfigManagerImpl implements ConfigManager {
       }
     }
 
+    // Database configuration
+    if (result.database) {
+      if (process.env['MCP_DB_ENABLED']) {
+        result.database.enabled = process.env['MCP_DB_ENABLED'] === 'true';
+      }
+      if (process.env['MCP_DB_HOST']) {
+        result.database.host = process.env['MCP_DB_HOST'];
+      }
+      if (process.env['MCP_DB_PORT']) {
+        const port = parseInt(process.env['MCP_DB_PORT'], 10);
+        if (!isNaN(port)) {
+          result.database.port = port;
+        }
+      }
+      if (process.env['MCP_DB_NAME']) {
+        result.database.name = process.env['MCP_DB_NAME'];
+      }
+      if (process.env['MCP_DB_USER']) {
+        result.database.user = process.env['MCP_DB_USER'];
+      }
+      if (process.env['MCP_DB_PASSWORD']) {
+        result.database.password = process.env['MCP_DB_PASSWORD'];
+      }
+    }
+
+    // Embeddings configuration
+    if (result.embeddings) {
+      if (process.env['MCP_EMBEDDINGS_ENABLED']) {
+        result.embeddings.enabled = process.env['MCP_EMBEDDINGS_ENABLED'] === 'true';
+      }
+      if (process.env['MCP_EMBEDDINGS_PROVIDER']) {
+        const provider = process.env['MCP_EMBEDDINGS_PROVIDER'];
+        if (provider === 'gemini') {
+          result.embeddings.provider = 'gemini';
+        }
+      }
+      if (process.env['MCP_EMBEDDINGS_MODEL']) {
+        result.embeddings.model = process.env['MCP_EMBEDDINGS_MODEL'];
+      }
+      if (process.env['MCP_EMBEDDINGS_DIMENSIONS']) {
+        const dims = parseInt(process.env['MCP_EMBEDDINGS_DIMENSIONS'], 10);
+        if (!isNaN(dims)) {
+          result.embeddings.dimensions = dims;
+        }
+      }
+    }
+
     return result;
   }
 
@@ -411,6 +526,12 @@ export class ConfigManagerImpl implements ConfigManager {
     }
     if (source.aacp) {
       result.aacp = { ...result.aacp, ...source.aacp };
+    }
+    if (source.database) {
+      result.database = { ...result.database, ...source.database };
+    }
+    if (source.embeddings) {
+      result.embeddings = { ...result.embeddings, ...source.embeddings };
     }
 
     return result;

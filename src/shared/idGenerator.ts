@@ -4,7 +4,7 @@
  * for deterministic testing through dependency injection.
  */
 
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 /**
  * Interface for generating various types of IDs used throughout the system.
@@ -167,6 +167,36 @@ export class FixedIdGenerator implements IdGenerator {
   generateConnectionCorrelationId(): string {
     return this.connectionCorrelationId;
   }
+}
+
+/**
+ * Generate a UUID v7 string (time-ordered).
+ * This is useful for AACP message IDs and trace IDs.
+ */
+export function generateUuidV7(): string {
+  const bytes = randomBytes(16);
+  const now = Date.now();
+
+  bytes[0] = (now >> 40) & 0xff;
+  bytes[1] = (now >> 32) & 0xff;
+  bytes[2] = (now >> 24) & 0xff;
+  bytes[3] = (now >> 16) & 0xff;
+  bytes[4] = (now >> 8) & 0xff;
+  bytes[5] = now & 0xff;
+
+  // Set version to 7
+  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x70;
+  // Set variant to RFC 4122 (10xxxxxx)
+  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+
+  const hex = Buffer.from(bytes).toString('hex');
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20),
+  ].join('-');
 }
 
 /**

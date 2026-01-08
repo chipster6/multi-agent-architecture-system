@@ -202,6 +202,7 @@ export interface LogContext {
  */
 export class StructuredLogger {
   private readonly clock: Clock;
+  private readonly logSink: ((entry: LogEntry) => void | Promise<void>) | undefined;
   
   /**
    * Default denylist of sensitive keys that should be redacted from log output.
@@ -243,8 +244,13 @@ export class StructuredLogger {
    * @param clock Clock implementation for timestamp generation
    * @param customRedactKeys Optional array of additional sensitive keys to redact
    */
-  constructor(clock: Clock, customRedactKeys?: string[]) {
+  constructor(
+    clock: Clock,
+    customRedactKeys?: string[],
+    options?: { logSink?: (entry: LogEntry) => void | Promise<void> }
+  ) {
     this.clock = clock;
+    this.logSink = options?.logSink;
     
     // Store original keys for inheritance
     this.originalRedactKeys = [
@@ -642,5 +648,14 @@ export class StructuredLogger {
     // Output JSON to stderr only (stdout reserved for MCP protocol)
     const jsonOutput = JSON.stringify(sanitizedLogEntry);
     process.stderr.write(jsonOutput + '\n');
+
+    if (this.logSink) {
+      try {
+        const maybePromise = this.logSink(sanitizedLogEntry);
+        void Promise.resolve(maybePromise).catch(() => undefined);
+      } catch {
+        // Avoid recursive logging failures
+      }
+    }
   }
 }

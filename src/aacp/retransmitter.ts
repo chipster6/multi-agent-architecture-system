@@ -43,7 +43,7 @@ const createDefaultRetryPolicy = (): AACPRetryPolicy => ({
       ErrorCode.ResourceExhausted,
       ErrorCode.Internal
     ];
-    return retryableErrorCodes.includes(error.code as ErrorCode);
+    return retryableErrorCodes.includes(error.code);
   }
 });
 
@@ -63,7 +63,7 @@ export class AACPRetransmitter {
     randomGenerator: () => number = Math.random,
     jitterFactor: number = 0.1
   ) {
-    this.retryPolicy = retryPolicy || createDefaultRetryPolicy();
+    this.retryPolicy = retryPolicy ?? createDefaultRetryPolicy();
     this.randomGenerator = randomGenerator;
     this.jitterFactor = jitterFactor;
   }
@@ -73,7 +73,7 @@ export class AACPRetransmitter {
    * @param messageId Message to retry
    * @param delayMs Delay before retry attempt
    */
-  async scheduleRetry(messageId: string, delayMs: number): Promise<void> {
+  scheduleRetry(messageId: string, delayMs: number): Promise<void> {
     const scheduledAt = Date.now() + delayMs;
     
     // Get current attempt count
@@ -85,13 +85,15 @@ export class AACPRetransmitter {
       scheduledAt,
       attempt
     });
+    return Promise.resolve();
   }
 
   /**
    * Cancel a scheduled retry
    */
-  async cancelRetry(messageId: string): Promise<void> {
+  cancelRetry(messageId: string): Promise<void> {
     this.scheduledRetries.delete(messageId);
+    return Promise.resolve();
   }
 
   /**
@@ -100,7 +102,7 @@ export class AACPRetransmitter {
    * Returns messageIds that are due for retry.
    * Caller is responsible for executing actual retry logic.
    */
-  async processRetriesOnce(): Promise<string[]> {
+  processRetriesOnce(): Promise<string[]> {
     const now = Date.now();
     const dueRetries: string[] = [];
     
@@ -112,7 +114,7 @@ export class AACPRetransmitter {
       }
     }
     
-    return dueRetries;
+    return Promise.resolve(dueRetries);
   }
 
   /**

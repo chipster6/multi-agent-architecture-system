@@ -9,10 +9,15 @@
  * - Pass these to components that need deterministic behavior
  */
 
-import { beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 
 // Mock Date.now() and new Date() for deterministic timestamps
 let mockTimestamp = 1640995200000; // 2022-01-01T00:00:00.000Z
+
+// Reduce log noise during tests to keep runs fast and readable
+if (!process.env['MCP_LOGGING_LEVEL']) {
+  process.env['MCP_LOGGING_LEVEL'] = 'error';
+}
 
 export const testClock = {
   now(): number {
@@ -61,14 +66,25 @@ export const fastCheckConfig = {
   endOnFailure: true, // Stop on first failure for faster feedback
 };
 
+const useFakeTimers = process.env['MCP_TEST_FAKE_TIMERS'] === 'true';
+
 // Reset state before each test for determinism
 beforeEach(() => {
   testClock.reset();
   testIdGenerator.reset();
 
-  // Mock global Date for deterministic timestamps
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date(mockTimestamp));
+  if (useFakeTimers) {
+    // Mock global Date for deterministic timestamps
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(mockTimestamp));
+  }
+});
+
+afterEach(() => {
+  if (useFakeTimers) {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  }
 });
 
 // Global fast-check configuration for property-based tests

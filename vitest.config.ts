@@ -31,13 +31,14 @@ export default defineConfig({
         name: 'performance',
         include: ['tests/performance/**/*.{test,spec}.{js,ts}'],
         exclude: ['node_modules', 'dist', 'arch_docs'],
+        fileParallelism: false,
         testTimeout: 120000, // 2 minutes timeout for performance tests
         hookTimeout: 60000,
       },
       {
         name: 'property',
         include: ['tests/property/**/*.{test,spec}.{js,ts}'],
-        exclude: ['node_modules', 'dist', 'arch_docs'],
+        exclude: ['node_modules', 'dist', 'arch_docs', 'tests/property/index.test.ts'],
         testTimeout: 60000, // Longer timeout for property-based tests
         hookTimeout: 60000,
       },

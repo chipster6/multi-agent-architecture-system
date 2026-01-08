@@ -1,8 +1,38 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InMemoryAACPPersistenceAdapter } from '../../../src/aacp/persistenceAdapter.js';
 import { AACPOutcome } from '../../../src/aacp/types.js';
-import type { AACPRequestRecord, AACPMessageRecord, AACPEnvelope } from '../../../src/aacp/types.js';
+import type { AACPRequestRecord, AACPMessageRecord, AACPEnvelope, AACPMessageType } from '../../../src/aacp/types.js';
 import type { StructuredError } from '../../../src/errors/index.js';
+
+function makeEnvelope(input: {
+  messageId: string;
+  requestId?: string;
+  sourceAgentId: string;
+  targetAgentId: string;
+  seq: number;
+  messageType: AACPMessageType;
+  timestamp: string;
+  payload: unknown;
+}): AACPEnvelope {
+  return {
+    id: input.messageId,
+    correlationId: input.requestId ?? input.messageId,
+    causationId: undefined,
+    source: { id: input.sourceAgentId, type: 'unknown', phase: 0 },
+    destination: { type: 'direct', agentId: input.targetAgentId },
+    type: input.messageType,
+    version: '1.0.0',
+    timestamp: input.timestamp,
+    ttl: undefined,
+    priority: 'normal',
+    context: {},
+    tracing: { traceId: 'trace-1', spanId: 'span-1', sampled: false, baggage: {} },
+    payload: input.payload,
+    messageType: input.messageType,
+    requestId: input.requestId,
+    seq: input.seq,
+  };
+}
 
 describe('InMemoryAACPPersistenceAdapter', () => {
   let adapter: InMemoryAACPPersistenceAdapter;
@@ -80,7 +110,7 @@ describe('InMemoryAACPPersistenceAdapter', () => {
 
   describe('Message Record Operations', () => {
     it('should store and retrieve message records', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-123',
         requestId: 'req-123',
         sourceAgentId: 'agent-1',
@@ -88,8 +118,8 @@ describe('InMemoryAACPPersistenceAdapter', () => {
         seq: 1,
         messageType: 'REQUEST',
         timestamp: '2024-01-01T00:00:00.000Z',
-        payload: { test: 'data' }
-      };
+        payload: { test: 'data' },
+      });
 
       const messageRecord: AACPMessageRecord = {
         messageId: 'msg-123',

@@ -59,6 +59,7 @@ export type {
 // Export persistence adapter interface and implementation
 export type { AACPPersistenceAdapter } from './persistenceAdapter.js';
 export { InMemoryAACPPersistenceAdapter } from './persistenceAdapter.js';
+export { PostgresAACPPersistenceAdapter } from './postgresPersistenceAdapter.js';
 
 // Export InMemoryAACPPersistenceAdapter as default v0.1 implementation
 export { InMemoryAACPPersistenceAdapter as default } from './persistenceAdapter.js';

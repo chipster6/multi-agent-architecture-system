@@ -52,16 +52,20 @@ const ImplementationInputSchema = z.object({
   priorities: z.array(z.string()).optional(),
 });
 
+import type { CoordinatorMemory } from './memory/coordinatorMemory.js';
+
 export class MetaCoordinator {
   private readonly workflowEngine: WorkflowEngine;
   private readonly conflictResolver: ConflictResolver;
   private readonly context: ArchitectureContext;
   private readonly logger = createComponentLogger('MetaCoordinator');
+  private readonly memory: CoordinatorMemory | undefined;
 
-  constructor() {
+  constructor(memory?: CoordinatorMemory) {
     this.workflowEngine = new WorkflowEngine();
     this.conflictResolver = new ConflictResolver();
     this.context = this.initializeContext();
+    this.memory = memory;
   }
 
   private initializeContext(): ArchitectureContext {
@@ -102,6 +106,17 @@ export class MetaCoordinator {
       const analysisResult = analysis as { decisions: ArchitecturalDecision[]; artifacts: Artifact[] };
       this.context.decisions.push(...analysisResult.decisions);
       this.context.artifacts.push(...analysisResult.artifacts);
+
+      if (this.memory) {
+        await Promise.all([
+          ...analysisResult.decisions.map(decision =>
+            this.memory?.recordDecision(decision, this.context.sessionId)
+          ),
+          ...analysisResult.artifacts.map(artifact =>
+            this.memory?.recordArtifact(artifact)
+          ),
+        ]);
+      }
 
       this.logger.info('Requirements analysis completed', {
         sessionId: this.context.sessionId,
@@ -171,6 +186,12 @@ export class MetaCoordinator {
 
         this.context.conflicts.push(...conflicts);
         this.context.decisions.push(...resolutions);
+
+        if (this.memory) {
+          await Promise.all(
+            resolutions.map(decision => this.memory.recordDecision(decision, this.context.sessionId))
+          );
+        }
       }
 
       this.logger.info('Architecture generation completed', {

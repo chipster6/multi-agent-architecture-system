@@ -196,12 +196,13 @@ export class ToolRegistryImpl implements ToolRegistry {
     }
 
     // Validate inputSchema
-    if (!definition.inputSchema) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation for dynamic/unsafe input
+    if (!definition.inputSchema) {
       errors.push({ path: 'inputSchema', message: 'Must be a valid JSON Schema object' });
     } else {
       // Enforce object-root constraint for tool schemas
       const schemaType = definition.inputSchema['type'] as string;
-      if (schemaType !== 'object') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+      if (schemaType !== 'object') {
         errors.push({ path: 'inputSchema.type', message: 'Tool input schema must have type "object" at root level' });
       }
 
@@ -216,7 +217,6 @@ export class ToolRegistryImpl implements ToolRegistry {
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (errors.length > 0) {
       return { valid: false, errors };
     }

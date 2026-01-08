@@ -318,10 +318,11 @@ export function handleInvalidRequest(
 ): ReturnType<typeof toJsonRpcError> {
   // Per JSON-RPC 2.0 spec: if id is invalid/missing, return null
   // If id is valid but request structure is invalid, return the original id
-  const responseId = (requestId === undefined || 
-                     (typeof requestId !== 'string' && typeof requestId !== 'number' && requestId !== null))
-                     ? null 
-                     : requestId;
+  const isValidId =
+    requestId === null ||
+    typeof requestId === 'string' ||
+    typeof requestId === 'number';
+  const responseId = isValidId ? requestId : null;
 
   return toJsonRpcError(
     JSON_RPC_ERROR_CODES.INVALID_REQUEST,

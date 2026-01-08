@@ -8,9 +8,39 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InMemoryAACPLedger } from '../../../src/aacp/ledger.js';
 import { InMemoryAACPPersistenceAdapter } from '../../../src/aacp/persistenceAdapter.js';
-import type { AACPEnvelope } from '../../../src/aacp/types.js';
+import type { AACPEnvelope, AACPMessageType } from '../../../src/aacp/types.js';
 import { AACPOutcome } from '../../../src/aacp/types.js';
 import { createError, ErrorCode } from '../../../src/errors/index.js';
+
+function makeEnvelope(input: {
+  messageId: string;
+  requestId?: string;
+  sourceAgentId: string;
+  targetAgentId: string;
+  seq: number;
+  messageType: AACPMessageType;
+  timestamp: string;
+  payload: unknown;
+}): AACPEnvelope {
+  return {
+    id: input.messageId,
+    correlationId: input.requestId ?? input.messageId,
+    causationId: undefined,
+    source: { id: input.sourceAgentId, type: 'unknown', phase: 0 },
+    destination: { type: 'direct', agentId: input.targetAgentId },
+    type: input.messageType,
+    version: '1.0.0',
+    timestamp: input.timestamp,
+    ttl: undefined,
+    priority: 'normal',
+    context: {},
+    tracing: { traceId: 'trace-1', spanId: 'span-1', sampled: false, baggage: {} },
+    payload: input.payload,
+    messageType: input.messageType,
+    requestId: input.requestId,
+    seq: input.seq,
+  };
+}
 
 describe('InMemoryAACPLedger', () => {
   let ledger: InMemoryAACPLedger;
@@ -23,7 +53,7 @@ describe('InMemoryAACPLedger', () => {
 
   describe('append operation', () => {
     it('should append new message and return shouldExecute: true', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-001',
         requestId: 'req-001',
         sourceAgentId: 'agent-a',
@@ -31,8 +61,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 1,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'test' }
-      };
+        payload: { action: 'test' },
+      });
 
       const result = await ledger.append(envelope);
 
@@ -56,15 +86,15 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should handle message without requestId', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-002',
         sourceAgentId: 'agent-a',
         targetAgentId: 'agent-b',
         seq: 2,
         messageType: 'EVENT',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { event: 'notification' }
-      };
+        payload: { event: 'notification' },
+      });
 
       const result = await ledger.append(envelope);
 
@@ -80,26 +110,27 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should return cached result for duplicate completed request', async () => {
-      const envelope: AACPEnvelope = {
+      const envelopeInput = {
         messageId: 'msg-003',
         requestId: 'req-003',
         sourceAgentId: 'agent-a',
         targetAgentId: 'agent-b',
         seq: 3,
-        messageType: 'REQUEST',
+        messageType: 'REQUEST' as const,
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'duplicate-test' }
+        payload: { action: 'duplicate-test' },
       };
+      const envelope = makeEnvelope(envelopeInput);
 
       // First append
       await ledger.append(envelope);
       await ledger.markCompleted('req-003', AACPOutcome.COMPLETED, 'completion-ref-123');
 
       // Second append (duplicate)
-      const duplicateEnvelope: AACPEnvelope = {
-        ...envelope,
-        messageId: 'msg-003-retry' // Different messageId, same requestId
-      };
+      const duplicateEnvelope = makeEnvelope({
+        ...envelopeInput,
+        messageId: 'msg-003-retry', // Different messageId, same requestId
+      });
 
       const result = await ledger.append(duplicateEnvelope);
 
@@ -110,25 +141,26 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should ignore duplicate in-progress request', async () => {
-      const envelope: AACPEnvelope = {
+      const envelopeInput = {
         messageId: 'msg-004',
         requestId: 'req-004',
         sourceAgentId: 'agent-a',
         targetAgentId: 'agent-b',
         seq: 4,
-        messageType: 'REQUEST',
+        messageType: 'REQUEST' as const,
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'in-progress-test' }
+        payload: { action: 'in-progress-test' },
       };
+      const envelope = makeEnvelope(envelopeInput);
 
       // First append (creates UNKNOWN status)
       await ledger.append(envelope);
 
       // Second append (duplicate, still UNKNOWN)
-      const duplicateEnvelope: AACPEnvelope = {
-        ...envelope,
-        messageId: 'msg-004-retry'
-      };
+      const duplicateEnvelope = makeEnvelope({
+        ...envelopeInput,
+        messageId: 'msg-004-retry',
+      });
 
       const result = await ledger.append(duplicateEnvelope);
 
@@ -139,16 +171,17 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should allow retry for failed request', async () => {
-      const envelope: AACPEnvelope = {
+      const envelopeInput = {
         messageId: 'msg-005',
         requestId: 'req-005',
         sourceAgentId: 'agent-a',
         targetAgentId: 'agent-b',
         seq: 5,
-        messageType: 'REQUEST',
+        messageType: 'REQUEST' as const,
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'retry-test' }
+        payload: { action: 'retry-test' },
       };
+      const envelope = makeEnvelope(envelopeInput);
 
       // First append and mark as failed
       await ledger.append(envelope);
@@ -156,10 +189,10 @@ describe('InMemoryAACPLedger', () => {
       await ledger.markFailed('req-005', error);
 
       // Retry (should be allowed)
-      const retryEnvelope: AACPEnvelope = {
-        ...envelope,
-        messageId: 'msg-005-retry'
-      };
+      const retryEnvelope = makeEnvelope({
+        ...envelopeInput,
+        messageId: 'msg-005-retry',
+      });
 
       const result = await ledger.append(retryEnvelope);
 
@@ -172,7 +205,7 @@ describe('InMemoryAACPLedger', () => {
 
   describe('completion tracking', () => {
     it('should mark request as completed', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-006',
         requestId: 'req-006',
         sourceAgentId: 'agent-a',
@@ -180,8 +213,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 6,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'completion-test' }
-      };
+        payload: { action: 'completion-test' },
+      });
 
       await ledger.append(envelope);
       await ledger.markCompleted('req-006', AACPOutcome.COMPLETED, 'result-ref');
@@ -195,7 +228,7 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should mark request as failed', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-007',
         requestId: 'req-007',
         sourceAgentId: 'agent-a',
@@ -203,8 +236,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 7,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'failure-test' }
-      };
+        payload: { action: 'failure-test' },
+      });
 
       await ledger.append(envelope);
       const error = createError(ErrorCode.InvalidArgument, 'Invalid input');
@@ -222,8 +255,8 @@ describe('InMemoryAACPLedger', () => {
   describe('query operations', () => {
     beforeEach(async () => {
       // Set up test data
-      const envelopes: AACPEnvelope[] = [
-        {
+      const envelopes = [
+        makeEnvelope({
           messageId: 'msg-query-1',
           requestId: 'req-query-1',
           sourceAgentId: 'agent-a',
@@ -231,9 +264,9 @@ describe('InMemoryAACPLedger', () => {
           seq: 1,
           messageType: 'REQUEST',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { action: 'query-test-1' }
-        },
-        {
+          payload: { action: 'query-test-1' },
+        }),
+        makeEnvelope({
           messageId: 'msg-query-2',
           requestId: 'req-query-2',
           sourceAgentId: 'agent-a',
@@ -241,17 +274,17 @@ describe('InMemoryAACPLedger', () => {
           seq: 2,
           messageType: 'REQUEST',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { action: 'query-test-2' }
-        },
-        {
+          payload: { action: 'query-test-2' },
+        }),
+        makeEnvelope({
           messageId: 'msg-query-3',
           sourceAgentId: 'agent-c',
           targetAgentId: 'agent-d',
           seq: 1,
           messageType: 'EVENT',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { event: 'query-event' }
-        }
+          payload: { event: 'query-event' },
+        }),
       ];
 
       for (const envelope of envelopes) {
@@ -286,7 +319,7 @@ describe('InMemoryAACPLedger', () => {
     it('should get unacknowledged messages for agent pair', async () => {
       const unacknowledged = await ledger.getUnacknowledgedMessages('agent-a', 'agent-b');
       expect(unacknowledged).toHaveLength(1); // Only msg-query-2 (failed) is unacknowledged
-      expect(unacknowledged[0].messageId).toBe('msg-query-2');
+      expect(unacknowledged[0].id).toBe('msg-query-2');
     });
   });
 
@@ -300,7 +333,7 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should check duplicate for completed request', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-dup-1',
         requestId: 'req-dup-1',
         sourceAgentId: 'agent-a',
@@ -308,8 +341,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 1,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { result: 'success' }
-      };
+        payload: { result: 'success' },
+      });
 
       await ledger.append(envelope);
       await ledger.markCompleted('req-dup-1', AACPOutcome.COMPLETED, 'completion-123');
@@ -322,7 +355,7 @@ describe('InMemoryAACPLedger', () => {
     });
 
     it('should check duplicate for in-progress request', async () => {
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-dup-2',
         requestId: 'req-dup-2',
         sourceAgentId: 'agent-a',
@@ -330,8 +363,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 2,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'in-progress' }
-      };
+        payload: { action: 'in-progress' },
+      });
 
       await ledger.append(envelope);
 
@@ -346,8 +379,8 @@ describe('InMemoryAACPLedger', () => {
   describe('statistics and maintenance', () => {
     it('should return ledger statistics', async () => {
       // Add some test data
-      const envelopes: AACPEnvelope[] = [
-        {
+      const envelopes = [
+        makeEnvelope({
           messageId: 'msg-stats-1',
           requestId: 'req-stats-1',
           sourceAgentId: 'agent-a',
@@ -355,9 +388,9 @@ describe('InMemoryAACPLedger', () => {
           seq: 1,
           messageType: 'REQUEST',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { action: 'stats-test-1' }
-        },
-        {
+          payload: { action: 'stats-test-1' },
+        }),
+        makeEnvelope({
           messageId: 'msg-stats-2',
           requestId: 'req-stats-2',
           sourceAgentId: 'agent-a',
@@ -365,17 +398,17 @@ describe('InMemoryAACPLedger', () => {
           seq: 2,
           messageType: 'REQUEST',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { action: 'stats-test-2' }
-        },
-        {
+          payload: { action: 'stats-test-2' },
+        }),
+        makeEnvelope({
           messageId: 'msg-stats-3',
           sourceAgentId: 'agent-c',
           targetAgentId: 'agent-d',
           seq: 1,
           messageType: 'EVENT',
           timestamp: '2024-01-15T10:30:00.000Z',
-          payload: { event: 'stats-event' }
-        }
+          payload: { event: 'stats-event' },
+        }),
       ];
 
       for (const envelope of envelopes) {
@@ -399,7 +432,7 @@ describe('InMemoryAACPLedger', () => {
       const ttl = 3600000; // 1 hour
       const ledgerWithTtl = new InMemoryAACPLedger(persistenceAdapter, ttl);
 
-      const envelope: AACPEnvelope = {
+      const envelope = makeEnvelope({
         messageId: 'msg-expire-1',
         requestId: 'req-expire-1',
         sourceAgentId: 'agent-a',
@@ -407,8 +440,8 @@ describe('InMemoryAACPLedger', () => {
         seq: 1,
         messageType: 'REQUEST',
         timestamp: '2024-01-15T10:30:00.000Z',
-        payload: { action: 'expire-test' }
-      };
+        payload: { action: 'expire-test' },
+      });
 
       await ledgerWithTtl.append(envelope);
 

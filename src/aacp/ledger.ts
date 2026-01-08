@@ -45,8 +45,11 @@ export class InMemoryAACPLedger implements AACPLedger {
    */
   async append(envelope: AACPEnvelope): Promise<AACPLedgerResult> {
     const now = new Date();
-    const timestamp = now.toISOString();
-    const expiresAt = new Date(now.getTime() + this.defaultTtlMs).toISOString();
+    const envelopeTime = new Date(envelope.timestamp);
+    const baseTime = Number.isNaN(envelopeTime.getTime()) ? now : envelopeTime;
+    const ttlMs = envelope.ttl ?? this.defaultTtlMs;
+    const timestamp = baseTime.toISOString();
+    const expiresAt = new Date(baseTime.getTime() + ttlMs).toISOString();
 
     // Step 1: Deduplication check by requestId (if present)
     if (envelope.requestId) {
@@ -82,12 +85,12 @@ export class InMemoryAACPLedger implements AACPLedger {
     
     // Create message record
     const messageRecord: AACPMessageRecord = {
-      messageId: envelope.messageId,
+      messageId: envelope.id,
       envelope: { ...envelope },
       status: AACPOutcome.UNKNOWN,
       timestamp,
       expiresAt,
-      retryCount: 0
+      retryCount: 0,
     };
 
     // Add requestId only if present
@@ -95,20 +98,29 @@ export class InMemoryAACPLedger implements AACPLedger {
       messageRecord.requestId = envelope.requestId;
     }
 
-    await this.persistenceAdapter.putMessageRecord(envelope.messageId, messageRecord);
+    await this.persistenceAdapter.putMessageRecord(envelope.id, messageRecord);
 
     // Create request record if requestId is present
     if (envelope.requestId && (envelope.messageType === 'REQUEST' || envelope.messageType === 'RESPONSE')) {
       const requestRecord: AACPRequestRecord = {
         requestId: envelope.requestId,
-        sourceAgentId: envelope.sourceAgentId,
-        targetAgentId: envelope.targetAgentId,
+        correlationId: envelope.correlationId,
+        sourceAgentId: envelope.source.id,
+        targetAgentId:
+          envelope.destination.type === 'direct'
+            ? envelope.destination.agentId
+            : envelope.destination.type === 'reply'
+            ? envelope.source.id
+            : 'broadcast',
         messageType: envelope.messageType,
         payload: envelope.payload,
         status: AACPOutcome.UNKNOWN,
         timestamp,
-        expiresAt
+        expiresAt,
       };
+      if (envelope.causationId !== undefined) {
+        requestRecord.causationId = envelope.causationId;
+      }
 
       await this.persistenceAdapter.putRequestRecord(envelope.requestId, requestRecord);
     }

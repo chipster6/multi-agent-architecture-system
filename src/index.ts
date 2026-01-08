@@ -16,7 +16,6 @@ import {
   InitializeRequestSchema,
   InitializedNotificationSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { ServerConfig } from './config/configManager.js';
 import type { AdminRegisterToolRequest } from './mcp/adminHandlers.js';
 import type { StructuredLogger } from './logging/structuredLogger.js';
@@ -26,6 +25,8 @@ import type { IdGenerator } from './shared/idGenerator.js';
 import type { Clock } from './shared/clock.js';
 import { createSession, type SessionContext, type SessionState } from './mcp/session.js';
 import { ErrorCode, createError } from './errors/errorHandler.js';
+
+const SUPPORTED_PROTOCOL_VERSIONS = ['2024-11-05'] as const;
 
 /**
  * Tool context interface for tool handlers.
@@ -165,7 +166,7 @@ class FoundationMCPServer implements MCPServer {
    */
   private setupHandlers(): void {
     // Handler for initialize request
-    this.server.setRequestHandler(InitializeRequestSchema, () => {
+    this.server.setRequestHandler(InitializeRequestSchema, (request) => {
       this.options.logger.debug('Received initialize request');
       
       // Initialize is allowed at any state
@@ -184,10 +185,21 @@ class FoundationMCPServer implements MCPServer {
       // Update session state to INITIALIZING
       (this.session as SessionContext & { state: SessionState }).state = 'INITIALIZING';
 
-      this.session.logger.info('Client initializing');
+      const clientProtocolVersion = request.params.protocolVersion;
+      if (!SUPPORTED_PROTOCOL_VERSIONS.includes(clientProtocolVersion)) {
+        throw createError(
+          ErrorCode.InvalidArgument,
+          `Unsupported protocol version: ${clientProtocolVersion}`,
+          { supported: SUPPORTED_PROTOCOL_VERSIONS }
+        );
+      }
+
+      this.session.logger.info('Client initializing', {
+        clientProtocolVersion,
+      });
       
       return {
-        protocolVersion: '2024-11-05',
+        protocolVersion: SUPPORTED_PROTOCOL_VERSIONS[0],
         serverInfo: {
           name: this.options.config.server.name,
           version: this.options.config.server.version,
@@ -342,7 +354,10 @@ class FoundationMCPServer implements MCPServer {
       }
 
       // Step 2: JSON-RPC params shape validation
-      const { name, arguments: args } = request.params;
+      const { name, arguments: args } = request.params as {
+        name?: unknown;
+        arguments?: unknown;
+      };
       
       if (typeof name !== 'string') {
         throw createError(
@@ -361,7 +376,7 @@ class FoundationMCPServer implements MCPServer {
       }
       
       // Convert null/undefined to empty object
-      const toolArgs = args ?? {};
+      const toolArgs = (args ?? {}) as Record<string, unknown>;
 
       // Step 3: Assign IDs
       const correlationId = this.options.idGenerator.generateCorrelationId();
@@ -449,7 +464,33 @@ class FoundationMCPServer implements MCPServer {
         };
       }
 
-      // Step 6: Acquire concurrency slot using tryAcquireSlot() (non-blocking)
+      // Step 6: Schema validation using precompiled Ajv validator
+      if (!registeredTool.validator(toolArgs)) {
+        contextLogger.warn('Schema validation failed', {
+          errors: registeredTool.validator.errors,
+        });
+        
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                code: 'INVALID_ARGUMENT',
+                message: 'Tool arguments failed schema validation',
+                details: { 
+                  reason: 'schema_validation_failed',
+                  errors: registeredTool.validator.errors 
+                },
+                correlationId,
+                runId,
+              }),
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Step 7: Acquire concurrency slot using tryAcquireSlot() (non-blocking)
       const releaseSlot = this.options.resourceManager.tryAcquireSlot();
       if (!releaseSlot) {
         contextLogger.warn('Concurrency limit reached');
@@ -474,111 +515,139 @@ class FoundationMCPServer implements MCPServer {
         };
       }
 
-      try {
-        // Step 7: Schema validation using precompiled Ajv validator
-        if (!registeredTool.validator(toolArgs)) {
-          contextLogger.warn('Schema validation failed', {
-            errors: registeredTool.validator.errors,
-          });
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  code: 'INVALID_ARGUMENT',
-                  message: 'Tool arguments failed schema validation',
-                  details: { 
-                    reason: 'schema_validation_failed',
-                    errors: registeredTool.validator.errors 
-                  },
-                  correlationId,
-                  runId,
-                }),
-              },
-            ],
-            isError: true,
-          };
-        }
+      // Step 8: Execute handler with timeout and AbortSignal
+      const abortController = new AbortController();
+      const startTime = Date.now();
+      let timedOut = false;
+      let timeoutHandle: NodeJS.Timeout | null = null;
 
-        // Step 8: Execute handler with timeout and AbortSignal
-        const abortController = new AbortController();
-        const startTime = Date.now();
-        const timeoutHandle = setTimeout(() => {
+      const toolContext = {
+        runId,
+        correlationId,
+        logger: contextLogger,
+        abortSignal: abortController.signal,
+        // Add transport info for admin tools
+        transport: { type: 'stdio' as const }
+      };
+
+      const handlerPromise = Promise.resolve()
+        .then(() => registeredTool.handler(toolArgs, toolContext))
+        .then((result) => {
+          if (timedOut) {
+            const durationMs = Date.now() - startTime;
+            contextLogger.warn('Tool completed after timeout', {
+              durationMs,
+              outcome: 'late_completed',
+            });
+          }
+          return { type: 'result' as const, result };
+        })
+        .catch((error) => {
+          if (timedOut) {
+            const durationMs = Date.now() - startTime;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            contextLogger.error('Tool failed after timeout', {
+              durationMs,
+              outcome: 'late_failed',
+              error: {
+                name: error instanceof Error ? error.name : 'Error',
+                message: errorMessage,
+              },
+            });
+          }
+          return { type: 'error' as const, error };
+        })
+        .finally(() => {
+          if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+          }
+          releaseSlot();
+        });
+
+      const timeoutPromise = new Promise<{ type: 'timeout' }>((resolve) => {
+        timeoutHandle = setTimeout(() => {
+          timedOut = true;
           abortController.abort();
+          resolve({ type: 'timeout' });
         }, this.options.config.tools.defaultTimeoutMs);
+      });
 
-        try {
-          // Create tool context with all required fields
-          const toolContext = {
-            runId,
-            correlationId,
-            logger: contextLogger,
-            abortSignal: abortController.signal,
-            // Add transport info for admin tools
-            transport: { type: 'stdio' as const }
-          };
+      const outcome = await Promise.race([handlerPromise, timeoutPromise]);
 
-          // Execute the tool handler
-          const result = await registeredTool.handler(toolArgs, toolContext);
-          
-          const durationMs = Date.now() - startTime;
-          contextLogger.info('Tool execution completed', {
-            durationMs,
-            outcome: 'success',
-          });
+      if (outcome.type === 'timeout') {
+        const durationMs = Date.now() - startTime;
+        contextLogger.warn('Tool execution timed out', {
+          durationMs,
+          outcome: 'timeout',
+        });
 
-          // Reset ResourceExhausted counter on successful completion
-          this.options.resourceManager.resetResourceExhaustedCounter();
-
-          // Step 10: Wrap result into MCP tools/call format
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(result),
-              },
-            ],
-            isError: false,
-          };
-        } catch (error) {
-          // Handle tool execution errors
-          const durationMs = Date.now() - startTime;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          const errorName = error instanceof Error ? error.name : 'Error';
-          const errorStack = error instanceof Error ? error.stack : undefined;
-          
-          contextLogger.error('Tool execution failed', {
-            durationMs,
-            error: {
-              name: errorName,
-              message: errorMessage,
-              ...(errorStack && { stack: errorStack }),
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                code: 'TIMEOUT',
+                message: 'Tool execution exceeded timeout limit',
+                correlationId,
+                runId,
+              }),
             },
-            outcome: 'tool_error',
-          });
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  code: 'INTERNAL',
-                  message: errorMessage,
-                  correlationId,
-                  runId,
-                }),
-              },
-            ],
-            isError: true,
-          };
-        } finally {
-          clearTimeout(timeoutHandle);
-        }
-      } finally {
-        // Step 9: Release slot (always, in finally block)
-        releaseSlot();
+          ],
+          isError: true,
+        };
       }
+
+      if (outcome.type === 'error') {
+        const durationMs = Date.now() - startTime;
+        const errorMessage = outcome.error instanceof Error ? outcome.error.message : 'Unknown error';
+        const errorName = outcome.error instanceof Error ? outcome.error.name : 'Error';
+        const errorStack = outcome.error instanceof Error ? outcome.error.stack : undefined;
+        
+        contextLogger.error('Tool execution failed', {
+          durationMs,
+          error: {
+            name: errorName,
+            message: errorMessage,
+            ...(errorStack && { stack: errorStack }),
+          },
+          outcome: 'tool_error',
+        });
+        
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                code: 'INTERNAL',
+                message: errorMessage,
+                correlationId,
+                runId,
+              }),
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const durationMs = Date.now() - startTime;
+      contextLogger.info('Tool execution completed', {
+        durationMs,
+        outcome: 'success',
+      });
+
+      // Reset ResourceExhausted counter on successful completion
+      this.options.resourceManager.resetResourceExhaustedCounter();
+
+      // Step 9: Wrap result into MCP tools/call format
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(outcome.result),
+          },
+        ],
+        isError: false,
+      };
     });
   }
 
@@ -636,6 +705,9 @@ class FoundationMCPServer implements MCPServer {
       // Close the transport
       await this.transport.close();
     }
+
+    // Clean up resource manager background timers if supported
+    this.options.resourceManager.destroy?.();
     
     this.options.logger.info('Foundation MCP Runtime stopped', {
       connectionCorrelationId: this.session?.connectionCorrelationId,
@@ -699,30 +771,140 @@ async function main(): Promise<void> {
     const { createResourceManager } = await import('./resources/resourceManager.js');
     const { ProductionIdGenerator } = await import('./shared/idGenerator.js');
     const { createClock } = await import('./shared/clock.js');
+    const { createPostgresClient } = await import('./storage/postgres.js');
+    const { GeminiEmbeddingProvider } = await import('./embeddings/geminiEmbeddings.js');
+    const { PostgresCoordinatorMemory } = await import('./coordinator/memory/coordinatorMemory.js');
+    const {
+      InMemoryAACPPersistenceAdapter,
+      PostgresAACPPersistenceAdapter,
+      InMemoryAACPLedger,
+      AACPSessionManager,
+    } = await import('./aacp/index.js');
 
     // Initialize components
     const configManager = createConfigManager();
     const config = configManager.load();
     const clock = createClock(); // Use the Clock interface from shared/clock.ts for ServerOptions
-    const logger = new StructuredLogger(new SystemClock(), config.logging.redactKeys);
+    let coordinatorMemory: InstanceType<typeof PostgresCoordinatorMemory> | null = null;
+    const logSink = (entry: { timestamp: string; level: string; message: string; correlationId?: string }): void => {
+      if (!coordinatorMemory) {
+        return;
+      }
+      void coordinatorMemory.recordLogEntry({
+        level: entry.level,
+        message: entry.message,
+        timestamp: entry.timestamp,
+        ...(entry.correlationId !== undefined ? { correlationId: entry.correlationId } : {}),
+      });
+    };
+    const logger = new StructuredLogger(new SystemClock(), config.logging.redactKeys, { logSink });
     const toolRegistry = createToolRegistry(configManager, logger);
     const resourceManager = createResourceManager(config);
     const idGenerator = new ProductionIdGenerator();
+    let postgresClient: ReturnType<typeof createPostgresClient> | null = null;
+    let embeddingsProvider: InstanceType<typeof GeminiEmbeddingProvider> | undefined;
+
+    if (config.database?.enabled) {
+      const client = createPostgresClient(config);
+      postgresClient = client;
+      const artifactRoot = process.env['MCP_ARTIFACT_STORAGE_PATH'] ?? './artifacts';
+
+      if (config.embeddings?.enabled) {
+        const apiKey = process.env['GEMINI_API_KEY'];
+        if (!apiKey) {
+          logger.warn('Embeddings enabled but GEMINI_API_KEY is missing; embeddings will be skipped');
+        } else {
+          embeddingsProvider = new GeminiEmbeddingProvider(apiKey, {
+            model: config.embeddings.model,
+            dimensions: config.embeddings.dimensions,
+          });
+        }
+      }
+
+      const memoryOptions: {
+        client: ReturnType<typeof createPostgresClient>;
+        embeddings?: InstanceType<typeof GeminiEmbeddingProvider>;
+        model?: string;
+        dimensions?: number;
+        maxInlineBytes: number;
+        artifactRoot: string;
+      } = {
+        client,
+        maxInlineBytes: config.tools.maxStateBytes,
+        artifactRoot,
+      };
+      if (embeddingsProvider) {
+        memoryOptions.embeddings = embeddingsProvider;
+      }
+      if (config.embeddings?.model) {
+        memoryOptions.model = config.embeddings.model;
+      }
+      if (config.embeddings?.dimensions) {
+        memoryOptions.dimensions = config.embeddings.dimensions;
+      }
+      coordinatorMemory = new PostgresCoordinatorMemory(memoryOptions);
+
+      const retentionDays = 90;
+      void coordinatorMemory.purgeOldLogs(retentionDays);
+      setInterval(() => {
+        void coordinatorMemory?.purgeOldLogs(retentionDays);
+      }, 24 * 60 * 60 * 1000);
+    }
 
     // Initialize agent coordinator
     const { AgentCoordinatorImpl } = await import('./agents/agentCoordinatorImpl.js');
-    const agentCoordinator = new AgentCoordinatorImpl(logger);
+    const aacpAdapter = postgresClient
+      ? (() => {
+          const adapterOptions: {
+            client: ReturnType<typeof createPostgresClient>;
+            embeddings?: InstanceType<typeof GeminiEmbeddingProvider>;
+            model?: string;
+            dimensions?: number;
+            maxInlineBytes?: number;
+            artifactRoot?: string;
+          } = {
+            client: postgresClient,
+            maxInlineBytes: config.tools.maxStateBytes,
+            artifactRoot: process.env['MCP_ARTIFACT_STORAGE_PATH'] ?? './artifacts',
+          };
+          if (embeddingsProvider) {
+            adapterOptions.embeddings = embeddingsProvider;
+          }
+          if (config.embeddings?.model) {
+            adapterOptions.model = config.embeddings.model;
+          }
+          if (config.embeddings?.dimensions) {
+            adapterOptions.dimensions = config.embeddings.dimensions;
+          }
+          return new PostgresAACPPersistenceAdapter(adapterOptions);
+        })()
+      : new InMemoryAACPPersistenceAdapter();
+    const aacpLedger = new InMemoryAACPLedger(aacpAdapter);
+    const aacpSessionManager = new AACPSessionManager(aacpAdapter, {
+      ledger: aacpLedger,
+    });
+    const coordinatorOptions: {
+      memory?: InstanceType<typeof PostgresCoordinatorMemory>;
+      aacp?: { ledger: typeof aacpLedger; sessionManager: typeof aacpSessionManager };
+    } = {
+      aacp: {
+        ledger: aacpLedger,
+        sessionManager: aacpSessionManager,
+      },
+    };
+    if (coordinatorMemory) {
+      coordinatorOptions.memory = coordinatorMemory;
+    }
+    const agentCoordinator = new AgentCoordinatorImpl(logger, coordinatorOptions);
 
     // Register health tool (static tool, always available)
     const { healthToolDefinition, healthToolHandler } = await import('./tools/healthTool.js');
     
     // Create a wrapper handler that matches the ToolHandler interface
-    const wrappedHealthHandler = (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
-      const result = healthToolHandler(args, context, config, resourceManager);
-      return Promise.resolve({
-        content: [{ type: 'text', text: JSON.stringify(result) }]
-      });
-    };
+    const wrappedHealthHandler = (
+      args: Record<string, unknown>,
+      context: ToolContext
+    ): Promise<unknown> => Promise.resolve(healthToolHandler(args, context, config, resourceManager));
     
     toolRegistry.register(healthToolDefinition, wrappedHealthHandler, { isDynamic: false });
     
@@ -736,11 +918,8 @@ async function main(): Promise<void> {
     
     for (const agentTool of agentTools) {
       // Create a wrapper handler that matches the ToolHandler interface
-      const wrappedAgentHandler = async (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
-        const result = await agentTool.handler(args, context);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result) }]
-        };
+      const wrappedAgentHandler = (args: Record<string, unknown>, context: ToolContext): Promise<unknown> => {
+        return agentTool.handler(args, context);
       };
       
       toolRegistry.register(agentTool.definition, wrappedAgentHandler, { isDynamic: false });
@@ -757,7 +936,7 @@ async function main(): Promise<void> {
       
       for (const adminTool of ADMIN_TOOL_DEFINITIONS) {
         // Create a wrapper handler that provides the required dependencies
-        const wrappedHandler = async (args: Record<string, unknown>, context: ToolContext): Promise<CallToolResult> => {
+        const wrappedHandler = async (args: Record<string, unknown>, context: ToolContext): Promise<unknown> => {
           const { createSession } = await import('./mcp/session.js');
           
           // Create a temporary session context for admin operations
@@ -785,10 +964,7 @@ async function main(): Promise<void> {
             requestContext
           );
           
-          // Wrap the result in CallToolResult format
-          return {
-            content: [{ type: 'text', text: JSON.stringify(adminResult) }]
-          };
+          return adminResult;
         };
         
         toolRegistry.register(

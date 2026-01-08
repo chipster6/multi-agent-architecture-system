@@ -5,37 +5,10 @@
  * using fast-check with minimum 100 iterations each for robust validation.
  */
 
-import { describe, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, expect } from 'vitest';
 import { test, fc } from '@fast-check/vitest';
-import { startTestServer, type TestServerInstance } from '../helpers/testHarness';
-import type { ServerConfig } from '../../src/config/configManager';
 
 describe('Property-Based Correctness Tests', () => {
-  // Shared server instance for all property tests to avoid repeated setup
-  let sharedServer: TestServerInstance;
-
-  beforeEach(async () => {
-    // Use lightweight configuration for property tests
-    const config: Partial<ServerConfig> = {
-      tools: {
-        defaultTimeoutMs: 100, // Reduced timeout for faster tests
-        maxConcurrentExecutions: 2, // Reduced concurrency
-        maxPayloadBytes: 512, // Smaller payload limit
-        adminRegistrationEnabled: true,
-      },
-      security: {
-        dynamicRegistrationEnabled: true,
-      },
-    };
-    sharedServer = await startTestServer(config);
-  }, 10000); // 10 second timeout for setup
-
-  afterEach(async () => {
-    if (sharedServer) {
-      await sharedServer.close();
-    }
-  }, 5000); // 5 second timeout for cleanup
-
   /**
    * Property 1: Initialization Response Completeness
    * initialize result includes configured server name/version/capabilities
@@ -43,7 +16,11 @@ describe('Property-Based Correctness Tests', () => {
   describe('Property 1: Initialization Response Completeness', () => {
     test.prop([
       fc.string({ minLength: 1, maxLength: 20 }).filter(s => s.trim().length > 0),
-      fc.string({ minLength: 1, maxLength: 10 }).filter(s => /^\d+\.\d+\.\d+$/.test(s)),
+      fc.tuple(
+        fc.integer({ min: 0, max: 99 }),
+        fc.integer({ min: 0, max: 99 }),
+        fc.integer({ min: 0, max: 99 })
+      ).map(([major, minor, patch]) => `${major}.${minor}.${patch}`),
     ], { numRuns: 10, timeout: 1000 })('initialize result includes configured server name/version/capabilities', 
       async (serverName, serverVersion) => {
         // Use mock response instead of creating new server for each iteration
